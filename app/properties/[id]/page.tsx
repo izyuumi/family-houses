@@ -1,4 +1,4 @@
-import { Suspense, use } from "react";
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
@@ -13,17 +13,8 @@ interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-function PropertyContent({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
-  
-  return (
-    <Suspense fallback={<LoadingState />}>
-      <PropertyData id={id} />
-    </Suspense>
-  );
-}
-
-async function PropertyData({ id }: { id: string }) {
+async function PropertyData({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = await createClient();
   const {
     data: { user },
@@ -37,7 +28,7 @@ async function PropertyData({ id }: { id: string }) {
     .eq("id", id)
     .single();
 
-  if (error) throw new Error(error.message);
+  if (error || !property) redirect("/properties");
 
   return (
     <main className="min-h-dvh p-4 max-w-xl mx-auto pb-20">
@@ -90,7 +81,7 @@ function LoadingState() {
 export default function PropertyDetail({ params }: PageProps) {
   return (
     <Suspense fallback={<LoadingState />}>
-      <PropertyContent params={params} />
+      <PropertyData params={params} />
     </Suspense>
   );
 }
