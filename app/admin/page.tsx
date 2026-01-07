@@ -21,7 +21,6 @@ export default function AdminPage() {
     name: "",
     address: "",
     prefecture_id: "",
-    floor_unit: "",
     notes: "",
     wifi_ssid: "",
   });
@@ -38,7 +37,6 @@ export default function AdminPage() {
       name: formData.name,
       address: formData.address,
       prefecture_id: formData.prefecture_id || null,
-      floor_unit: formData.floor_unit || null,
       notes: formData.notes || null,
       wifi_ssid: formData.wifi_ssid || null,
     });
@@ -55,7 +53,6 @@ export default function AdminPage() {
       name: "",
       address: "",
       prefecture_id: "",
-      floor_unit: "",
       notes: "",
       wifi_ssid: "",
     });
@@ -138,17 +135,6 @@ export default function AdminPage() {
             <p className="text-xs text-muted-foreground">
               Links this property to a location on the map
             </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="floor_unit">Floor / Unit</Label>
-            <Input
-              id="floor_unit"
-              name="floor_unit"
-              value={formData.floor_unit}
-              onChange={handleChange}
-              placeholder="3F, Room 301"
-            />
           </div>
 
           <div className="space-y-2">
