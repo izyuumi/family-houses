@@ -4,7 +4,7 @@ import { AppleSignInButton } from "@/components/apple-sign-in-button";
 import { MapDashboard } from "@/components/map-dashboard";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Button } from "@/components/ui/button";
-import { Home, List, LogOut } from "lucide-react";
+import { Home, List, LogOut, Plus } from "lucide-react";
 import Link from "next/link";
 
 interface Property {
@@ -50,6 +50,12 @@ async function HomeContent() {
         <div className="w-full max-w-5xl flex justify-between items-center px-4 text-sm">
           <span className="font-semibold">Family Houses</span>
           <div className="flex items-center gap-2">
+            <Link href="/admin">
+              <Button variant="ghost" size="sm">
+                <Plus className="h-4 w-4 mr-1" />
+                Add
+              </Button>
+            </Link>
             <Link href="/properties">
               <Button variant="ghost" size="sm">
                 <List className="h-4 w-4 mr-1" />

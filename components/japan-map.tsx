@@ -74,9 +74,7 @@ export function JapanMap({ onPrefectureClick, activePrefectures = [] }: JapanMap
     onPrefectureClick?.(prefecture);
   };
 
-  const visiblePrefectures = activePrefectures.length > 0
-    ? PREFECTURES.filter((p) => activePrefectures.includes(p.id))
-    : PREFECTURES;
+  const visiblePrefectures = PREFECTURES.filter((p) => activePrefectures.includes(p.id));
 
   return (
     <div className="w-full h-full flex items-center justify-center p-4">

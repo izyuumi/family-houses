@@ -19,7 +19,8 @@ interface MapDashboardProps {
 }
 
 export function MapDashboard({ properties }: MapDashboardProps) {
-  const [selectedPrefecture, setSelectedPrefecture] = useState<Prefecture | null>(null);
+  const [selectedPrefecture, setSelectedPrefecture] =
+    useState<Prefecture | null>(null);
   const [showAllProperties, setShowAllProperties] = useState(false);
 
   const prefecturesWithProperties = useMemo(() => {
@@ -52,14 +53,12 @@ export function MapDashboard({ properties }: MapDashboardProps) {
     setShowAllProperties(!showAllProperties);
   };
 
-  const hasPropertyData = prefecturesWithProperties.length > 0;
-
   return (
     <div className="relative w-full h-full flex flex-col md:flex-row">
       <div className="flex-1 relative min-h-[50vh] md:min-h-0">
         <JapanMap
           onPrefectureClick={handlePrefectureClick}
-          activePrefectures={hasPropertyData ? prefecturesWithProperties : undefined}
+          activePrefectures={prefecturesWithProperties}
         />
 
         <div className="absolute top-4 left-4 z-10">
@@ -73,16 +72,6 @@ export function MapDashboard({ properties }: MapDashboardProps) {
             All Properties ({properties.length})
           </Button>
         </div>
-
-        {!hasPropertyData && properties.length > 0 && (
-          <div className="absolute bottom-4 left-4 right-4 md:right-auto md:max-w-xs z-10">
-            <Card className="p-3 text-sm text-muted-foreground">
-              <p>
-                Properties don&apos;t have prefecture data yet. Click &quot;All Properties&quot; to browse.
-              </p>
-            </Card>
-          </div>
-        )}
       </div>
 
       {(selectedPrefecture || showAllProperties) && (
@@ -130,17 +119,19 @@ export function MapDashboard({ properties }: MapDashboardProps) {
             )}
           </div>
 
-          {!showAllProperties && filteredProperties.length === 0 && properties.length > 0 && (
-            <div className="p-4 border-t shrink-0">
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={toggleAllProperties}
-              >
-                View all {properties.length} properties
-              </Button>
-            </div>
-          )}
+          {!showAllProperties &&
+            filteredProperties.length === 0 &&
+            properties.length > 0 && (
+              <div className="p-4 border-t shrink-0">
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={toggleAllProperties}
+                >
+                  View all {properties.length} properties
+                </Button>
+              </div>
+            )}
         </div>
       )}
 
