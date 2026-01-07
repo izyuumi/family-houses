@@ -35,7 +35,7 @@ async function PropertiesContent() {
           <h1 className="text-xl font-semibold">Houses</h1>
         </div>
         <div className="flex items-center gap-1">
-          <Link href="/protected">
+          <Link href="/">
             <Button variant="ghost" size="sm">
               <Map className="h-4 w-4" />
             </Button>
