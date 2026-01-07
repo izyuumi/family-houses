@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Home, MapPin, LogOut } from "lucide-react";
+import { Home, MapPin, LogOut, Map } from "lucide-react";
 
 interface Property {
   id: string;
@@ -34,12 +34,18 @@ async function PropertiesContent() {
           <Home className="h-5 w-5" />
           <h1 className="text-xl font-semibold">Houses</h1>
         </div>
-        <form action="/auth/signout" method="post">
-          <Button variant="ghost" size="sm" type="submit">
-            <LogOut className="h-4 w-4 mr-1" />
-            Sign out
-          </Button>
-        </form>
+        <div className="flex items-center gap-1">
+          <Link href="/protected">
+            <Button variant="ghost" size="sm">
+              <Map className="h-4 w-4" />
+            </Button>
+          </Link>
+          <form action="/auth/signout" method="post">
+            <Button variant="ghost" size="sm" type="submit">
+              <LogOut className="h-4 w-4" />
+            </Button>
+          </form>
+        </div>
       </header>
 
       <div className="mt-2 space-y-3">
