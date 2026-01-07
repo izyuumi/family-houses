@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 
 interface Prefecture {
   id: string;
@@ -83,6 +83,10 @@ interface JapanMapProps {
   markers?: PropertyMarker[];
 }
 
+const MIN_ZOOM = 1;
+const MAX_ZOOM = 5;
+const ZOOM_SENSITIVITY = 0.002;
+
 export function JapanMap({
   onPrefectureClick,
   onLocationClick,
@@ -93,12 +97,16 @@ export function JapanMap({
   selectedLocation = null,
   markers = [],
 }: JapanMapProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
-  const [hoveredPrefecture, setHoveredPrefecture] = useState<string | null>(
-    null
-  );
+  const [hoveredPrefecture, setHoveredPrefecture] = useState<string | null>(null);
   const [hoveredMarker, setHoveredMarker] = useState<string | null>(null);
   const [internalSelected, setInternalSelected] = useState<string | null>(null);
+
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = useState(false);
+  const [panStart, setPanStart] = useState({ x: 0, y: 0 });
 
   const selectedPrefecture = selectedPrefectureId ?? internalSelected;
 
@@ -107,51 +115,145 @@ export function JapanMap({
     onPrefectureClick?.(prefecture);
   };
 
-  const handleSvgClick = useCallback(
-    (e: React.MouseEvent<SVGSVGElement>) => {
-      if (!selectionMode || !onLocationClick || !svgRef.current) return;
+  const getSvgPoint = useCallback(
+    (clientX: number, clientY: number): MapLocation | null => {
+      if (!svgRef.current) return null;
 
       const svg = svgRef.current;
       const point = svg.createSVGPoint();
-      point.x = e.clientX;
-      point.y = e.clientY;
+      point.x = clientX;
+      point.y = clientY;
 
       const ctm = svg.getScreenCTM();
-      if (!ctm) return;
+      if (!ctm) return null;
 
       const svgPoint = point.matrixTransform(ctm.inverse());
-      onLocationClick({
+      return {
         x: Math.round(svgPoint.x * 10) / 10,
         y: Math.round(svgPoint.y * 10) / 10,
+      };
+    },
+    []
+  );
+
+  const handleWheel = useCallback(
+    (e: WheelEvent) => {
+      e.preventDefault();
+
+      const delta = -e.deltaY * ZOOM_SENSITIVITY;
+      const newZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom + delta * zoom));
+
+      if (!containerRef.current) return;
+
+      const rect = containerRef.current.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      const zoomRatio = newZoom / zoom;
+      const newPanX = mouseX - (mouseX - pan.x) * zoomRatio;
+      const newPanY = mouseY - (mouseY - pan.y) * zoomRatio;
+
+      setZoom(newZoom);
+      setPan({ x: newPanX, y: newPanY });
+    },
+    [zoom, pan]
+  );
+
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      if (selectionMode) return;
+      if (e.button !== 0) return;
+
+      setIsPanning(true);
+      setPanStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
+    },
+    [pan, selectionMode]
+  );
+
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent) => {
+      if (!isPanning) return;
+
+      setPan({
+        x: e.clientX - panStart.x,
+        y: e.clientY - panStart.y,
       });
     },
-    [selectionMode, onLocationClick]
+    [isPanning, panStart]
   );
+
+  const handleMouseUp = useCallback(() => {
+    setIsPanning(false);
+  }, []);
+
+  const handleSvgClick = useCallback(
+    (e: React.MouseEvent<SVGSVGElement>) => {
+      if (!selectionMode || !onLocationClick) return;
+      if (isPanning) return;
+
+      const point = getSvgPoint(e.clientX, e.clientY);
+      if (point) {
+        onLocationClick(point);
+      }
+    },
+    [selectionMode, onLocationClick, isPanning, getSvgPoint]
+  );
+
+  const resetView = useCallback(() => {
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+  }, []);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    container.addEventListener("wheel", handleWheel, { passive: false });
+    return () => container.removeEventListener("wheel", handleWheel);
+  }, [handleWheel]);
+
+  useEffect(() => {
+    const handleGlobalMouseUp = () => setIsPanning(false);
+    window.addEventListener("mouseup", handleGlobalMouseUp);
+    return () => window.removeEventListener("mouseup", handleGlobalMouseUp);
+  }, []);
 
   const visiblePrefectures =
     selectionMode || markers.length > 0
       ? []
       : PREFECTURES.filter((p) => activePrefectures.includes(p.id));
 
+  const markerScale = 1 / zoom;
+
   return (
-    <div className="w-full h-full flex items-center justify-center p-4">
+    <div className="w-full h-full flex items-center justify-center relative overflow-hidden">
       <div
-        className="relative w-full h-full"
-        style={{ maxWidth: "min(100%, calc(100vh * 1000 / 846))" }}
+        ref={containerRef}
+        className={`relative w-full h-full ${isPanning ? "cursor-grabbing" : selectionMode ? "cursor-crosshair" : "cursor-grab"}`}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
       >
         <svg
           ref={svgRef}
           viewBox="0 0 1000 846"
-          className={`w-full h-full ${selectionMode ? "cursor-crosshair" : ""}`}
+          className="w-full h-full"
           preserveAspectRatio="xMidYMid meet"
           onClick={handleSvgClick}
+          style={{
+            transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+            transformOrigin: "0 0",
+            transition: isPanning ? "none" : "transform 0.1s ease-out",
+          }}
         >
           <image href="/jp.svg" x="0" y="0" width="1000" height="846" />
 
           {visiblePrefectures.map((prefecture) => {
             const isHovered = hoveredPrefecture === prefecture.id;
             const isSelected = selectedPrefecture === prefecture.id;
-            const radius = isHovered || isSelected ? 14 : 10;
+            const baseRadius = isHovered || isSelected ? 14 : 10;
+            const radius = baseRadius * markerScale;
 
             return (
               <g
@@ -174,34 +276,36 @@ export function JapanMap({
                       isSelected
                         ? "fill-primary stroke-background stroke-2"
                         : isHovered
-                        ? "fill-primary/80 stroke-background stroke-2"
-                        : "fill-destructive stroke-background stroke-[1.5]"
+                          ? "fill-primary/80 stroke-background stroke-2"
+                          : "fill-destructive stroke-background stroke-[1.5]"
                     }
                   `}
+                  style={{ strokeWidth: 1.5 * markerScale }}
                 />
                 <circle
                   cx={prefecture.x}
                   cy={prefecture.y}
-                  r={4}
+                  r={4 * markerScale}
                   className="fill-background pointer-events-none"
                 />
 
                 {(isHovered || isSelected) && (
                   <g className="pointer-events-none">
                     <rect
-                      x={prefecture.x - 55}
-                      y={prefecture.y - 42}
-                      width={110}
-                      height={28}
-                      rx={4}
+                      x={prefecture.x - 55 * markerScale}
+                      y={prefecture.y - 42 * markerScale}
+                      width={110 * markerScale}
+                      height={28 * markerScale}
+                      rx={4 * markerScale}
                       className="fill-popover stroke-border"
+                      style={{ strokeWidth: markerScale }}
                     />
                     <text
                       x={prefecture.x}
-                      y={prefecture.y - 23}
+                      y={prefecture.y - 23 * markerScale}
                       textAnchor="middle"
                       className="fill-popover-foreground font-medium"
-                      style={{ fontSize: "14px" }}
+                      style={{ fontSize: `${14 * markerScale}px` }}
                     >
                       {prefecture.name}
                     </text>
@@ -213,7 +317,8 @@ export function JapanMap({
 
           {markers.map((marker) => {
             const isHovered = hoveredMarker === marker.id;
-            const radius = isHovered ? 14 : 10;
+            const baseRadius = isHovered ? 14 : 10;
+            const radius = baseRadius * markerScale;
 
             return (
               <g
@@ -238,30 +343,32 @@ export function JapanMap({
                         : "fill-destructive stroke-background stroke-[1.5]"
                     }
                   `}
+                  style={{ strokeWidth: 1.5 * markerScale }}
                 />
                 <circle
                   cx={marker.x}
                   cy={marker.y}
-                  r={4}
+                  r={4 * markerScale}
                   className="fill-background pointer-events-none"
                 />
 
                 {isHovered && (
                   <g className="pointer-events-none">
                     <rect
-                      x={marker.x - 65}
-                      y={marker.y - 42}
-                      width={130}
-                      height={28}
-                      rx={4}
+                      x={marker.x - 65 * markerScale}
+                      y={marker.y - 42 * markerScale}
+                      width={130 * markerScale}
+                      height={28 * markerScale}
+                      rx={4 * markerScale}
                       className="fill-popover stroke-border"
+                      style={{ strokeWidth: markerScale }}
                     />
                     <text
                       x={marker.x}
-                      y={marker.y - 23}
+                      y={marker.y - 23 * markerScale}
                       textAnchor="middle"
                       className="fill-popover-foreground font-medium"
-                      style={{ fontSize: "14px" }}
+                      style={{ fontSize: `${14 * markerScale}px` }}
                     >
                       {marker.name}
                     </text>
@@ -272,26 +379,36 @@ export function JapanMap({
           })}
 
           {selectedLocation && (
-            <g
-              className={
-                selectionMode ? "pointer-events-none" : "cursor-pointer"
-              }
-            >
+            <g className="pointer-events-none">
               <circle
                 cx={selectedLocation.x}
                 cy={selectedLocation.y}
-                r={14}
-                className="fill-primary stroke-background stroke-2"
+                r={14 * markerScale}
+                className="fill-primary stroke-background"
+                style={{ strokeWidth: 2 * markerScale }}
               />
               <circle
                 cx={selectedLocation.x}
                 cy={selectedLocation.y}
-                r={4}
-                className="fill-background pointer-events-none"
+                r={4 * markerScale}
+                className="fill-background"
               />
             </g>
           )}
         </svg>
+      </div>
+
+      {zoom > 1 && (
+        <button
+          onClick={resetView}
+          className="absolute bottom-4 right-4 bg-background/90 backdrop-blur-sm border border-border rounded-md px-3 py-1.5 text-xs font-medium hover:bg-muted transition-colors"
+        >
+          Reset View
+        </button>
+      )}
+
+      <div className="absolute bottom-4 left-4 bg-background/90 backdrop-blur-sm border border-border rounded-md px-2 py-1 text-xs text-muted-foreground">
+        {Math.round(zoom * 100)}%
       </div>
     </div>
   );
