@@ -11,7 +11,8 @@ interface Property {
   id: string;
   name: string;
   address: string;
-  prefecture_id: string | null;
+  location_x: number | null;
+  location_y: number | null;
 }
 
 async function HomeContent() {
@@ -39,10 +40,15 @@ async function HomeContent() {
     );
   }
 
-  const { data: properties } = await supabase
-    .from("properties")
-    .select("id, name, address, prefecture_id")
-    .order("name");
+  const [{ data: properties }, { data: profile }] = await Promise.all([
+    supabase
+      .from("properties")
+      .select("id, name, address, location_x, location_y")
+      .order("name"),
+    supabase.from("profiles").select("role").eq("id", user.id).single(),
+  ]);
+
+  const isAdmin = profile?.role === "admin";
 
   return (
     <main className="h-dvh flex flex-col">
@@ -50,12 +56,14 @@ async function HomeContent() {
         <div className="w-full max-w-5xl flex justify-between items-center px-4 text-sm">
           <span className="font-semibold">Family Houses</span>
           <div className="flex items-center gap-2">
-            <Link href="/admin">
-              <Button variant="ghost" size="sm">
-                <Plus className="h-4 w-4 mr-1" />
-                Add
-              </Button>
-            </Link>
+            {isAdmin && (
+              <Link href="/admin">
+                <Button variant="ghost" size="sm">
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add
+                </Button>
+              </Link>
+            )}
             <Link href="/properties">
               <Button variant="ghost" size="sm">
                 <List className="h-4 w-4 mr-1" />

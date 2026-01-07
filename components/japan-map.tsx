@@ -1,10 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 
 interface Prefecture {
   id: string;
   code: string;
+  name: string;
+  x: number;
+  y: number;
+}
+
+interface MapLocation {
+  x: number;
+  y: number;
+}
+
+interface PropertyMarker {
+  id: string;
   name: string;
   x: number;
   y: number;
@@ -62,19 +74,59 @@ const PREFECTURES: Prefecture[] = [
 
 interface JapanMapProps {
   onPrefectureClick?: (prefecture: Prefecture) => void;
+  onLocationClick?: (location: MapLocation) => void;
+  onMarkerClick?: (marker: PropertyMarker) => void;
   activePrefectures?: string[];
+  selectionMode?: boolean;
+  selectedPrefectureId?: string | null;
+  selectedLocation?: MapLocation | null;
+  markers?: PropertyMarker[];
 }
 
-export function JapanMap({ onPrefectureClick, activePrefectures = [] }: JapanMapProps) {
+export function JapanMap({
+  onPrefectureClick,
+  onLocationClick,
+  onMarkerClick,
+  activePrefectures = [],
+  selectionMode = false,
+  selectedPrefectureId = null,
+  selectedLocation = null,
+  markers = [],
+}: JapanMapProps) {
+  const svgRef = useRef<SVGSVGElement>(null);
   const [hoveredPrefecture, setHoveredPrefecture] = useState<string | null>(null);
-  const [selectedPrefecture, setSelectedPrefecture] = useState<string | null>(null);
+  const [hoveredMarker, setHoveredMarker] = useState<string | null>(null);
+  const [internalSelected, setInternalSelected] = useState<string | null>(null);
+
+  const selectedPrefecture = selectedPrefectureId ?? internalSelected;
 
   const handlePrefectureClick = (prefecture: Prefecture) => {
-    setSelectedPrefecture(prefecture.id);
+    setInternalSelected(prefecture.id);
     onPrefectureClick?.(prefecture);
   };
 
-  const visiblePrefectures = PREFECTURES.filter((p) => activePrefectures.includes(p.id));
+  const handleSvgClick = useCallback(
+    (e: React.MouseEvent<SVGSVGElement>) => {
+      if (!selectionMode || !onLocationClick || !svgRef.current) return;
+
+      const svg = svgRef.current;
+      const point = svg.createSVGPoint();
+      point.x = e.clientX;
+      point.y = e.clientY;
+
+      const ctm = svg.getScreenCTM();
+      if (!ctm) return;
+
+      const svgPoint = point.matrixTransform(ctm.inverse());
+      onLocationClick({ x: Math.round(svgPoint.x * 10) / 10, y: Math.round(svgPoint.y * 10) / 10 });
+    },
+    [selectionMode, onLocationClick]
+  );
+
+  const visiblePrefectures =
+    selectionMode || markers.length > 0
+      ? []
+      : PREFECTURES.filter((p) => activePrefectures.includes(p.id));
 
   return (
     <div className="w-full h-full flex items-center justify-center p-4">
@@ -83,9 +135,11 @@ export function JapanMap({ onPrefectureClick, activePrefectures = [] }: JapanMap
         style={{ maxWidth: "min(100%, calc(100vh * 1000 / 846))" }}
       >
         <svg
+          ref={svgRef}
           viewBox="0 0 1000 846"
-          className="w-full h-full"
+          className={`w-full h-full ${selectionMode ? "cursor-crosshair" : ""}`}
           preserveAspectRatio="xMidYMid meet"
+          onClick={handleSvgClick}
         >
           <image href="/jp.svg" x="0" y="0" width="1000" height="846" />
 
@@ -100,7 +154,10 @@ export function JapanMap({ onPrefectureClick, activePrefectures = [] }: JapanMap
                 className="cursor-pointer"
                 onMouseEnter={() => setHoveredPrefecture(prefecture.id)}
                 onMouseLeave={() => setHoveredPrefecture(null)}
-                onClick={() => handlePrefectureClick(prefecture)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handlePrefectureClick(prefecture);
+                }}
               >
                 <circle
                   cx={prefecture.x}
@@ -148,6 +205,79 @@ export function JapanMap({ onPrefectureClick, activePrefectures = [] }: JapanMap
               </g>
             );
           })}
+
+          {markers.map((marker) => {
+            const isHovered = hoveredMarker === marker.id;
+            const radius = isHovered ? 14 : 10;
+
+            return (
+              <g
+                key={marker.id}
+                className="cursor-pointer"
+                onMouseEnter={() => setHoveredMarker(marker.id)}
+                onMouseLeave={() => setHoveredMarker(null)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onMarkerClick?.(marker);
+                }}
+              >
+                <circle
+                  cx={marker.x}
+                  cy={marker.y}
+                  r={radius}
+                  className={`
+                    transition-all duration-200
+                    ${isHovered ? "fill-primary stroke-background stroke-2" : "fill-destructive stroke-background stroke-[1.5]"}
+                  `}
+                />
+                <circle
+                  cx={marker.x}
+                  cy={marker.y}
+                  r={4}
+                  className="fill-background pointer-events-none"
+                />
+
+                {isHovered && (
+                  <g className="pointer-events-none">
+                    <rect
+                      x={marker.x - 65}
+                      y={marker.y - 42}
+                      width={130}
+                      height={28}
+                      rx={4}
+                      className="fill-popover stroke-border"
+                    />
+                    <text
+                      x={marker.x}
+                      y={marker.y - 23}
+                      textAnchor="middle"
+                      className="fill-popover-foreground font-medium"
+                      style={{ fontSize: "14px" }}
+                    >
+                      {marker.name}
+                    </text>
+                  </g>
+                )}
+              </g>
+            );
+          })}
+
+          {selectionMode && selectedLocation && (
+            <g className="pointer-events-none">
+              <circle
+                cx={selectedLocation.x}
+                cy={selectedLocation.y}
+                r={14}
+                className="fill-primary stroke-background stroke-2"
+              />
+              <circle
+                cx={selectedLocation.x}
+                cy={selectedLocation.y}
+                r={4}
+                className="fill-background"
+              />
+            </g>
+          )}
         </svg>
       </div>
     </div>
@@ -155,4 +285,4 @@ export function JapanMap({ onPrefectureClick, activePrefectures = [] }: JapanMap
 }
 
 export { PREFECTURES };
-export type { Prefecture };
+export type { Prefecture, MapLocation, PropertyMarker };

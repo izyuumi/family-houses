@@ -2,7 +2,8 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { JapanMap, PREFECTURES, type Prefecture } from "@/components/japan-map";
+import { useRouter } from "next/navigation";
+import { JapanMap } from "@/components/japan-map";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MapPin, Home, X, ChevronRight, List } from "lucide-react";
@@ -11,7 +12,15 @@ interface Property {
   id: string;
   name: string;
   address: string;
-  prefecture_id: string | null;
+  location_x: number | null;
+  location_y: number | null;
+}
+
+interface PropertyMarker {
+  id: string;
+  name: string;
+  x: number;
+  y: number;
 }
 
 interface MapDashboardProps {
@@ -19,47 +28,49 @@ interface MapDashboardProps {
 }
 
 export function MapDashboard({ properties }: MapDashboardProps) {
-  const [selectedPrefecture, setSelectedPrefecture] =
-    useState<Prefecture | null>(null);
+  const router = useRouter();
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [showAllProperties, setShowAllProperties] = useState(false);
 
-  const prefecturesWithProperties = useMemo(() => {
-    const prefIds = new Set(
-      properties
-        .map((p) => p.prefecture_id)
-        .filter((id): id is string => id !== null)
-    );
-    return Array.from(prefIds);
+  const markers: PropertyMarker[] = useMemo(() => {
+    return properties
+      .filter((p) => p.location_x !== null && p.location_y !== null)
+      .map((p) => ({
+        id: p.id,
+        name: p.name,
+        x: p.location_x!,
+        y: p.location_y!,
+      }));
   }, [properties]);
 
-  const filteredProperties = useMemo(() => {
-    if (showAllProperties) return properties;
-    if (!selectedPrefecture) return [];
-    return properties.filter((p) => p.prefecture_id === selectedPrefecture.id);
-  }, [properties, selectedPrefecture, showAllProperties]);
-
-  const handlePrefectureClick = (prefecture: Prefecture) => {
-    setShowAllProperties(false);
-    setSelectedPrefecture(prefecture);
+  const handleMarkerClick = (marker: PropertyMarker) => {
+    const property = properties.find((p) => p.id === marker.id);
+    if (property) {
+      setSelectedProperty(property);
+      setShowAllProperties(false);
+    }
   };
 
   const clearSelection = () => {
-    setSelectedPrefecture(null);
+    setSelectedProperty(null);
     setShowAllProperties(false);
   };
 
   const toggleAllProperties = () => {
-    setSelectedPrefecture(null);
+    setSelectedProperty(null);
     setShowAllProperties(!showAllProperties);
   };
+
+  const displayedProperties = showAllProperties
+    ? properties
+    : selectedProperty
+      ? [selectedProperty]
+      : [];
 
   return (
     <div className="relative w-full h-full flex flex-col md:flex-row">
       <div className="flex-1 relative min-h-[50vh] md:min-h-0">
-        <JapanMap
-          onPrefectureClick={handlePrefectureClick}
-          activePrefectures={prefecturesWithProperties}
-        />
+        <JapanMap markers={markers} onMarkerClick={handleMarkerClick} />
 
         <div className="absolute top-4 left-4 z-10">
           <Button
@@ -74,15 +85,13 @@ export function MapDashboard({ properties }: MapDashboardProps) {
         </div>
       </div>
 
-      {(selectedPrefecture || showAllProperties) && (
+      {(selectedProperty || showAllProperties) && (
         <div className="w-full md:w-80 lg:w-96 border-t md:border-t-0 md:border-l bg-background flex flex-col max-h-[50vh] md:max-h-full">
           <div className="p-4 border-b flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2">
               <MapPin className="h-4 w-4 text-muted-foreground" />
               <h2 className="font-semibold">
-                {showAllProperties
-                  ? "All Properties"
-                  : selectedPrefecture?.name ?? "Properties"}
+                {showAllProperties ? "All Properties" : selectedProperty?.name ?? "Property"}
               </h2>
             </div>
             <Button variant="ghost" size="icon" onClick={clearSelection}>
@@ -91,14 +100,12 @@ export function MapDashboard({ properties }: MapDashboardProps) {
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {filteredProperties.length === 0 ? (
+            {displayedProperties.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground text-sm">
-                {showAllProperties
-                  ? "No properties yet"
-                  : `No properties in ${selectedPrefecture?.name}`}
+                No properties yet
               </div>
             ) : (
-              filteredProperties.map((property) => (
+              displayedProperties.map((property) => (
                 <Link key={property.id} href={`/properties/${property.id}`}>
                   <Card className="p-4 transition-all hover:border-foreground/30 active:scale-[0.99]">
                     <div className="flex items-start justify-between gap-2">
@@ -118,24 +125,10 @@ export function MapDashboard({ properties }: MapDashboardProps) {
               ))
             )}
           </div>
-
-          {!showAllProperties &&
-            filteredProperties.length === 0 &&
-            properties.length > 0 && (
-              <div className="p-4 border-t shrink-0">
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={toggleAllProperties}
-                >
-                  View all {properties.length} properties
-                </Button>
-              </div>
-            )}
         </div>
       )}
 
-      {!selectedPrefecture && !showAllProperties && properties.length > 0 && (
+      {!selectedProperty && !showAllProperties && properties.length > 0 && (
         <div className="absolute bottom-4 right-4 z-10 md:hidden">
           <Button onClick={toggleAllProperties} className="shadow-lg">
             <Home className="h-4 w-4 mr-2" />
