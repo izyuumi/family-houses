@@ -1,7 +1,5 @@
-import { AuthButton } from "@/components/auth-button";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import Link from "next/link";
-import { Suspense } from "react";
 
 export default function ProtectedLayout({
   children,
@@ -15,17 +13,10 @@ export default function ProtectedLayout({
           <Link href="/" className="font-semibold">
             Family Houses
           </Link>
-          <div className="flex items-center gap-4">
-            <ThemeSwitcher />
-            <Suspense>
-              <AuthButton />
-            </Suspense>
-          </div>
+          <ThemeSwitcher />
         </div>
       </nav>
-      <div className="flex-1 overflow-hidden p-4">
-        <Suspense>{children}</Suspense>
-      </div>
+      <div className="flex-1 overflow-hidden">{children}</div>
     </main>
   );
 }
