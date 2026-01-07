@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { Plus, Loader2, X } from "lucide-react";
+import { Plus, Loader2, MapPin, Pencil, X } from "lucide-react";
 
 interface MapLocation {
   x: number;
@@ -20,6 +20,7 @@ export function AdminForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [isEditingLocation, setIsEditingLocation] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -79,10 +80,19 @@ export function AdminForm() {
 
   const handleLocationSelect = (loc: MapLocation) => {
     setLocation(loc);
+    setIsEditingLocation(false);
   };
 
   const clearLocation = () => {
     setLocation(null);
+  };
+
+  const startEditingLocation = () => {
+    setIsEditingLocation(true);
+  };
+
+  const cancelEditingLocation = () => {
+    setIsEditingLocation(false);
   };
 
   return (
@@ -114,31 +124,86 @@ export function AdminForm() {
 
         <div className="space-y-2">
           <Label>Location on Map</Label>
-          <div className="border border-input rounded-md overflow-hidden">
-            <div className="h-[300px] bg-muted/30">
+          <div className={`border rounded-md overflow-hidden transition-colors ${isEditingLocation ? "border-primary ring-2 ring-primary/20" : "border-input"}`}>
+            <div className="h-[300px] bg-muted/30 relative">
               <JapanMap
-                selectionMode
+                selectionMode={isEditingLocation}
                 selectedLocation={location}
                 onLocationClick={handleLocationSelect}
               />
+              {isEditingLocation && (
+                <div className="absolute inset-0 pointer-events-none flex items-start justify-center pt-4">
+                  <div className="bg-primary text-primary-foreground px-3 py-1.5 rounded-full text-sm font-medium animate-pulse">
+                    Click anywhere on the map
+                  </div>
+                </div>
+              )}
             </div>
-            {location && (
-              <div className="flex items-center justify-between px-3 py-2 border-t border-input bg-muted/50">
-                <span className="text-sm font-medium">Location: ({location.x}, {location.y})</span>
-                <button
-                  type="button"
-                  onClick={clearLocation}
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-            )}
-            {!location && (
-              <div className="px-3 py-2 border-t border-input">
-                <span className="text-sm text-muted-foreground">Click on the map to set the property location</span>
-              </div>
-            )}
+            <div className="flex items-center justify-between px-3 py-2 border-t border-input bg-muted/30">
+              {location ? (
+                <>
+                  <div className="flex items-center gap-2 text-sm">
+                    <MapPin className="h-4 w-4 text-primary" />
+                    <span className="font-medium">Location set</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {isEditingLocation ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={cancelEditingLocation}
+                      >
+                        Cancel
+                      </Button>
+                    ) : (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={startEditingLocation}
+                      >
+                        <Pencil className="h-3.5 w-3.5 mr-1" />
+                        Edit
+                      </Button>
+                    )}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearLocation}
+                      className="text-muted-foreground hover:text-destructive"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <span className="text-sm text-muted-foreground">No location set</span>
+                  {isEditingLocation ? (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={cancelEditingLocation}
+                    >
+                      Cancel
+                    </Button>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={startEditingLocation}
+                    >
+                      <MapPin className="h-3.5 w-3.5 mr-1" />
+                      Set Location
+                    </Button>
+                  )}
+                </>
+              )}
+            </div>
           </div>
         </div>
 
