@@ -94,7 +94,9 @@ export function JapanMap({
   markers = [],
 }: JapanMapProps) {
   const svgRef = useRef<SVGSVGElement>(null);
-  const [hoveredPrefecture, setHoveredPrefecture] = useState<string | null>(null);
+  const [hoveredPrefecture, setHoveredPrefecture] = useState<string | null>(
+    null
+  );
   const [hoveredMarker, setHoveredMarker] = useState<string | null>(null);
   const [internalSelected, setInternalSelected] = useState<string | null>(null);
 
@@ -118,7 +120,10 @@ export function JapanMap({
       if (!ctm) return;
 
       const svgPoint = point.matrixTransform(ctm.inverse());
-      onLocationClick({ x: Math.round(svgPoint.x * 10) / 10, y: Math.round(svgPoint.y * 10) / 10 });
+      onLocationClick({
+        x: Math.round(svgPoint.x * 10) / 10,
+        y: Math.round(svgPoint.y * 10) / 10,
+      });
     },
     [selectionMode, onLocationClick]
   );
@@ -169,8 +174,8 @@ export function JapanMap({
                       isSelected
                         ? "fill-primary stroke-background stroke-2"
                         : isHovered
-                          ? "fill-primary/80 stroke-background stroke-2"
-                          : "fill-destructive stroke-background stroke-[1.5]"
+                        ? "fill-primary/80 stroke-background stroke-2"
+                        : "fill-destructive stroke-background stroke-[1.5]"
                     }
                   `}
                 />
@@ -227,7 +232,11 @@ export function JapanMap({
                   r={radius}
                   className={`
                     transition-all duration-200
-                    ${isHovered ? "fill-primary stroke-background stroke-2" : "fill-destructive stroke-background stroke-[1.5]"}
+                    ${
+                      isHovered
+                        ? "fill-primary stroke-background stroke-2"
+                        : "fill-destructive stroke-background stroke-[1.5]"
+                    }
                   `}
                 />
                 <circle
@@ -262,8 +271,12 @@ export function JapanMap({
             );
           })}
 
-          {selectionMode && selectedLocation && (
-            <g className="pointer-events-none">
+          {selectedLocation && (
+            <g
+              className={
+                selectionMode ? "pointer-events-none" : "cursor-pointer"
+              }
+            >
               <circle
                 cx={selectedLocation.x}
                 cy={selectedLocation.y}
@@ -274,7 +287,7 @@ export function JapanMap({
                 cx={selectedLocation.x}
                 cy={selectedLocation.y}
                 r={4}
-                className="fill-background"
+                className="fill-background pointer-events-none"
               />
             </g>
           )}
