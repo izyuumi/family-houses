@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  let next = searchParams.get("next") ?? "/protected";
+  let next = searchParams.get("next") ?? "/properties";
   if (!next.startsWith("/")) {
     // if "next" is not a relative URL, use the default
     next = "/";
