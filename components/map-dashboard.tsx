@@ -44,11 +44,7 @@ export function MapDashboard({ properties }: MapDashboardProps) {
   }, [properties]);
 
   const handleMarkerClick = (marker: PropertyMarker) => {
-    const property = properties.find((p) => p.id === marker.id);
-    if (property) {
-      setSelectedProperty(property);
-      setShowAllProperties(false);
-    }
+    router.push(`/properties/${marker.id}`);
   };
 
   const clearSelection = () => {

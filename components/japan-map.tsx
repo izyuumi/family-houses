@@ -99,7 +99,9 @@ export function JapanMap({
 }: JapanMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
-  const [hoveredPrefecture, setHoveredPrefecture] = useState<string | null>(null);
+  const [hoveredPrefecture, setHoveredPrefecture] = useState<string | null>(
+    null
+  );
   const [hoveredMarker, setHoveredMarker] = useState<string | null>(null);
   const [internalSelected, setInternalSelected] = useState<string | null>(null);
 
@@ -141,7 +143,10 @@ export function JapanMap({
       e.preventDefault();
 
       const delta = -e.deltaY * ZOOM_SENSITIVITY;
-      const newZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom + delta * zoom));
+      const newZoom = Math.min(
+        MAX_ZOOM,
+        Math.max(MIN_ZOOM, zoom + delta * zoom)
+      );
 
       if (!containerRef.current) return;
 
@@ -226,10 +231,21 @@ export function JapanMap({
   const markerScale = 1 / zoom;
 
   return (
-    <div className="w-full h-full flex items-center justify-center relative overflow-hidden">
+    <div className="w-full h-full flex items-center justify-center relative overflow-hidden p-2">
       <div
         ref={containerRef}
-        className={`relative w-full h-full ${isPanning ? "cursor-grabbing" : selectionMode ? "cursor-crosshair" : "cursor-grab"}`}
+        className={`relative ${
+          isPanning
+            ? "cursor-grabbing"
+            : selectionMode
+            ? "cursor-crosshair"
+            : "cursor-grab"
+        }`}
+        style={{
+          aspectRatio: "1000 / 846",
+          maxWidth: "100%",
+          maxHeight: "100%",
+        }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
@@ -276,8 +292,8 @@ export function JapanMap({
                       isSelected
                         ? "fill-primary stroke-background stroke-2"
                         : isHovered
-                          ? "fill-primary/80 stroke-background stroke-2"
-                          : "fill-destructive stroke-background stroke-[1.5]"
+                        ? "fill-primary/80 stroke-background stroke-2"
+                        : "fill-destructive stroke-background stroke-[1.5]"
                     }
                   `}
                   style={{ strokeWidth: 1.5 * markerScale }}
