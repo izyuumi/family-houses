@@ -22,13 +22,15 @@ async function PropertyData({ params }: { params: Promise<{ id: string }> }) {
 
   if (!user) redirect("/");
 
-  const { data: property, error } = await supabase
+  const { data: property } = await supabase
     .from("properties")
     .select("id, name, address, floor_unit, notes, wifi_ssid, wifi_password_enc")
     .eq("id", id)
-    .single();
+    .maybeSingle();
 
-  if (error || !property) redirect("/properties");
+  if (!property) {
+    redirect("/properties");
+  }
 
   return (
     <main className="min-h-dvh p-4 max-w-xl mx-auto pb-20">
