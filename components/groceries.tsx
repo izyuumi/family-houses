@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useI18n } from "@/lib/i18n/context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,7 +18,7 @@ interface GroceriesProps {
 
 export function Groceries({ propertyId }: GroceriesProps) {
   const { t } = useI18n();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const [items, setItems] = useState<GroceryItem[]>([]);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);

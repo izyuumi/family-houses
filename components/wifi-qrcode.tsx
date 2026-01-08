@@ -1,16 +1,18 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useCallback } from "react";
 import { useI18n } from "@/lib/i18n/context";
 import { Button } from "@/components/ui/button";
 import { QrCode, X } from "lucide-react";
 
-interface WifiQRCodeProps {
+export interface WifiQRCodeProps {
   ssid: string;
   password: string | null;
   propertyId: string;
   type: "main" | "guest";
   onPasswordRevealed?: (password: string) => void;
+  autoOpen?: boolean;
+  onClose?: () => void;
 }
 
 const QRCode = (function () {
@@ -691,18 +693,27 @@ function generateWifiString(ssid: string, password: string, security = "WPA") {
   return `WIFI:T:${security};S:${escapeWifiString(ssid)};P:${escapeWifiString(password)};;`;
 }
 
-export function WifiQRCode({ ssid, password, propertyId, type, onPasswordRevealed }: WifiQRCodeProps) {
+export function WifiQRCode({
+  ssid,
+  password,
+  propertyId,
+  type,
+  onPasswordRevealed,
+  autoOpen = false,
+  onClose,
+}: WifiQRCodeProps) {
   const { t } = useI18n();
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [showQR, setShowQR] = useState(false);
+  const [showQR, setShowQR] = useState(autoOpen && Boolean(password));
   const [loading, setLoading] = useState(false);
   const [localPassword, setLocalPassword] = useState<string | null>(password);
+  const autoOpenedRef = useRef(false);
 
   useEffect(() => {
     setLocalPassword(password);
   }, [password]);
 
-  const handleOpen = async () => {
+  const handleOpen = useCallback(async () => {
     if (localPassword) {
       setShowQR(true);
       return;
@@ -722,7 +733,13 @@ export function WifiQRCode({ ssid, password, propertyId, type, onPasswordReveale
       onPasswordRevealed?.(json.password);
       setShowQR(true);
     }
-  };
+  }, [localPassword, onPasswordRevealed, propertyId, type]);
+
+  useEffect(() => {
+    if (!autoOpen || autoOpenedRef.current) return;
+    autoOpenedRef.current = true;
+    void handleOpen();
+  }, [autoOpen, handleOpen]);
 
   useEffect(() => {
     if (!showQR || !canvasRef.current || !localPassword) return;
@@ -760,6 +777,13 @@ export function WifiQRCode({ ssid, password, propertyId, type, onPasswordReveale
   }, [showQR, ssid, localPassword]);
 
   if (!showQR) {
+    if (autoOpen) {
+      return (
+        <Button variant="outline" size="sm" disabled>
+          <QrCode className="h-4 w-4" />
+        </Button>
+      );
+    }
     return (
       <Button variant="outline" size="sm" onClick={handleOpen} disabled={loading}>
         <QrCode className="h-4 w-4" />
@@ -774,7 +798,10 @@ export function WifiQRCode({ ssid, password, propertyId, type, onPasswordReveale
           variant="ghost"
           size="sm"
           className="absolute right-2 top-2"
-          onClick={() => setShowQR(false)}
+          onClick={() => {
+            setShowQR(false);
+            onClose?.();
+          }}
         >
           <X className="h-4 w-4" />
         </Button>

@@ -52,7 +52,7 @@ export function PropertiesClient({ properties }: PropertiesClientProps) {
         )}
 
         {properties.map((p: Property) => (
-          <Link key={p.id} href={`/properties/${p.id}`}>
+          <Link key={p.id} href={`/properties/${p.id}`} prefetch={false}>
             <Card className="p-4 transition-all active:scale-[0.99] hover:border-foreground/30">
               <div className="font-medium">{p.name}</div>
               <div className="text-sm text-muted-foreground mt-1 flex items-center gap-1">

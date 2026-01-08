@@ -97,7 +97,11 @@ export function MapDashboard({ properties }: MapDashboardProps) {
               </div>
             ) : (
               displayedProperties.map((property) => (
-                <Link key={property.id} href={`/properties/${property.id}`}>
+                <Link
+                  key={property.id}
+                  href={`/properties/${property.id}`}
+                  prefetch={false}
+                >
                   <Card className="p-4 transition-all hover:border-foreground/30 active:scale-[0.99]">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">

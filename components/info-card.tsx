@@ -5,7 +5,7 @@ import { useI18n } from "@/lib/i18n/context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Eye, Copy, Check, Info, Wifi, MapPin } from "lucide-react";
-import { WifiQRCode } from "@/components/wifi-qrcode";
+import { WifiQRCodeLazy } from "@/components/wifi-qrcode-lazy";
 
 interface Property {
   id: string;
@@ -115,7 +115,7 @@ export function InfoCard({ property }: InfoCardProps) {
                 )}
               </Button>
               {property.wifi_ssid && (
-                <WifiQRCode
+                <WifiQRCodeLazy
                   ssid={property.wifi_ssid}
                   password={wifiPassword}
                   propertyId={property.id}
@@ -161,7 +161,7 @@ export function InfoCard({ property }: InfoCardProps) {
                     <Copy className="h-4 w-4" />
                   )}
                 </Button>
-                <WifiQRCode
+                <WifiQRCodeLazy
                   ssid={property.guest_wifi_ssid}
                   password={guestWifiPassword}
                   propertyId={property.id}
