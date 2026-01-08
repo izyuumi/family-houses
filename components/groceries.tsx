@@ -3,11 +3,23 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useI18n } from "@/lib/i18n/context";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ShoppingCart, Plus, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { ShoppingCart, Plus, Trash2, Loader2 } from "lucide-react";
 import type { Tables } from "@/database.types";
 
 type GroceryItem = Tables<"grocery_items">;
@@ -23,6 +35,7 @@ export function Groceries({ propertyId, initialItems }: GroceriesProps) {
   const [items, setItems] = useState<GroceryItem[]>(initialItems ?? []);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
+  const [clearDialogOpen, setClearDialogOpen] = useState(false);
 
   const load = useCallback(async () => {
     const { data } = await supabase
@@ -46,33 +59,91 @@ export function Groceries({ propertyId, initialItems }: GroceriesProps) {
 
     setLoading(true);
     setText("");
-    await supabase.from("grocery_items").insert({
+
+    const optimisticItem: GroceryItem = {
+      id: `temp-${Date.now()}`,
+      property_id: propertyId,
+      item_name: itemName,
+      quantity: null,
+      checked: false,
+      added_by: null,
+      created_at: new Date().toISOString(),
+      updated_at: null,
+    };
+
+    setItems((prev) => [optimisticItem, ...prev]);
+
+    const { error } = await supabase.from("grocery_items").insert({
       property_id: propertyId,
       item_name: itemName,
       checked: false,
     });
-    await load();
+
+    if (error) {
+      setItems((prev) => prev.filter((item) => item.id !== optimisticItem.id));
+      toast.error(t.groceries.errorAdding);
+    } else {
+      toast.success(t.groceries.itemAdded);
+      await load();
+    }
+
     setLoading(false);
   };
 
   const toggleItem = async (id: string, checked: boolean | null) => {
-    await supabase
+    setItems((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, checked: !checked } : item
+      )
+    );
+
+    const { error } = await supabase
       .from("grocery_items")
       .update({ checked: !checked })
       .eq("id", id);
-    await load();
+
+    if (error) {
+      setItems((prev) =>
+        prev.map((item) =>
+          item.id === id ? { ...item, checked: checked } : item
+        )
+      );
+      toast.error(t.groceries.errorToggling);
+    }
   };
 
   const deleteItem = async (id: string) => {
-    await supabase.from("grocery_items").delete().eq("id", id);
-    await load();
+    const deletedItem = items.find((item) => item.id === id);
+    setItems((prev) => prev.filter((item) => item.id !== id));
+
+    const { error } = await supabase.from("grocery_items").delete().eq("id", id);
+
+    if (error) {
+      if (deletedItem) {
+        setItems((prev) => [...prev, deletedItem]);
+      }
+      toast.error(t.groceries.errorDeleting);
+    } else {
+      toast.success(t.groceries.itemDeleted);
+    }
   };
 
   const clearChecked = async () => {
-    const checkedIds = items.filter((i) => i.checked).map((i) => i.id);
+    const checkedItems = items.filter((i) => i.checked);
+    const checkedIds = checkedItems.map((i) => i.id);
     if (checkedIds.length === 0) return;
-    await supabase.from("grocery_items").delete().in("id", checkedIds);
-    await load();
+
+    setItems((prev) => prev.filter((item) => !item.checked));
+    setClearDialogOpen(false);
+
+    const { error } = await supabase.from("grocery_items").delete().in("id", checkedIds);
+
+    if (error) {
+      setItems((prev) => [...prev, ...checkedItems]);
+      toast.error(t.groceries.errorClearing);
+    } else {
+      toast.success(t.groceries.itemsCleared);
+    }
   };
 
   const uncheckedCount = items.filter((i) => !i.checked).length;
@@ -92,9 +163,27 @@ export function Groceries({ propertyId, initialItems }: GroceriesProps) {
             )}
           </span>
           {checkedCount > 0 && (
-            <Button variant="ghost" size="sm" onClick={clearChecked}>
-              {t.groceries.clearDone}
-            </Button>
+            <AlertDialog open={clearDialogOpen} onOpenChange={setClearDialogOpen}>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  {t.groceries.clearDone}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>{t.groceries.confirmClearTitle}</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {t.groceries.confirmClearDescription}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>{t.common.cancel}</AlertDialogCancel>
+                  <AlertDialogAction onClick={clearChecked}>
+                    {t.groceries.confirmClearAction}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           )}
         </CardTitle>
       </CardHeader>
@@ -113,7 +202,11 @@ export function Groceries({ propertyId, initialItems }: GroceriesProps) {
             className="flex-1"
           />
           <Button type="submit" disabled={!text.trim() || loading}>
-            <Plus className="h-4 w-4" />
+            {loading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Plus className="h-4 w-4" />
+            )}
           </Button>
         </form>
 

@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import { useI18n } from "@/lib/i18n/context";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Eye, Copy, Check, Info, Wifi } from "lucide-react";
+import { Eye, Copy, Check, Info, Wifi, Loader2 } from "lucide-react";
 import { WifiQRCodeLazy } from "@/components/wifi-qrcode-lazy";
-import { AddressDisplay, type StructuredAddress } from "@/components/address-display";
+import { AddressDisplay } from "@/components/address-display";
 
 interface Property {
   id: string;
@@ -36,7 +37,7 @@ export function InfoCard({ property }: InfoCardProps) {
   const [copiedWifi, setCopiedWifi] = useState(false);
   const [copiedGuestWifi, setCopiedGuestWifi] = useState(false);
 
-  const revealWifi = async (type: "main" | "guest") => {
+  const revealAndCopyWifi = async (type: "main" | "guest") => {
     if (type === "main") {
       setLoadingWifi(true);
     } else {
@@ -52,21 +53,36 @@ export function InfoCard({ property }: InfoCardProps) {
 
     if (type === "main") {
       setLoadingWifi(false);
-      if (json.password !== undefined) setWifiPassword(json.password);
+      if (json.password !== undefined) {
+        setWifiPassword(json.password);
+        if (json.password) {
+          await copyToClipboard(json.password, "main");
+        }
+      }
     } else {
       setLoadingGuestWifi(false);
-      if (json.password !== undefined) setGuestWifiPassword(json.password);
+      if (json.password !== undefined) {
+        setGuestWifiPassword(json.password);
+        if (json.password) {
+          await copyToClipboard(json.password, "guest");
+        }
+      }
     }
   };
 
-  const copyPassword = async (password: string, type: "main" | "guest") => {
-    await navigator.clipboard.writeText(password);
-    if (type === "main") {
-      setCopiedWifi(true);
-      setTimeout(() => setCopiedWifi(false), 2000);
-    } else {
-      setCopiedGuestWifi(true);
-      setTimeout(() => setCopiedGuestWifi(false), 2000);
+  const copyToClipboard = async (password: string, type: "main" | "guest") => {
+    try {
+      await navigator.clipboard.writeText(password);
+      if (type === "main") {
+        setCopiedWifi(true);
+        setTimeout(() => setCopiedWifi(false), 2000);
+      } else {
+        setCopiedGuestWifi(true);
+        setTimeout(() => setCopiedGuestWifi(false), 2000);
+      }
+      toast.success(t.toast.passwordCopied);
+    } catch {
+      toast.error(t.toast.copyFailed);
     }
   };
 
@@ -107,26 +123,36 @@ export function InfoCard({ property }: InfoCardProps) {
               </div>
             </div>
             <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={loadingWifi || wifiPassword !== null}
-                onClick={() => revealWifi("main")}
-              >
-                <Eye className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="default"
-                size="sm"
-                disabled={!wifiPassword}
-                onClick={() => wifiPassword && copyPassword(wifiPassword, "main")}
-              >
-                {copiedWifi ? (
-                  <Check className="h-4 w-4" />
-                ) : (
-                  <Copy className="h-4 w-4" />
-                )}
-              </Button>
+              {wifiPassword === null ? (
+                <Button
+                  variant="default"
+                  size="sm"
+                  disabled={loadingWifi}
+                  onClick={() => revealAndCopyWifi("main")}
+                >
+                  {loadingWifi ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <>
+                      <Eye className="h-4 w-4" />
+                      <Copy className="h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={!wifiPassword}
+                  onClick={() => wifiPassword && copyToClipboard(wifiPassword, "main")}
+                >
+                  {copiedWifi ? (
+                    <Check className="h-4 w-4" />
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )}
+                </Button>
+              )}
               {property.wifi_ssid && (
                 <WifiQRCodeLazy
                   ssid={property.wifi_ssid}
@@ -154,26 +180,36 @@ export function InfoCard({ property }: InfoCardProps) {
                 </div>
               </div>
               <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={loadingGuestWifi || guestWifiPassword !== null}
-                  onClick={() => revealWifi("guest")}
-                >
-                  <Eye className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="default"
-                  size="sm"
-                  disabled={!guestWifiPassword}
-                  onClick={() => guestWifiPassword && copyPassword(guestWifiPassword, "guest")}
-                >
-                  {copiedGuestWifi ? (
-                    <Check className="h-4 w-4" />
-                  ) : (
-                    <Copy className="h-4 w-4" />
-                  )}
-                </Button>
+                {guestWifiPassword === null ? (
+                  <Button
+                    variant="default"
+                    size="sm"
+                    disabled={loadingGuestWifi}
+                    onClick={() => revealAndCopyWifi("guest")}
+                  >
+                    {loadingGuestWifi ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>
+                        <Eye className="h-4 w-4" />
+                        <Copy className="h-4 w-4" />
+                      </>
+                    )}
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={!guestWifiPassword}
+                    onClick={() => guestWifiPassword && copyToClipboard(guestWifiPassword, "guest")}
+                  >
+                    {copiedGuestWifi ? (
+                      <Check className="h-4 w-4" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </Button>
+                )}
                 <WifiQRCodeLazy
                   ssid={property.guest_wifi_ssid}
                   password={guestWifiPassword}
