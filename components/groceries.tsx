@@ -7,13 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ShoppingCart, Plus, Trash2 } from "lucide-react";
+import type { Tables } from "@/database.types";
 
-interface GroceryItem {
-  id: string;
-  name: string;
-  checked: boolean;
-  quantity: string | null;
-}
+type GroceryItem = Tables<"grocery_items">;
 
 interface GroceriesProps {
   propertyId: string;
@@ -28,11 +24,11 @@ export function Groceries({ propertyId }: GroceriesProps) {
   const load = useCallback(async () => {
     const { data } = await supabase
       .from("grocery_items")
-      .select("id, name, checked, quantity")
+      .select("*")
       .eq("property_id", propertyId)
       .order("checked", { ascending: true })
       .order("created_at", { ascending: false });
-    setItems((data as GroceryItem[]) ?? []);
+    setItems(data ?? []);
   }, [supabase, propertyId]);
 
   useEffect(() => {
@@ -40,21 +36,21 @@ export function Groceries({ propertyId }: GroceriesProps) {
   }, [load]);
 
   const addItem = async () => {
-    const name = text.trim();
-    if (!name) return;
+    const itemName = text.trim();
+    if (!itemName) return;
 
     setLoading(true);
     setText("");
     await supabase.from("grocery_items").insert({
       property_id: propertyId,
-      name,
+      item_name: itemName,
       checked: false,
     });
     await load();
     setLoading(false);
   };
 
-  const toggleItem = async (id: string, checked: boolean) => {
+  const toggleItem = async (id: string, checked: boolean | null) => {
     await supabase
       .from("grocery_items")
       .update({ checked: !checked })
@@ -129,14 +125,14 @@ export function Groceries({ propertyId }: GroceriesProps) {
               className="flex items-center gap-3 py-2 px-3 rounded-lg border bg-card"
             >
               <Checkbox
-                checked={item.checked}
+                checked={item.checked ?? false}
                 onCheckedChange={() => toggleItem(item.id, item.checked)}
                 className="h-5 w-5"
               />
               <span
                 className={`flex-1 text-sm ${item.checked ? "line-through text-muted-foreground" : ""}`}
               >
-                {item.name}
+                {item.item_name}
                 {item.quantity && (
                   <span className="text-muted-foreground ml-1">
                     ({item.quantity})
