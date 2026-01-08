@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useI18n } from "@/lib/i18n/context";
 import { InfoCard } from "@/components/info-card";
 import { Groceries } from "@/components/groceries";
-import { ChevronLeft, Pencil } from "lucide-react";
+import { Navbar } from "@/components/navbar";
+import { Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface Property {
@@ -24,32 +25,33 @@ export function PropertyClient({ property, isAdmin }: PropertyClientProps) {
   const { t } = useI18n();
 
   return (
-    <>
-      <header className="py-2">
-        <div className="flex items-center justify-between">
-          <Link href="/properties">
-            <Button variant="ghost" size="sm" className="mb-2 -ml-2">
-              <ChevronLeft className="h-4 w-4 mr-1" />
-              {t.property.backToList}
-            </Button>
-          </Link>
+    <main className="min-h-dvh flex flex-col">
+      <nav className="w-full flex justify-center border-b border-b-foreground/10 h-14 shrink-0">
+        <div className="w-full max-w-5xl flex justify-between items-center px-4">
+          <div className="flex items-center gap-2">
+            <Link href="/properties">
+              <Button variant="ghost" size="sm" className="-ml-2">
+                <span className="text-muted-foreground mr-1">←</span>
+                <span className="font-semibold">{property.name}</span>
+              </Button>
+            </Link>
+          </div>
           {isAdmin && (
             <Link href={`/admin/properties/${property.id}/edit`}>
-              <Button variant="outline" size="sm">
-                <Pencil className="h-4 w-4 mr-1" />
-                {t.common.edit}
+              <Button variant="ghost" size="sm">
+                <Pencil className="h-4 w-4" />
               </Button>
             </Link>
           )}
         </div>
-        <h1 className="text-xl font-semibold">{property.name}</h1>
-        <p className="text-sm text-muted-foreground">{property.address}</p>
-      </header>
-
-      <div className="mt-4 space-y-6">
-        <InfoCard property={property} />
-        <Groceries propertyId={property.id} />
+      </nav>
+      <div className="flex-1 overflow-auto p-4 max-w-xl mx-auto w-full pb-20">
+        <p className="text-sm text-muted-foreground mb-4">{property.address}</p>
+        <div className="space-y-6">
+          <InfoCard property={property} />
+          <Groceries propertyId={property.id} />
+        </div>
       </div>
-    </>
+    </main>
   );
 }

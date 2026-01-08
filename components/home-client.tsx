@@ -5,10 +5,8 @@ import type { User } from "@supabase/supabase-js";
 import { useI18n } from "@/lib/i18n/context";
 import { AppleSignInButton } from "@/components/apple-sign-in-button";
 import { MapDashboard } from "@/components/map-dashboard";
-import { ThemeSwitcher } from "@/components/theme-switcher";
-import { LanguageSwitcher } from "@/components/language-switcher";
 import { Button } from "@/components/ui/button";
-import { Home, List, LogOut, Plus } from "lucide-react";
+import { Home, List, Plus, User as UserIcon } from "lucide-react";
 
 interface Property {
   id: string;
@@ -40,10 +38,6 @@ export function HomeClient({ user, properties, isAdmin }: HomeClientProps) {
           </div>
           <AppleSignInButton />
         </div>
-        <div className="absolute top-4 right-4 flex items-center gap-2">
-          <LanguageSwitcher />
-          <ThemeSwitcher />
-        </div>
       </main>
     );
   }
@@ -68,13 +62,11 @@ export function HomeClient({ user, properties, isAdmin }: HomeClientProps) {
                 {t.common.list}
               </Button>
             </Link>
-            <LanguageSwitcher />
-            <ThemeSwitcher />
-            <form action="/auth/signout" method="post">
-              <Button variant="ghost" size="sm" type="submit">
-                <LogOut className="h-4 w-4" />
+            <Link href="/profile">
+              <Button variant="ghost" size="sm">
+                <UserIcon className="h-4 w-4" />
               </Button>
-            </form>
+            </Link>
           </div>
         </div>
       </nav>

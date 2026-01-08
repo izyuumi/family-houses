@@ -2,7 +2,6 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { PropertyClient } from "@/components/property-client";
-import { Card } from "@/components/ui/card";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -61,33 +60,16 @@ async function PropertyData({
 
 function LoadingState() {
   return (
-    <>
-      <header className="py-2">
-        <div className="h-8 w-16 bg-muted rounded animate-pulse mb-2" />
-        <div className="h-6 bg-muted rounded w-1/3 animate-pulse" />
-        <div className="h-4 bg-muted rounded w-2/3 mt-2 animate-pulse" />
-      </header>
-      <div className="mt-4 space-y-6">
-        {[1, 2].map((i) => (
-          <Card key={i} className="p-6 animate-pulse">
-            <div className="h-5 bg-muted rounded w-1/4 mb-4" />
-            <div className="space-y-2">
-              <div className="h-4 bg-muted rounded w-full" />
-              <div className="h-4 bg-muted rounded w-3/4" />
-            </div>
-          </Card>
-        ))}
-      </div>
-    </>
+    <div className="h-dvh flex items-center justify-center">
+      <div className="animate-pulse text-muted-foreground">...</div>
+    </div>
   );
 }
 
 export default function PropertyDetail({ params }: PageProps) {
   return (
-    <main className="min-h-dvh p-4 max-w-xl mx-auto pb-20">
-      <Suspense fallback={<LoadingState />}>
-        <PropertyData paramsPromise={params} />
-      </Suspense>
-    </main>
+    <Suspense fallback={<LoadingState />}>
+      <PropertyData paramsPromise={params} />
+    </Suspense>
   );
 }

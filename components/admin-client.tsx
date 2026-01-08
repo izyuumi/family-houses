@@ -1,10 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useI18n } from "@/lib/i18n/context";
 import { AdminForm } from "@/components/admin-form";
-import { Button } from "@/components/ui/button";
-import { ChevronLeft } from "lucide-react";
+import { Navbar } from "@/components/navbar";
 
 interface Property {
   id: string;
@@ -28,41 +26,31 @@ export function AdminClient({ mode, property }: AdminClientProps) {
 
   if (mode === "add") {
     return (
-      <main className="min-h-dvh p-4 max-w-xl mx-auto pb-20">
-        <header className="py-2">
-          <Link href="/">
-            <Button variant="ghost" size="sm" className="mb-2 -ml-2">
-              <ChevronLeft className="h-4 w-4 mr-1" />
-              {t.property.backToMap}
-            </Button>
-          </Link>
-          <h1 className="text-xl font-semibold">{t.admin.addProperty}</h1>
-          <p className="text-sm text-muted-foreground">
+      <main className="min-h-dvh flex flex-col">
+        <Navbar showBack backHref="/" title={t.admin.addProperty} />
+        <div className="flex-1 p-4 max-w-xl mx-auto w-full pb-20">
+          <p className="text-sm text-muted-foreground mb-4">
             {t.admin.createNewHouse}
           </p>
-        </header>
-
-        <AdminForm />
+          <AdminForm />
+        </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-dvh p-4 max-w-xl mx-auto pb-20">
-      <header className="py-2">
-        <Link href={`/properties/${property?.id}`}>
-          <Button variant="ghost" size="sm" className="mb-2 -ml-2">
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            {t.property.backToProperty}
-          </Button>
-        </Link>
-        <h1 className="text-xl font-semibold">{t.admin.editProperty}</h1>
-        <p className="text-sm text-muted-foreground">
+    <main className="min-h-dvh flex flex-col">
+      <Navbar
+        showBack
+        backHref={`/properties/${property?.id}`}
+        title={t.admin.editProperty}
+      />
+      <div className="flex-1 p-4 max-w-xl mx-auto w-full pb-20">
+        <p className="text-sm text-muted-foreground mb-4">
           {t.admin.updateProperty} {property?.name}
         </p>
-      </header>
-
-      <AdminForm property={property} />
+        <AdminForm property={property} />
+      </div>
     </main>
   );
 }

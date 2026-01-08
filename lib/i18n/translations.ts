@@ -75,6 +75,14 @@ export const translations = {
       codeError: "Code error",
       unspecifiedError: "An unspecified error occurred.",
     },
+    profile: {
+      title: "Profile",
+      language: "Language",
+      theme: "Appearance",
+      light: "Light",
+      dark: "Dark",
+      system: "System",
+    },
   },
   ja: {
     common: {
@@ -151,6 +159,14 @@ export const translations = {
       title: "エラーが発生しました",
       codeError: "エラーコード",
       unspecifiedError: "予期しないエラーが発生しました",
+    },
+    profile: {
+      title: "プロフィール",
+      language: "言語",
+      theme: "外観",
+      light: "ライト",
+      dark: "ダーク",
+      system: "システム",
     },
   },
 } as const;
