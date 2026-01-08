@@ -10,7 +10,6 @@ interface PageProps {
 interface Property {
   id: string;
   name: string;
-  address: string;
   postal_code: string | null;
   prefecture: string | null;
   city_ward_town: string | null;
@@ -45,7 +44,7 @@ async function PropertyContent({ propertyId }: { propertyId: string }) {
   const [propertyResult, profileResult, groceriesResult] = await Promise.all([
     supabase
       .from("properties")
-      .select("id, name, address, postal_code, prefecture, city_ward_town, area, chome, block, building, room, wifi_ssid, guest_wifi_ssid")
+      .select("id, name, postal_code, prefecture, city_ward_town, area, chome, block, building, room, wifi_ssid, guest_wifi_ssid")
       .eq("id", propertyId)
       .maybeSingle(),
     supabase.from("profiles").select("role").eq("id", user.id).single(),

@@ -5,7 +5,14 @@ import { HomeClient } from "@/components/home-client";
 interface Property {
   id: string;
   name: string;
-  address: string;
+  postal_code: string | null;
+  prefecture: string | null;
+  city_ward_town: string | null;
+  area: string | null;
+  chome: string | null;
+  block: string | null;
+  building: string | null;
+  room: string | null;
   location_x: number | null;
   location_y: number | null;
 }
@@ -23,7 +30,7 @@ async function HomeContent() {
   const [{ data: properties }, { data: profile }] = await Promise.all([
     supabase
       .from("properties")
-      .select("id, name, address, location_x, location_y")
+      .select("id, name, postal_code, prefecture, city_ward_town, area, chome, block, building, room, location_x, location_y")
       .order("name"),
     supabase.from("profiles").select("role").eq("id", user.id).single(),
   ]);

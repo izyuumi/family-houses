@@ -7,11 +7,19 @@ import { JapanMap, type PropertyMarker } from "@/components/japan-map";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MapPin, Home, X, ChevronRight, List } from "lucide-react";
+import { buildFullAddress } from "@/components/address-display";
 
 interface Property {
   id: string;
   name: string;
-  address: string;
+  postal_code: string | null;
+  prefecture: string | null;
+  city_ward_town: string | null;
+  area: string | null;
+  chome: string | null;
+  block: string | null;
+  building: string | null;
+  room: string | null;
   location_x: number | null;
   location_y: number | null;
 }
@@ -112,26 +120,40 @@ export function MapDashboard({ properties }: MapDashboardProps) {
                 {t.properties.noProperties}
               </div>
             ) : (
-              displayedProperties.map((property) => (
-                <Card
-                  key={property.id}
-                  className="p-4 transition-all hover:border-foreground/30 active:scale-[0.98] active:bg-muted/50 cursor-pointer touch-manipulation"
-                  onClick={() => navigateToProperty(property.id)}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0 flex-1">
-                      <div className="font-medium flex items-center gap-2">
-                        <Home className="h-4 w-4 shrink-0 text-muted-foreground" />
-                        <span className="truncate">{property.name}</span>
+              displayedProperties.map((property) => {
+                const address = buildFullAddress({
+                  postal_code: property.postal_code,
+                  prefecture: property.prefecture,
+                  city_ward_town: property.city_ward_town,
+                  area: property.area,
+                  chome: property.chome,
+                  block: property.block,
+                  building: property.building,
+                  room: property.room,
+                });
+                return (
+                  <Card
+                    key={property.id}
+                    className="p-4 transition-all hover:border-foreground/30 active:scale-[0.98] active:bg-muted/50 cursor-pointer touch-manipulation"
+                    onClick={() => navigateToProperty(property.id)}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="font-medium flex items-center gap-2">
+                          <Home className="h-4 w-4 shrink-0 text-muted-foreground" />
+                          <span className="truncate">{property.name}</span>
+                        </div>
+                        {address && (
+                          <div className="text-sm text-muted-foreground mt-1.5 truncate">
+                            {address}
+                          </div>
+                        )}
                       </div>
-                      <div className="text-sm text-muted-foreground mt-1.5 truncate">
-                        {property.address}
-                      </div>
+                      <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
                     </div>
-                    <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
-                  </div>
-                </Card>
-              ))
+                  </Card>
+                );
+              })
             )}
           </div>
         </div>

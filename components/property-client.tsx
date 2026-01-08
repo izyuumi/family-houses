@@ -7,11 +7,11 @@ import { Groceries } from "@/components/groceries";
 import { Navbar } from "@/components/navbar";
 import { Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { buildFullAddress } from "@/components/address-display";
 
 interface Property {
   id: string;
   name: string;
-  address: string;
   postal_code?: string | null;
   prefecture?: string | null;
   city_ward_town?: string | null;
@@ -44,6 +44,17 @@ interface PropertyClientProps {
 export function PropertyClient({ property, isAdmin, initialGroceries }: PropertyClientProps) {
   const { t } = useI18n();
 
+  const fullAddress = buildFullAddress({
+    postal_code: property.postal_code ?? null,
+    prefecture: property.prefecture ?? null,
+    city_ward_town: property.city_ward_town ?? null,
+    area: property.area ?? null,
+    chome: property.chome ?? null,
+    block: property.block ?? null,
+    building: property.building ?? null,
+    room: property.room ?? null,
+  });
+
   return (
     <main className="min-h-dvh flex flex-col">
       <nav className="w-full flex justify-center border-b border-b-foreground/10 h-14 shrink-0">
@@ -66,7 +77,7 @@ export function PropertyClient({ property, isAdmin, initialGroceries }: Property
         </div>
       </nav>
       <div className="flex-1 overflow-auto p-4 max-w-xl mx-auto w-full pb-20">
-        <p className="text-sm text-muted-foreground mb-4">{property.address}</p>
+        {fullAddress && <p className="text-sm text-muted-foreground mb-4">{fullAddress}</p>}
         <div className="space-y-6">
           <InfoCard property={property} />
           <Groceries propertyId={property.id} initialItems={initialGroceries} />

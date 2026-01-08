@@ -11,7 +11,6 @@ import { AddressDisplay, type StructuredAddress } from "@/components/address-dis
 interface Property {
   id: string;
   name: string;
-  address: string;
   postal_code?: string | null;
   prefecture?: string | null;
   city_ward_town?: string | null;
@@ -91,7 +90,6 @@ export function InfoCard({ property }: InfoCardProps) {
             building: property.building ?? null,
             room: property.room ?? null,
           }}
-          fallbackAddress={property.address}
         />
 
         <div className="pt-3 border-t space-y-4">

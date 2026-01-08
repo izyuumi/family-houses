@@ -84,7 +84,6 @@ export type Database = {
       }
       properties: {
         Row: {
-          address: string
           area: string | null
           block: string | null
           building: string | null
@@ -106,7 +105,6 @@ export type Database = {
           wifi_ssid: string | null
         }
         Insert: {
-          address: string
           area?: string | null
           block?: string | null
           building?: string | null
@@ -128,7 +126,6 @@ export type Database = {
           wifi_ssid?: string | null
         }
         Update: {
-          address?: string
           area?: string | null
           block?: string | null
           building?: string | null

@@ -7,7 +7,6 @@ import { Navbar } from "@/components/navbar";
 interface Property {
   id: string;
   name: string;
-  address: string;
   postal_code: string | null;
   prefecture: string | null;
   city_ward_town: string | null;

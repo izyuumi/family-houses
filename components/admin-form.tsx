@@ -10,11 +10,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Plus, Loader2, MapPin, Pencil, X, Save } from "lucide-react";
+import { buildFullAddress, type StructuredAddress } from "@/components/address-display";
 
 interface Property {
   id: string;
   name: string;
-  address: string;
   postal_code: string | null;
   prefecture: string | null;
   city_ward_town: string | null;
@@ -47,7 +47,6 @@ export function AdminForm({ property }: AdminFormProps) {
 
   const [formData, setFormData] = useState({
     name: property?.name ?? "",
-    address: property?.address ?? "",
     postal_code: property?.postal_code ?? "",
     prefecture: property?.prefecture ?? "",
     city_ward_town: property?.city_ward_town ?? "",
@@ -78,7 +77,6 @@ export function AdminForm({ property }: AdminFormProps) {
 
     const payload = {
       name: formData.name,
-      address: formData.address,
       postal_code: formData.postal_code || null,
       prefecture: formData.prefecture || null,
       city_ward_town: formData.city_ward_town || null,
@@ -115,7 +113,6 @@ export function AdminForm({ property }: AdminFormProps) {
     } else {
       setFormData({
         name: "",
-        address: "",
         postal_code: "",
         prefecture: "",
         city_ward_town: "",
@@ -285,20 +282,6 @@ export function AdminForm({ property }: AdminFormProps) {
                 placeholder="101"
               />
             </div>
-          </div>
-
-          <div className="space-y-1.5 pt-2 border-t">
-            <Label htmlFor="address" className="text-xs text-muted-foreground">
-              {t.form.fullAddressFallback}
-            </Label>
-            <Input
-              id="address"
-              name="address"
-              value={formData.address}
-              onChange={handleChange}
-              placeholder={t.form.addressPlaceholder}
-              required
-            />
           </div>
         </div>
 

@@ -29,7 +29,7 @@ interface AddressLine {
   value: string;
 }
 
-function buildFullAddress(address: StructuredAddress): string {
+export function buildFullAddress(address: StructuredAddress): string {
   const parts: string[] = [];
 
   if (address.postal_code) {

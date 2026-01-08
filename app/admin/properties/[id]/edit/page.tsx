@@ -10,7 +10,6 @@ interface PageProps {
 interface Property {
   id: string;
   name: string;
-  address: string;
   postal_code: string | null;
   prefecture: string | null;
   city_ward_town: string | null;
@@ -41,7 +40,7 @@ async function EditContent({ propertyId }: { propertyId: string }) {
     supabase.from("profiles").select("role").eq("id", user.id).single(),
     supabase
       .from("properties")
-      .select("id, name, address, postal_code, prefecture, city_ward_town, area, chome, block, building, room, wifi_ssid, wifi_password, guest_wifi_ssid, guest_wifi_password, location_x, location_y")
+      .select("id, name, postal_code, prefecture, city_ward_town, area, chome, block, building, room, wifi_ssid, wifi_password, guest_wifi_ssid, guest_wifi_password, location_x, location_y")
       .eq("id", propertyId)
       .maybeSingle(),
   ]);

@@ -8,7 +8,14 @@ import { Home } from "lucide-react";
 interface Property {
   id: string;
   name: string;
-  address: string;
+  postal_code: string | null;
+  prefecture: string | null;
+  city_ward_town: string | null;
+  area: string | null;
+  chome: string | null;
+  block: string | null;
+  building: string | null;
+  room: string | null;
 }
 
 async function PropertiesContent() {
@@ -21,7 +28,7 @@ async function PropertiesContent() {
 
   const { data: properties, error } = await supabase
     .from("properties")
-    .select("id, name, address")
+    .select("id, name, postal_code, prefecture, city_ward_town, area, chome, block, building, room")
     .order("name");
 
   if (error) throw new Error(error.message);

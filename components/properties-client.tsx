@@ -5,11 +5,19 @@ import { useI18n } from "@/lib/i18n/context";
 import { Card } from "@/components/ui/card";
 import { Navbar } from "@/components/navbar";
 import { MapPin } from "lucide-react";
+import { buildFullAddress } from "@/components/address-display";
 
 interface Property {
   id: string;
   name: string;
-  address: string;
+  postal_code: string | null;
+  prefecture: string | null;
+  city_ward_town: string | null;
+  area: string | null;
+  chome: string | null;
+  block: string | null;
+  building: string | null;
+  room: string | null;
 }
 
 interface PropertiesClientProps {
@@ -30,17 +38,31 @@ export function PropertiesClient({ properties }: PropertiesClientProps) {
             </p>
           )}
 
-          {properties.map((p: Property) => (
-            <Link key={p.id} href={`/properties/${p.id}`} prefetch={false}>
-              <Card className="p-4 transition-all active:scale-[0.99] hover:border-foreground/30">
-                <div className="font-medium">{p.name}</div>
-                <div className="text-sm text-muted-foreground mt-1 flex items-center gap-1">
-                  <MapPin className="h-3 w-3" />
-                  {p.address}
-                </div>
-              </Card>
-            </Link>
-          ))}
+          {properties.map((p: Property) => {
+            const address = buildFullAddress({
+              postal_code: p.postal_code,
+              prefecture: p.prefecture,
+              city_ward_town: p.city_ward_town,
+              area: p.area,
+              chome: p.chome,
+              block: p.block,
+              building: p.building,
+              room: p.room,
+            });
+            return (
+              <Link key={p.id} href={`/properties/${p.id}`} prefetch={false}>
+                <Card className="p-4 transition-all active:scale-[0.99] hover:border-foreground/30">
+                  <div className="font-medium">{p.name}</div>
+                  {address && (
+                    <div className="text-sm text-muted-foreground mt-1 flex items-center gap-1">
+                      <MapPin className="h-3 w-3" />
+                      {address}
+                    </div>
+                  )}
+                </Card>
+              </Link>
+            );
+          })}
         </div>
 
         <p className="text-xs text-muted-foreground mt-6 text-center">
