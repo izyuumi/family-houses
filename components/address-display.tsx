@@ -213,14 +213,66 @@ export function AddressDisplay({
   if (!hasStructuredAddress(address)) {
     if (!fallbackAddress) return null;
 
+    const encodedFallback = encodeURIComponent(fallbackAddress);
+    const hasCoords =
+      latitude !== null &&
+      latitude !== undefined &&
+      longitude !== null &&
+      longitude !== undefined;
+
+    const fallbackGoogleUrl = hasCoords
+      ? `https://www.google.com/maps?q=${latitude},${longitude}`
+      : `https://www.google.com/maps/search/?api=1&query=${encodedFallback}`;
+
+    const fallbackAppleUrl = hasCoords
+      ? `https://maps.apple.com/?ll=${latitude},${longitude}&q=${encodedFallback}`
+      : `https://maps.apple.com/?q=${encodedFallback}`;
+
     return (
-      <div className="flex items-start gap-2">
-        <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
-        <div className="flex-1 min-w-0">
-          <div className="text-muted-foreground text-xs">{t.form.address}</div>
-          <div className="text-sm flex items-center gap-1">
-            <span className="truncate">{fallbackAddress}</span>
-            <CopyButton text={fallbackAddress} />
+      <div className="relative">
+        {toast && (
+          <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-foreground text-background text-xs px-2 py-1 rounded shadow-lg z-10 animate-in fade-in slide-in-from-bottom-1 duration-200">
+            {toast}
+          </div>
+        )}
+        <div className="flex items-start gap-2">
+          <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
+          <div className="flex-1 min-w-0">
+            <div className="text-muted-foreground text-xs">{t.form.address}</div>
+            <div className="text-sm flex items-center gap-1 mb-3">
+              <span className="truncate">{fallbackAddress}</span>
+              <CopyButton text={fallbackAddress} />
+            </div>
+            <div className="grid grid-cols-2 gap-2 pt-3 border-t">
+              <Button asChild variant="ghost" size="sm">
+                <a href={fallbackAppleUrl} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="h-4 w-4 mr-1.5" />
+                  Apple Maps
+                </a>
+              </Button>
+              <Button asChild variant="ghost" size="sm">
+                <a href={fallbackGoogleUrl} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="h-4 w-4 mr-1.5" />
+                  Google Maps
+                </a>
+              </Button>
+            </div>
+            {hasCoords && (
+              <div className="mt-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full"
+                  onClick={async () => {
+                    await navigator.clipboard.writeText(`${latitude}, ${longitude}`);
+                    showToast(language === "ja" ? "座標をコピーしました" : "Coordinates copied");
+                  }}
+                >
+                  <Copy className="h-4 w-4 mr-1.5" />
+                  {language === "ja" ? "座標をコピー" : "Copy Coordinates"}
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -264,9 +316,16 @@ export function AddressDisplay({
     longitude !== null &&
     longitude !== undefined;
 
-  const mapsUrl = hasCoordinates
+  const searchAddress = fullAddress || fallbackAddress || "";
+  const encodedAddress = encodeURIComponent(searchAddress);
+
+  const googleMapsUrl = hasCoordinates
     ? `https://www.google.com/maps?q=${latitude},${longitude}`
-    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`;
+    : `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
+
+  const appleMapsUrl = hasCoordinates
+    ? `https://maps.apple.com/?ll=${latitude},${longitude}&q=${encodedAddress}`
+    : `https://maps.apple.com/?q=${encodedAddress}`;
 
   return (
     <div className="relative">
@@ -312,17 +371,27 @@ export function AddressDisplay({
             ))}
           </div>
 
-          <div className="flex gap-2 mt-3 pt-3 border-t">
-            <Button asChild variant="ghost" size="sm" className="flex-1">
-              <a href={mapsUrl} target="_blank" rel="noopener noreferrer">
+          <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t">
+            <Button asChild variant="ghost" size="sm">
+              <a href={appleMapsUrl} target="_blank" rel="noopener noreferrer">
                 <ExternalLink className="h-4 w-4 mr-1.5" />
-                {language === "ja" ? "マップで開く" : "Open in Maps"}
+                Apple Maps
               </a>
             </Button>
-            {hasCoordinates && (
+            <Button asChild variant="ghost" size="sm">
+              <a href={googleMapsUrl} target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="h-4 w-4 mr-1.5" />
+                Google Maps
+              </a>
+            </Button>
+          </div>
+
+          {hasCoordinates && (
+            <div className="mt-2">
               <Button
                 variant="ghost"
                 size="sm"
+                className="w-full"
                 onClick={async () => {
                   await navigator.clipboard.writeText(
                     `${latitude}, ${longitude}`
@@ -333,10 +402,10 @@ export function AddressDisplay({
                 }}
               >
                 <Copy className="h-4 w-4 mr-1.5" />
-                {language === "ja" ? "座標" : "Coords"}
+                {language === "ja" ? "座標をコピー" : "Copy Coordinates"}
               </Button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
