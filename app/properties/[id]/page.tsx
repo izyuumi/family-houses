@@ -10,11 +10,20 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
 interface PageProps {
-  params: { id: string };
+  params: { id?: string | string[] };
 }
 
-async function PropertyData({ params }: { params: { id: string } }) {
-  const { id } = params;
+function resolvePropertyId(params: { id?: string | string[] }) {
+  if (!params.id) return null;
+  if (Array.isArray(params.id)) return params.id[0] ?? null;
+  return params.id;
+}
+
+async function PropertyData({ params }: { params: { id?: string | string[] } }) {
+  const id = resolvePropertyId(params);
+  if (!id || id === "undefined") {
+    redirect("/properties");
+  }
   const supabase = await createClient();
   const {
     data: { user },
