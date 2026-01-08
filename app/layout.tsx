@@ -10,7 +10,7 @@ const defaultUrl = process.env.VERCEL_URL
 export const metadata: Metadata = {
   metadataBase: new URL(defaultUrl),
   title: "Family Houses",
-  description: "Manage properties, groceries & deliveries",
+  description: "Manage properties & groceries",
 };
 
 export const viewport: Viewport = {

@@ -14,8 +14,10 @@ interface Property {
   id: string;
   name: string;
   address: string;
-  notes: string | null;
   wifi_ssid: string | null;
+  wifi_password: string | null;
+  guest_wifi_ssid: string | null;
+  guest_wifi_password: string | null;
   location_x: number | null;
   location_y: number | null;
 }
@@ -36,8 +38,10 @@ export function AdminForm({ property }: AdminFormProps) {
   const [formData, setFormData] = useState({
     name: property?.name ?? "",
     address: property?.address ?? "",
-    notes: property?.notes ?? "",
     wifi_ssid: property?.wifi_ssid ?? "",
+    wifi_password: property?.wifi_password ?? "",
+    guest_wifi_ssid: property?.guest_wifi_ssid ?? "",
+    guest_wifi_password: property?.guest_wifi_password ?? "",
   });
 
   const [location, setLocation] = useState<MapLocation | null>(
@@ -59,8 +63,10 @@ export function AdminForm({ property }: AdminFormProps) {
       address: formData.address,
       location_x: location?.x ?? null,
       location_y: location?.y ?? null,
-      notes: formData.notes || null,
       wifi_ssid: formData.wifi_ssid || null,
+      wifi_password: formData.wifi_password || null,
+      guest_wifi_ssid: formData.guest_wifi_ssid || null,
+      guest_wifi_password: formData.guest_wifi_password || null,
     };
 
     const { error: dbError } = isEditMode
@@ -84,8 +90,10 @@ export function AdminForm({ property }: AdminFormProps) {
       setFormData({
         name: "",
         address: "",
-        notes: "",
         wifi_ssid: "",
+        wifi_password: "",
+        guest_wifi_ssid: "",
+        guest_wifi_password: "",
       });
       setLocation(null);
       setTimeout(() => {
@@ -251,15 +259,37 @@ export function AdminForm({ property }: AdminFormProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="notes">Notes</Label>
-          <textarea
-            id="notes"
-            name="notes"
-            value={formData.notes}
+          <Label htmlFor="wifi_password">WiFi Password</Label>
+          <Input
+            id="wifi_password"
+            name="wifi_password"
+            type="password"
+            value={formData.wifi_password}
             onChange={handleChange}
-            placeholder="Entry code, parking info, etc."
-            rows={3}
-            className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-none"
+            placeholder="••••••••"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="guest_wifi_ssid">Guest WiFi SSID</Label>
+          <Input
+            id="guest_wifi_ssid"
+            name="guest_wifi_ssid"
+            value={formData.guest_wifi_ssid}
+            onChange={handleChange}
+            placeholder="HomeNetwork-Guest"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="guest_wifi_password">Guest WiFi Password</Label>
+          <Input
+            id="guest_wifi_password"
+            name="guest_wifi_password"
+            type="password"
+            value={formData.guest_wifi_password}
+            onChange={handleChange}
+            placeholder="••••••••"
           />
         </div>
 

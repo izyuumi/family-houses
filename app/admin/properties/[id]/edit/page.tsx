@@ -32,7 +32,7 @@ async function EditContent({ propertyId }: { propertyId: string }) {
 
   const { data: property, error } = await supabase
     .from("properties")
-    .select("id, name, address, notes, wifi_ssid, location_x, location_y")
+    .select("id, name, address, wifi_ssid, wifi_password, guest_wifi_ssid, guest_wifi_password, location_x, location_y")
     .eq("id", propertyId)
     .maybeSingle();
 

@@ -4,7 +4,6 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { InfoCard } from "@/components/info-card";
 import { Groceries } from "@/components/groceries";
-import { Deliveries } from "@/components/deliveries";
 import { ChevronLeft, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -24,7 +23,7 @@ async function PropertyContent({ propertyId }: { propertyId: string }) {
   const [propertyResult, profileResult] = await Promise.all([
     supabase
       .from("properties")
-      .select("id, name, address, notes, wifi_ssid")
+      .select("id, name, address, wifi_ssid, guest_wifi_ssid")
       .eq("id", propertyId)
       .maybeSingle(),
     supabase.from("profiles").select("role").eq("id", user.id).single(),
@@ -67,7 +66,6 @@ async function PropertyContent({ propertyId }: { propertyId: string }) {
       <div className="mt-4 space-y-6">
         <InfoCard property={property} />
         <Groceries propertyId={property.id} />
-        <Deliveries propertyId={property.id} />
       </div>
     </>
   );
@@ -97,7 +95,7 @@ function LoadingState() {
         <div className="h-4 bg-muted rounded w-2/3 mt-2 animate-pulse" />
       </header>
       <div className="mt-4 space-y-6">
-        {[1, 2, 3].map((i) => (
+        {[1, 2].map((i) => (
           <Card key={i} className="p-6 animate-pulse">
             <div className="h-5 bg-muted rounded w-1/4 mb-4" />
             <div className="space-y-2">

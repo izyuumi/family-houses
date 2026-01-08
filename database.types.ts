@@ -14,50 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      deliveries: {
-        Row: {
-          carrier: string
-          created_at: string | null
-          created_by: string | null
-          id: string
-          notes: string | null
-          property_id: string
-          status: string
-          tracking_number: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          carrier: string
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          notes?: string | null
-          property_id: string
-          status?: string
-          tracking_number?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          carrier?: string
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          notes?: string | null
-          property_id?: string
-          status?: string
-          tracking_number?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "deliveries_property_id_fkey"
-            columns: ["property_id"]
-            isOneToOne: false
-            referencedRelation: "properties"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       grocery_items: {
         Row: {
           added_by: string | null
@@ -130,11 +86,12 @@ export type Database = {
         Row: {
           address: string
           created_at: string | null
+          guest_wifi_password: string | null
+          guest_wifi_ssid: string | null
           id: string
           location_x: number | null
           location_y: number | null
           name: string
-          notes: string | null
           prefecture_id: string | null
           updated_at: string | null
           wifi_password: string | null
@@ -143,11 +100,12 @@ export type Database = {
         Insert: {
           address: string
           created_at?: string | null
+          guest_wifi_password?: string | null
+          guest_wifi_ssid?: string | null
           id?: string
           location_x?: number | null
           location_y?: number | null
           name: string
-          notes?: string | null
           prefecture_id?: string | null
           updated_at?: string | null
           wifi_password?: string | null
@@ -156,11 +114,12 @@ export type Database = {
         Update: {
           address?: string
           created_at?: string | null
+          guest_wifi_password?: string | null
+          guest_wifi_ssid?: string | null
           id?: string
           location_x?: number | null
           location_y?: number | null
           name?: string
-          notes?: string | null
           prefecture_id?: string | null
           updated_at?: string | null
           wifi_password?: string | null

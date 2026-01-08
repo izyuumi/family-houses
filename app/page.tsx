@@ -31,7 +31,7 @@ async function HomeContent() {
               Family Houses
             </h1>
             <p className="text-muted-foreground text-center">
-              Manage properties, groceries & deliveries
+              Manage properties & groceries
             </p>
           </div>
           <AppleSignInButton />
