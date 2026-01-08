@@ -42,7 +42,11 @@ interface PropertyClientProps {
   initialGroceries?: GroceryItem[];
 }
 
-export function PropertyClient({ property, isAdmin, initialGroceries }: PropertyClientProps) {
+export function PropertyClient({
+  property,
+  isAdmin,
+  initialGroceries,
+}: PropertyClientProps) {
   const { t } = useI18n();
 
   const fullAddress = buildFullAddress({
@@ -69,7 +73,7 @@ export function PropertyClient({ property, isAdmin, initialGroceries }: Property
             </Link>
           </div>
           {isAdmin && (
-            <Link href={`/add/properties/${property.slug || property.id}/edit`}>
+            <Link href={`/add/p/${property.slug || property.id}/edit`}>
               <Button variant="ghost" size="sm">
                 <Pencil className="h-4 w-4" />
               </Button>
@@ -78,7 +82,9 @@ export function PropertyClient({ property, isAdmin, initialGroceries }: Property
         </div>
       </nav>
       <div className="flex-1 overflow-auto p-4 max-w-xl mx-auto w-full pb-20">
-        {fullAddress && <p className="text-sm text-muted-foreground mb-4">{fullAddress}</p>}
+        {fullAddress && (
+          <p className="text-sm text-muted-foreground mb-4">{fullAddress}</p>
+        )}
         <div className="space-y-6">
           <InfoCard property={property} />
           <Groceries propertyId={property.id} initialItems={initialGroceries} />

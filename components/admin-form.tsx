@@ -10,7 +10,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Plus, Loader2, MapPin, Pencil, X, Save } from "lucide-react";
-import { buildFullAddress, type StructuredAddress } from "@/components/address-display";
+import {
+  buildFullAddress,
+  type StructuredAddress,
+} from "@/components/address-display";
 
 interface Property {
   id: string;
@@ -111,7 +114,7 @@ export function AdminForm({ property }: AdminFormProps) {
 
     if (isEditMode) {
       setTimeout(() => {
-        router.push(`/properties/${formData.slug || property.id}`);
+        router.push(`/p/${formData.slug || property.id}`);
       }, 1000);
     } else {
       setFormData({
@@ -138,7 +141,9 @@ export function AdminForm({ property }: AdminFormProps) {
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -196,7 +201,10 @@ export function AdminForm({ property }: AdminFormProps) {
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="postal_code" className="text-xs text-muted-foreground">
+              <Label
+                htmlFor="postal_code"
+                className="text-xs text-muted-foreground"
+              >
                 {t.form.postalCode}
               </Label>
               <Input
@@ -208,7 +216,10 @@ export function AdminForm({ property }: AdminFormProps) {
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="prefecture" className="text-xs text-muted-foreground">
+              <Label
+                htmlFor="prefecture"
+                className="text-xs text-muted-foreground"
+              >
                 {t.form.prefecture}
               </Label>
               <Input
@@ -222,7 +233,10 @@ export function AdminForm({ property }: AdminFormProps) {
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="city_ward_town" className="text-xs text-muted-foreground">
+            <Label
+              htmlFor="city_ward_town"
+              className="text-xs text-muted-foreground"
+            >
               {t.form.cityWardTown}
             </Label>
             <Input
@@ -276,7 +290,10 @@ export function AdminForm({ property }: AdminFormProps) {
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="building" className="text-xs text-muted-foreground">
+              <Label
+                htmlFor="building"
+                className="text-xs text-muted-foreground"
+              >
                 {t.form.building}
               </Label>
               <Input
@@ -304,7 +321,13 @@ export function AdminForm({ property }: AdminFormProps) {
 
         <div className="space-y-2">
           <Label>{t.form.locationOnMap}</Label>
-          <div className={`border rounded-md overflow-hidden transition-colors ${isEditingLocation ? "border-primary ring-2 ring-primary/20" : "border-input"}`}>
+          <div
+            className={`border rounded-md overflow-hidden transition-colors ${
+              isEditingLocation
+                ? "border-primary ring-2 ring-primary/20"
+                : "border-input"
+            }`}
+          >
             <div className="h-[300px] bg-muted/30 relative">
               {isEditingLocation ? (
                 <JapanMap
@@ -315,7 +338,18 @@ export function AdminForm({ property }: AdminFormProps) {
               ) : (
                 <JapanMap
                   mode="view"
-                  markers={location ? [{ id: "selected", name: "Selected Location", x: location.x, y: location.y }] : []}
+                  markers={
+                    location
+                      ? [
+                          {
+                            id: "selected",
+                            name: "Selected Location",
+                            x: location.x,
+                            y: location.y,
+                          },
+                        ]
+                      : []
+                  }
                 />
               )}
               {isEditingLocation && (
@@ -367,7 +401,9 @@ export function AdminForm({ property }: AdminFormProps) {
                 </>
               ) : (
                 <>
-                  <span className="text-sm text-muted-foreground">{t.form.noLocationSet}</span>
+                  <span className="text-sm text-muted-foreground">
+                    {t.form.noLocationSet}
+                  </span>
                   {isEditingLocation ? (
                     <Button
                       type="button"
@@ -429,7 +465,9 @@ export function AdminForm({ property }: AdminFormProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="guest_wifi_password">{t.form.guestWifiPassword}</Label>
+          <Label htmlFor="guest_wifi_password">
+            {t.form.guestWifiPassword}
+          </Label>
           <Input
             id="guest_wifi_password"
             name="guest_wifi_password"

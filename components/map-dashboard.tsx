@@ -32,7 +32,9 @@ interface MapDashboardProps {
 export function MapDashboard({ properties }: MapDashboardProps) {
   const { t } = useI18n();
   const router = useRouter();
-  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(
+    null
+  );
   const [showAllProperties, setShowAllProperties] = useState(false);
 
   const markers: PropertyMarker[] = useMemo(() => {
@@ -49,12 +51,12 @@ export function MapDashboard({ properties }: MapDashboardProps) {
   const handleMarkerClick = (marker: PropertyMarker) => {
     const property = properties.find((p) => p.id === marker.id);
     if (property) {
-      router.push(`/properties/${property.slug || property.id}`);
+      router.push(`/p/${property.slug || property.id}`);
     }
   };
 
   const navigateToProperty = (property: Property) => {
-    router.push(`/properties/${property.slug || property.id}`);
+    router.push(`/p/${property.slug || property.id}`);
   };
 
   const clearSelection = () => {
@@ -70,13 +72,17 @@ export function MapDashboard({ properties }: MapDashboardProps) {
   const displayedProperties = showAllProperties
     ? properties
     : selectedProperty
-      ? [selectedProperty]
-      : [];
+    ? [selectedProperty]
+    : [];
 
   return (
     <div className="relative w-full h-full flex flex-col md:flex-row">
       <div className="flex-1 relative min-h-[50vh] md:min-h-0">
-        <JapanMap mode="view" markers={markers} onMarkerClick={handleMarkerClick} />
+        <JapanMap
+          mode="view"
+          markers={markers}
+          onMarkerClick={handleMarkerClick}
+        />
 
         <div className="absolute top-4 left-4 z-10">
           <Button
@@ -86,7 +92,9 @@ export function MapDashboard({ properties }: MapDashboardProps) {
             className="shadow-md touch-manipulation h-10 px-4"
           >
             <List className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">{t.properties.allProperties}</span>
+            <span className="hidden sm:inline">
+              {t.properties.allProperties}
+            </span>
             <span className="sm:hidden">{t.common.list}</span>
             <span className="ml-1">({properties.length})</span>
           </Button>
@@ -96,17 +104,19 @@ export function MapDashboard({ properties }: MapDashboardProps) {
       {(selectedProperty || showAllProperties) && (
         <div className="w-full md:w-80 lg:w-96 border-t md:border-t-0 md:border-l bg-background flex flex-col max-h-[45vh] md:max-h-full animate-in slide-in-from-bottom md:slide-in-from-right duration-200">
           <div className="md:hidden w-12 h-1 bg-border rounded-full mx-auto mt-2 mb-1" />
-          
+
           <div className="px-4 py-3 md:p-4 border-b flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2">
               <MapPin className="h-4 w-4 text-muted-foreground" />
               <h2 className="font-semibold text-base">
-                {showAllProperties ? t.properties.allProperties : selectedProperty?.name ?? "Property"}
+                {showAllProperties
+                  ? t.properties.allProperties
+                  : selectedProperty?.name ?? "Property"}
               </h2>
             </div>
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={clearSelection}
               className="h-9 w-9 touch-manipulation"
             >
@@ -161,8 +171,8 @@ export function MapDashboard({ properties }: MapDashboardProps) {
 
       {!selectedProperty && !showAllProperties && properties.length > 0 && (
         <div className="absolute bottom-20 right-4 z-10 md:hidden">
-          <Button 
-            onClick={toggleAllProperties} 
+          <Button
+            onClick={toggleAllProperties}
             className="shadow-lg h-12 px-5 text-base touch-manipulation"
           >
             <Home className="h-5 w-5 mr-2" />

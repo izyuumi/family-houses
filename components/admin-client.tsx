@@ -50,7 +50,7 @@ export function AdminClient({ mode, property }: AdminClientProps) {
     <main className="min-h-dvh flex flex-col">
       <Navbar
         showBack
-        backHref={`/properties/${property?.slug || property?.id}`}
+        backHref={`/p/${property?.slug || property?.id}`}
         title={t.admin.editProperty}
       />
       <div className="flex-1 p-4 max-w-xl mx-auto w-full pb-20">
