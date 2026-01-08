@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Eye, Copy, Check, Info, Wifi, MapPin } from "lucide-react";
+import { WifiQRCode } from "@/components/wifi-qrcode";
 
 interface Property {
   id: string;
@@ -111,6 +112,9 @@ export function InfoCard({ property }: InfoCardProps) {
                   <Copy className="h-4 w-4" />
                 )}
               </Button>
+              {wifiPassword && property.wifi_ssid && (
+                <WifiQRCode ssid={property.wifi_ssid} password={wifiPassword} />
+              )}
             </div>
           </div>
 
@@ -149,6 +153,9 @@ export function InfoCard({ property }: InfoCardProps) {
                     <Copy className="h-4 w-4" />
                   )}
                 </Button>
+                {guestWifiPassword && property.guest_wifi_ssid && (
+                  <WifiQRCode ssid={property.guest_wifi_ssid} password={guestWifiPassword} />
+                )}
               </div>
             </div>
           )}
