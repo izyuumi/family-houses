@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useI18n } from "@/lib/i18n/context";
 import { JapanMap, type PropertyMarker } from "@/components/japan-map";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ interface MapDashboardProps {
 }
 
 export function MapDashboard({ properties }: MapDashboardProps) {
+  const { t } = useI18n();
   const router = useRouter();
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [showAllProperties, setShowAllProperties] = useState(false);
@@ -69,7 +71,7 @@ export function MapDashboard({ properties }: MapDashboardProps) {
             className="shadow-md"
           >
             <List className="h-4 w-4 mr-2" />
-            All Properties ({properties.length})
+            {t.properties.allProperties} ({properties.length})
           </Button>
         </div>
       </div>
@@ -80,7 +82,7 @@ export function MapDashboard({ properties }: MapDashboardProps) {
             <div className="flex items-center gap-2">
               <MapPin className="h-4 w-4 text-muted-foreground" />
               <h2 className="font-semibold">
-                {showAllProperties ? "All Properties" : selectedProperty?.name ?? "Property"}
+                {showAllProperties ? t.properties.allProperties : selectedProperty?.name ?? "Property"}
               </h2>
             </div>
             <Button variant="ghost" size="icon" onClick={clearSelection}>
@@ -91,7 +93,7 @@ export function MapDashboard({ properties }: MapDashboardProps) {
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
             {displayedProperties.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground text-sm">
-                No properties yet
+                {t.properties.noProperties}
               </div>
             ) : (
               displayedProperties.map((property) => (
@@ -121,7 +123,7 @@ export function MapDashboard({ properties }: MapDashboardProps) {
         <div className="absolute bottom-4 right-4 z-10 md:hidden">
           <Button onClick={toggleAllProperties} className="shadow-lg">
             <Home className="h-4 w-4 mr-2" />
-            View Properties
+            {t.properties.viewProperties}
           </Button>
         </div>
       )}

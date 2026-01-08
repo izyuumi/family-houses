@@ -1,15 +1,19 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { InfoCard } from "@/components/info-card";
-import { Groceries } from "@/components/groceries";
-import { ChevronLeft, Pencil } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { PropertyClient } from "@/components/property-client";
 import { Card } from "@/components/ui/card";
 
 interface PageProps {
   params: Promise<{ id: string }>;
+}
+
+interface Property {
+  id: string;
+  name: string;
+  address: string;
+  wifi_ssid: string | null;
+  guest_wifi_ssid: string | null;
 }
 
 async function PropertyContent({ propertyId }: { propertyId: string }) {
@@ -33,42 +37,14 @@ async function PropertyContent({ propertyId }: { propertyId: string }) {
     throw new Error(propertyResult.error.message);
   }
 
-  const property = propertyResult.data;
+  const property = propertyResult.data as Property | null;
   const isAdmin = profileResult.data?.role === "admin";
 
   if (!property) {
     redirect("/properties");
   }
 
-  return (
-    <>
-      <header className="py-2">
-        <div className="flex items-center justify-between">
-          <Link href="/properties">
-            <Button variant="ghost" size="sm" className="mb-2 -ml-2">
-              <ChevronLeft className="h-4 w-4 mr-1" />
-              Back
-            </Button>
-          </Link>
-          {isAdmin && (
-            <Link href={`/admin/properties/${property.id}/edit`}>
-              <Button variant="outline" size="sm">
-                <Pencil className="h-4 w-4 mr-1" />
-                Edit
-              </Button>
-            </Link>
-          )}
-        </div>
-        <h1 className="text-xl font-semibold">{property.name}</h1>
-        <p className="text-sm text-muted-foreground">{property.address}</p>
-      </header>
-
-      <div className="mt-4 space-y-6">
-        <InfoCard property={property} />
-        <Groceries propertyId={property.id} />
-      </div>
-    </>
-  );
+  return <PropertyClient property={property} isAdmin={isAdmin} />;
 }
 
 async function PropertyData({
@@ -87,10 +63,7 @@ function LoadingState() {
   return (
     <>
       <header className="py-2">
-        <Button variant="ghost" size="sm" className="mb-2 -ml-2">
-          <ChevronLeft className="h-4 w-4 mr-1" />
-          Back
-        </Button>
+        <div className="h-8 w-16 bg-muted rounded animate-pulse mb-2" />
         <div className="h-6 bg-muted rounded w-1/3 animate-pulse" />
         <div className="h-4 bg-muted rounded w-2/3 mt-2 animate-pulse" />
       </header>

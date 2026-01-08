@@ -1,46 +1,51 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Suspense } from "react";
+"use client";
 
-async function ErrorContent({
-  searchParams,
-}: {
-  searchParams: Promise<{ error: string }>;
-}) {
-  const params = await searchParams;
+import { useEffect, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import { useI18n } from "@/lib/i18n/context";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+function ErrorContent() {
+  const { t } = useI18n();
+  const searchParams = useSearchParams();
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setError(searchParams.get("error"));
+  }, [searchParams]);
 
   return (
     <>
-      {params?.error ? (
+      {error ? (
         <p className="text-sm text-muted-foreground">
-          Code error: {params.error}
+          {t.error.codeError}: {error}
         </p>
       ) : (
         <p className="text-sm text-muted-foreground">
-          An unspecified error occurred.
+          {t.error.unspecifiedError}
         </p>
       )}
     </>
   );
 }
 
-export default function Page({
-  searchParams,
-}: {
-  searchParams: Promise<{ error: string }>;
-}) {
+function ErrorTitle() {
+  const { t } = useI18n();
+  return <CardTitle className="text-2xl">{t.error.title}</CardTitle>;
+}
+
+export default function Page() {
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
       <div className="w-full max-w-sm">
         <div className="flex flex-col gap-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-2xl">
-                Sorry, something went wrong.
-              </CardTitle>
+              <ErrorTitle />
             </CardHeader>
             <CardContent>
               <Suspense>
-                <ErrorContent searchParams={searchParams} />
+                <ErrorContent />
               </Suspense>
             </CardContent>
           </Card>

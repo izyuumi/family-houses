@@ -1,13 +1,22 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { AdminForm } from "@/components/admin-form";
-import { Button } from "@/components/ui/button";
-import { ChevronLeft } from "lucide-react";
+import { AdminClient } from "@/components/admin-client";
 
 interface PageProps {
   params: Promise<{ id: string }>;
+}
+
+interface Property {
+  id: string;
+  name: string;
+  address: string;
+  wifi_ssid: string | null;
+  wifi_password: string | null;
+  guest_wifi_ssid: string | null;
+  guest_wifi_password: string | null;
+  location_x: number | null;
+  location_y: number | null;
 }
 
 async function EditContent({ propertyId }: { propertyId: string }) {
@@ -40,24 +49,7 @@ async function EditContent({ propertyId }: { propertyId: string }) {
     redirect("/properties");
   }
 
-  return (
-    <main className="min-h-dvh p-4 max-w-xl mx-auto pb-20">
-      <header className="py-2">
-        <Link href={`/properties/${property.id}`}>
-          <Button variant="ghost" size="sm" className="mb-2 -ml-2">
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            Back to Property
-          </Button>
-        </Link>
-        <h1 className="text-xl font-semibold">Edit Property</h1>
-        <p className="text-sm text-muted-foreground">
-          Update {property.name}
-        </p>
-      </header>
-
-      <AdminForm property={property} />
-    </main>
-  );
+  return <AdminClient mode="edit" property={property as Property} />;
 }
 
 async function EditData({

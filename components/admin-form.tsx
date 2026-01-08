@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { useI18n } from "@/lib/i18n/context";
 import { JapanMap, type MapLocation } from "@/components/japan-map";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +28,7 @@ interface AdminFormProps {
 }
 
 export function AdminForm({ property }: AdminFormProps) {
+  const { t } = useI18n();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -132,31 +134,31 @@ export function AdminForm({ property }: AdminFormProps) {
     <Card className="mt-6 p-6">
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="space-y-2">
-          <Label htmlFor="name">Name *</Label>
+          <Label htmlFor="name">{t.form.name} *</Label>
           <Input
             id="name"
             name="name"
             value={formData.name}
             onChange={handleChange}
-            placeholder="Kanazawa House"
+            placeholder={t.form.namePlaceholder}
             required
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="address">Address *</Label>
+          <Label htmlFor="address">{t.form.address} *</Label>
           <Input
             id="address"
             name="address"
             value={formData.address}
             onChange={handleChange}
-            placeholder="1-2-3 Katamachi, Kanazawa"
+            placeholder={t.form.addressPlaceholder}
             required
           />
         </div>
 
         <div className="space-y-2">
-          <Label>Location on Map</Label>
+          <Label>{t.form.locationOnMap}</Label>
           <div className={`border rounded-md overflow-hidden transition-colors ${isEditingLocation ? "border-primary ring-2 ring-primary/20" : "border-input"}`}>
             <div className="h-[300px] bg-muted/30 relative">
               {isEditingLocation ? (
@@ -174,7 +176,7 @@ export function AdminForm({ property }: AdminFormProps) {
               {isEditingLocation && (
                 <div className="absolute inset-0 pointer-events-none flex items-start justify-center pt-4">
                   <div className="bg-primary text-primary-foreground px-3 py-1.5 rounded-full text-sm font-medium animate-pulse">
-                    Click anywhere on the map
+                    {t.form.clickToSetLocation}
                   </div>
                 </div>
               )}
@@ -184,7 +186,7 @@ export function AdminForm({ property }: AdminFormProps) {
                 <>
                   <div className="flex items-center gap-2 text-sm">
                     <MapPin className="h-4 w-4 text-primary" />
-                    <span className="font-medium">Location set</span>
+                    <span className="font-medium">{t.form.locationSet}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     {isEditingLocation ? (
@@ -194,7 +196,7 @@ export function AdminForm({ property }: AdminFormProps) {
                         size="sm"
                         onClick={cancelEditingLocation}
                       >
-                        Cancel
+                        {t.common.cancel}
                       </Button>
                     ) : (
                       <Button
@@ -204,7 +206,7 @@ export function AdminForm({ property }: AdminFormProps) {
                         onClick={startEditingLocation}
                       >
                         <Pencil className="h-3.5 w-3.5 mr-1" />
-                        Edit
+                        {t.common.edit}
                       </Button>
                     )}
                     <Button
@@ -220,7 +222,7 @@ export function AdminForm({ property }: AdminFormProps) {
                 </>
               ) : (
                 <>
-                  <span className="text-sm text-muted-foreground">No location set</span>
+                  <span className="text-sm text-muted-foreground">{t.form.noLocationSet}</span>
                   {isEditingLocation ? (
                     <Button
                       type="button"
@@ -228,7 +230,7 @@ export function AdminForm({ property }: AdminFormProps) {
                       size="sm"
                       onClick={cancelEditingLocation}
                     >
-                      Cancel
+                      {t.common.cancel}
                     </Button>
                   ) : (
                     <Button
@@ -238,7 +240,7 @@ export function AdminForm({ property }: AdminFormProps) {
                       onClick={startEditingLocation}
                     >
                       <MapPin className="h-3.5 w-3.5 mr-1" />
-                      Set Location
+                      {t.form.setLocation}
                     </Button>
                   )}
                 </>
@@ -248,18 +250,18 @@ export function AdminForm({ property }: AdminFormProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="wifi_ssid">WiFi SSID</Label>
+          <Label htmlFor="wifi_ssid">{t.form.wifiSSID}</Label>
           <Input
             id="wifi_ssid"
             name="wifi_ssid"
             value={formData.wifi_ssid}
             onChange={handleChange}
-            placeholder="HomeNetwork-5G"
+            placeholder={t.form.wifiSSIDPlaceholder}
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="wifi_password">WiFi Password</Label>
+          <Label htmlFor="wifi_password">{t.form.wifiPassword}</Label>
           <Input
             id="wifi_password"
             name="wifi_password"
@@ -271,18 +273,18 @@ export function AdminForm({ property }: AdminFormProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="guest_wifi_ssid">Guest WiFi SSID</Label>
+          <Label htmlFor="guest_wifi_ssid">{t.form.guestWifiSSID}</Label>
           <Input
             id="guest_wifi_ssid"
             name="guest_wifi_ssid"
             value={formData.guest_wifi_ssid}
             onChange={handleChange}
-            placeholder="HomeNetwork-Guest"
+            placeholder={t.form.guestWifiSSIDPlaceholder}
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="guest_wifi_password">Guest WiFi Password</Label>
+          <Label htmlFor="guest_wifi_password">{t.form.guestWifiPassword}</Label>
           <Input
             id="guest_wifi_password"
             name="guest_wifi_password"
@@ -301,7 +303,7 @@ export function AdminForm({ property }: AdminFormProps) {
 
         {success && (
           <div className="text-sm text-green-600 bg-green-50 dark:bg-green-950 dark:text-green-400 p-3 rounded-md">
-            {isEditMode ? "Property updated successfully!" : "Property added successfully!"}
+            {isEditMode ? t.admin.propertyUpdated : t.admin.propertyAdded}
           </div>
         )}
 
@@ -311,12 +313,12 @@ export function AdminForm({ property }: AdminFormProps) {
           ) : isEditMode ? (
             <>
               <Save className="h-4 w-4 mr-2" />
-              Save Changes
+              {t.admin.saveChanges}
             </>
           ) : (
             <>
               <Plus className="h-4 w-4 mr-2" />
-              Add Property
+              {t.admin.addProperty}
             </>
           )}
         </Button>

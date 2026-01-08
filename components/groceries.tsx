@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useI18n } from "@/lib/i18n/context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,7 @@ interface GroceriesProps {
 }
 
 export function Groceries({ propertyId }: GroceriesProps) {
+  const { t } = useI18n();
   const supabase = createClient();
   const [items, setItems] = useState<GroceryItem[]>([]);
   const [text, setText] = useState("");
@@ -79,7 +81,7 @@ export function Groceries({ propertyId }: GroceriesProps) {
         <CardTitle className="flex items-center justify-between text-base">
           <span className="flex items-center gap-2">
             <ShoppingCart className="h-4 w-4" />
-            Groceries
+            {t.groceries.title}
             {uncheckedCount > 0 && (
               <span className="text-xs bg-primary text-primary-foreground rounded-full px-2 py-0.5">
                 {uncheckedCount}
@@ -88,7 +90,7 @@ export function Groceries({ propertyId }: GroceriesProps) {
           </span>
           {checkedCount > 0 && (
             <Button variant="ghost" size="sm" onClick={clearChecked}>
-              Clear done
+              {t.groceries.clearDone}
             </Button>
           )}
         </CardTitle>
@@ -102,7 +104,7 @@ export function Groceries({ propertyId }: GroceriesProps) {
           }}
         >
           <Input
-            placeholder="Add item..."
+            placeholder={t.groceries.addItem}
             value={text}
             onChange={(e) => setText(e.target.value)}
             className="flex-1"
@@ -115,7 +117,7 @@ export function Groceries({ propertyId }: GroceriesProps) {
         <div className="space-y-2">
           {items.length === 0 && (
             <p className="text-center text-muted-foreground text-sm py-4">
-              No items yet
+              {t.groceries.noItems}
             </p>
           )}
 

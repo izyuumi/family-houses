@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useI18n } from "@/lib/i18n/context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Eye, Copy, Check, Info, Wifi, MapPin } from "lucide-react";
@@ -19,6 +20,7 @@ interface InfoCardProps {
 }
 
 export function InfoCard({ property }: InfoCardProps) {
+  const { t } = useI18n();
   const [wifiPassword, setWifiPassword] = useState<string | null>(null);
   const [guestWifiPassword, setGuestWifiPassword] = useState<string | null>(null);
   const [loadingWifi, setLoadingWifi] = useState(false);
@@ -65,14 +67,14 @@ export function InfoCard({ property }: InfoCardProps) {
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-base">
           <Info className="h-4 w-4" />
-          Property Info
+          {t.info.propertyInfo}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex items-start gap-2 text-sm">
           <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
           <div>
-            <div className="text-muted-foreground text-xs">Address</div>
+            <div className="text-muted-foreground text-xs">{t.form.address}</div>
             <div>{property.address}</div>
           </div>
         </div>
@@ -81,13 +83,13 @@ export function InfoCard({ property }: InfoCardProps) {
           <div className="flex items-start gap-2">
             <Wifi className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
             <div className="flex-1">
-              <div className="text-muted-foreground text-xs">Wi-Fi</div>
+              <div className="text-muted-foreground text-xs">{t.info.wifi}</div>
               <div className="text-sm">
-                <span className="font-medium">SSID:</span>{" "}
+                <span className="font-medium">{t.info.ssid}:</span>{" "}
                 {property.wifi_ssid || "—"}
               </div>
               <div className="text-sm">
-                <span className="font-medium">Password:</span>{" "}
+                <span className="font-medium">{t.info.password}:</span>{" "}
                 {wifiPassword === null ? "••••••••" : wifiPassword || "—"}
               </div>
             </div>
@@ -128,13 +130,13 @@ export function InfoCard({ property }: InfoCardProps) {
             <div className="flex items-start gap-2">
               <Wifi className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
               <div className="flex-1">
-                <div className="text-muted-foreground text-xs">Guest Wi-Fi</div>
+                <div className="text-muted-foreground text-xs">{t.info.guestWifi}</div>
                 <div className="text-sm">
-                  <span className="font-medium">SSID:</span>{" "}
+                  <span className="font-medium">{t.info.ssid}:</span>{" "}
                   {property.guest_wifi_ssid}
                 </div>
                 <div className="text-sm">
-                  <span className="font-medium">Password:</span>{" "}
+                  <span className="font-medium">{t.info.password}:</span>{" "}
                   {guestWifiPassword === null ? "••••••••" : guestWifiPassword || "—"}
                 </div>
               </div>

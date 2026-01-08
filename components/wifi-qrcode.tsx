@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useState } from "react";
+import { useI18n } from "@/lib/i18n/context";
 import { Button } from "@/components/ui/button";
 import { QrCode, X } from "lucide-react";
 
@@ -691,6 +692,7 @@ function generateWifiString(ssid: string, password: string, security = "WPA") {
 }
 
 export function WifiQRCode({ ssid, password, propertyId, type, onPasswordRevealed }: WifiQRCodeProps) {
+  const { t } = useI18n();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [showQR, setShowQR] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -777,12 +779,12 @@ export function WifiQRCode({ ssid, password, propertyId, type, onPasswordReveale
           <X className="h-4 w-4" />
         </Button>
         <div className="text-center mb-4">
-          <h3 className="font-semibold">Wi-Fi QR Code</h3>
+          <h3 className="font-semibold">{t.qrcode.title}</h3>
           <p className="text-sm text-muted-foreground">{ssid}</p>
         </div>
         <canvas ref={canvasRef} className="mx-auto rounded" />
         <p className="text-xs text-muted-foreground text-center mt-4">
-          Scan with your phone to connect
+          {t.qrcode.scanToConnect}
         </p>
       </div>
     </div>
