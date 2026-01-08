@@ -6,7 +6,7 @@ import { useI18n } from "@/lib/i18n/context";
 import { AppleSignInButton } from "@/components/apple-sign-in-button";
 import { MapDashboard } from "@/components/map-dashboard";
 import { Button } from "@/components/ui/button";
-import { Home, List, Plus, User as UserIcon } from "lucide-react";
+import { Home, List, User as UserIcon } from "lucide-react";
 
 interface Property {
   id: string;
@@ -26,10 +26,9 @@ interface Property {
 interface HomeClientProps {
   user: User | null;
   properties: Property[];
-  isAdmin: boolean;
 }
 
-export function HomeClient({ user, properties, isAdmin }: HomeClientProps) {
+export function HomeClient({ user, properties }: HomeClientProps) {
   const { t } = useI18n();
 
   if (!user) {
@@ -55,14 +54,6 @@ export function HomeClient({ user, properties, isAdmin }: HomeClientProps) {
         <div className="w-full max-w-5xl flex justify-between items-center px-4 text-sm">
           <span className="font-semibold">{t.home.title}</span>
           <div className="flex items-center gap-2">
-            {isAdmin && (
-              <Link href="/add">
-                <Button variant="ghost" size="sm">
-                  <Plus className="h-4 w-4 mr-1" />
-                  {t.common.add}
-                </Button>
-              </Link>
-            )}
             <Link href="/properties">
               <Button variant="ghost" size="sm">
                 <List className="h-4 w-4 mr-1" />

@@ -24,24 +24,18 @@ async function HomeContent() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return <HomeClient user={null} properties={[]} isAdmin={false} />;
+    return <HomeClient user={null} properties={[]} />;
   }
 
-  const [{ data: properties }, { data: profile }] = await Promise.all([
-    supabase
-      .from("properties")
-      .select("id, name, postal_code, prefecture, city_ward_town, area, chome, block, building, room, location_x, location_y")
-      .order("name"),
-    supabase.from("profiles").select("role").eq("id", user.id).single(),
-  ]);
-
-  const isAdmin = profile?.role === "admin";
+  const { data: properties } = await supabase
+    .from("properties")
+    .select("id, name, postal_code, prefecture, city_ward_town, area, chome, block, building, room, location_x, location_y")
+    .order("name");
 
   return (
     <HomeClient
       user={user}
       properties={(properties as Property[]) ?? []}
-      isAdmin={isAdmin}
     />
   );
 }

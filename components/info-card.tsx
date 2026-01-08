@@ -108,119 +108,121 @@ export function InfoCard({ property }: InfoCardProps) {
           }}
         />
 
-        <div className="pt-3 border-t space-y-4">
-          <div className="flex items-start gap-2">
-            <Wifi className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
-            <div className="flex-1">
-              <div className="text-muted-foreground text-xs">{t.info.wifi}</div>
-              <div className="text-sm">
-                <span className="font-medium">{t.info.ssid}:</span>{" "}
-                {property.wifi_ssid || "—"}
-              </div>
-              <div className="text-sm">
-                <span className="font-medium">{t.info.password}:</span>{" "}
-                {wifiPassword === null ? "••••••••" : wifiPassword || "—"}
-              </div>
-            </div>
-            <div className="flex gap-2">
-              {wifiPassword === null ? (
-                <Button
-                  variant="default"
-                  size="sm"
-                  disabled={loadingWifi}
-                  onClick={() => revealAndCopyWifi("main")}
-                >
-                  {loadingWifi ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <>
-                      <Eye className="h-4 w-4" />
-                      <Copy className="h-4 w-4" />
-                    </>
-                  )}
-                </Button>
-              ) : (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={!wifiPassword}
-                  onClick={() => wifiPassword && copyToClipboard(wifiPassword, "main")}
-                >
-                  {copiedWifi ? (
-                    <Check className="h-4 w-4" />
-                  ) : (
-                    <Copy className="h-4 w-4" />
-                  )}
-                </Button>
-              )}
-              {property.wifi_ssid && (
-                <WifiQRCodeLazy
-                  ssid={property.wifi_ssid}
-                  password={wifiPassword}
-                  propertyId={property.id}
-                  type="main"
-                  onPasswordRevealed={setWifiPassword}
-                />
-              )}
-            </div>
-          </div>
-
-          {property.guest_wifi_ssid && (
-            <div className="flex items-start gap-2">
-              <Wifi className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
-              <div className="flex-1">
-                <div className="text-muted-foreground text-xs">{t.info.guestWifi}</div>
-                <div className="text-sm">
-                  <span className="font-medium">{t.info.ssid}:</span>{" "}
-                  {property.guest_wifi_ssid}
+        {(property.wifi_ssid || property.guest_wifi_ssid) && (
+          <div className="pt-3 border-t space-y-4">
+            {property.wifi_ssid && (
+              <div className="flex items-start gap-2">
+                <Wifi className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
+                <div className="flex-1">
+                  <div className="text-muted-foreground text-xs">{t.info.wifi}</div>
+                  <div className="text-sm">
+                    <span className="font-medium">{t.info.ssid}:</span>{" "}
+                    {property.wifi_ssid}
+                  </div>
+                  <div className="text-sm">
+                    <span className="font-medium">{t.info.password}:</span>{" "}
+                    {wifiPassword === null ? "••••••••" : wifiPassword || "—"}
+                  </div>
                 </div>
-                <div className="text-sm">
-                  <span className="font-medium">{t.info.password}:</span>{" "}
-                  {guestWifiPassword === null ? "••••••••" : guestWifiPassword || "—"}
-                </div>
-              </div>
-              <div className="flex gap-2">
-                {guestWifiPassword === null ? (
-                  <Button
-                    variant="default"
-                    size="sm"
-                    disabled={loadingGuestWifi}
-                    onClick={() => revealAndCopyWifi("guest")}
-                  >
-                    {loadingGuestWifi ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <>
-                        <Eye className="h-4 w-4" />
+                <div className="flex gap-2">
+                  {wifiPassword === null ? (
+                    <Button
+                      variant="default"
+                      size="sm"
+                      disabled={loadingWifi}
+                      onClick={() => revealAndCopyWifi("main")}
+                    >
+                      {loadingWifi ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <>
+                          <Eye className="h-4 w-4" />
+                          <Copy className="h-4 w-4" />
+                        </>
+                      )}
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={!wifiPassword}
+                      onClick={() => wifiPassword && copyToClipboard(wifiPassword, "main")}
+                    >
+                      {copiedWifi ? (
+                        <Check className="h-4 w-4" />
+                      ) : (
                         <Copy className="h-4 w-4" />
-                      </>
-                    )}
-                  </Button>
-                ) : (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={!guestWifiPassword}
-                    onClick={() => guestWifiPassword && copyToClipboard(guestWifiPassword, "guest")}
-                  >
-                    {copiedGuestWifi ? (
-                      <Check className="h-4 w-4" />
-                    ) : (
-                      <Copy className="h-4 w-4" />
-                    )}
-                  </Button>
-                )}
-                <WifiQRCodeLazy
-                  ssid={property.guest_wifi_ssid}
-                  password={guestWifiPassword}
-                  propertyId={property.id}
-                  type="guest"
-                  onPasswordRevealed={setGuestWifiPassword}
-                />
+                      )}
+                    </Button>
+                  )}
+                  <WifiQRCodeLazy
+                    ssid={property.wifi_ssid}
+                    password={wifiPassword}
+                    propertyId={property.id}
+                    type="main"
+                    onPasswordRevealed={setWifiPassword}
+                  />
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+
+            {property.guest_wifi_ssid && (
+              <div className="flex items-start gap-2">
+                <Wifi className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
+                <div className="flex-1">
+                  <div className="text-muted-foreground text-xs">{t.info.guestWifi}</div>
+                  <div className="text-sm">
+                    <span className="font-medium">{t.info.ssid}:</span>{" "}
+                    {property.guest_wifi_ssid}
+                  </div>
+                  <div className="text-sm">
+                    <span className="font-medium">{t.info.password}:</span>{" "}
+                    {guestWifiPassword === null ? "••••••••" : guestWifiPassword || "—"}
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  {guestWifiPassword === null ? (
+                    <Button
+                      variant="default"
+                      size="sm"
+                      disabled={loadingGuestWifi}
+                      onClick={() => revealAndCopyWifi("guest")}
+                    >
+                      {loadingGuestWifi ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <>
+                          <Eye className="h-4 w-4" />
+                          <Copy className="h-4 w-4" />
+                        </>
+                      )}
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={!guestWifiPassword}
+                      onClick={() => guestWifiPassword && copyToClipboard(guestWifiPassword, "guest")}
+                    >
+                      {copiedGuestWifi ? (
+                        <Check className="h-4 w-4" />
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )}
+                    </Button>
+                  )}
+                  <WifiQRCodeLazy
+                    ssid={property.guest_wifi_ssid}
+                    password={guestWifiPassword}
+                    propertyId={property.id}
+                    type="guest"
+                    onPasswordRevealed={setGuestWifiPassword}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
