@@ -10,11 +10,11 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
 interface PageProps {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }
 
-async function PropertyData({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+async function PropertyData({ params }: { params: { id: string } }) {
+  const { id } = params;
   const supabase = await createClient();
   const {
     data: { user },
@@ -22,11 +22,15 @@ async function PropertyData({ params }: { params: Promise<{ id: string }> }) {
 
   if (!user) redirect("/");
 
-  const { data: property } = await supabase
+  const { data: property, error } = await supabase
     .from("properties")
-    .select("id, name, address, floor_unit, notes, wifi_ssid, wifi_password_enc")
+    .select("id, name, address, floor_unit, notes, wifi_ssid")
     .eq("id", id)
     .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
 
   if (!property) {
     redirect("/properties");

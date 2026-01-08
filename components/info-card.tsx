@@ -12,7 +12,6 @@ interface Property {
   floor_unit: string | null;
   notes: string | null;
   wifi_ssid: string | null;
-  wifi_password_enc: string | null;
 }
 
 interface InfoCardProps {
