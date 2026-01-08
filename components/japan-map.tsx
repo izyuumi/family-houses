@@ -72,6 +72,12 @@ const PREFECTURES: Prefecture[] = [
   { id: "okinawa", code: "JP47", name: "Okinawa", x: 196.1, y: 730.3 },
 ];
 
+const BASE_WIDTH = 1000;
+const BASE_HEIGHT = 846;
+const MIN_ZOOM = 1;
+const MAX_ZOOM = 5;
+const ZOOM_SENSITIVITY = 0.001;
+
 interface JapanMapProps {
   onPrefectureClick?: (prefecture: Prefecture) => void;
   onLocationClick?: (location: MapLocation) => void;
@@ -83,10 +89,6 @@ interface JapanMapProps {
   markers?: PropertyMarker[];
 }
 
-const MIN_ZOOM = 1;
-const MAX_ZOOM = 5;
-const ZOOM_SENSITIVITY = 0.002;
-
 export function JapanMap({
   onPrefectureClick,
   onLocationClick,
@@ -97,7 +99,6 @@ export function JapanMap({
   selectedLocation = null,
   markers = [],
 }: JapanMapProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const [hoveredPrefecture, setHoveredPrefecture] = useState<string | null>(
     null
@@ -106,11 +107,19 @@ export function JapanMap({
   const [internalSelected, setInternalSelected] = useState<string | null>(null);
 
   const [zoom, setZoom] = useState(1);
-  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [viewCenter, setViewCenter] = useState({
+    x: BASE_WIDTH / 2,
+    y: BASE_HEIGHT / 2,
+  });
   const [isPanning, setIsPanning] = useState(false);
-  const [panStart, setPanStart] = useState({ x: 0, y: 0 });
+  const [lastMousePos, setLastMousePos] = useState({ x: 0, y: 0 });
 
   const selectedPrefecture = selectedPrefectureId ?? internalSelected;
+
+  const viewWidth = BASE_WIDTH / zoom;
+  const viewHeight = BASE_HEIGHT / zoom;
+  const viewX = viewCenter.x - viewWidth / 2;
+  const viewY = viewCenter.y - viewHeight / 2;
 
   const handlePrefectureClick = (prefecture: Prefecture) => {
     setInternalSelected(prefecture.id);
@@ -142,26 +151,23 @@ export function JapanMap({
     (e: WheelEvent) => {
       e.preventDefault();
 
+      const point = getSvgPoint(e.clientX, e.clientY);
+      if (!point) return;
+
       const delta = -e.deltaY * ZOOM_SENSITIVITY;
       const newZoom = Math.min(
         MAX_ZOOM,
-        Math.max(MIN_ZOOM, zoom + delta * zoom)
+        Math.max(MIN_ZOOM, zoom * (1 + delta))
       );
 
-      if (!containerRef.current) return;
-
-      const rect = containerRef.current.getBoundingClientRect();
-      const mouseX = e.clientX - rect.left;
-      const mouseY = e.clientY - rect.top;
-
-      const zoomRatio = newZoom / zoom;
-      const newPanX = mouseX - (mouseX - pan.x) * zoomRatio;
-      const newPanY = mouseY - (mouseY - pan.y) * zoomRatio;
+      const zoomFactor = newZoom / zoom;
+      const newCenterX = point.x + (viewCenter.x - point.x) / zoomFactor;
+      const newCenterY = point.y + (viewCenter.y - point.y) / zoomFactor;
 
       setZoom(newZoom);
-      setPan({ x: newPanX, y: newPanY });
+      setViewCenter({ x: newCenterX, y: newCenterY });
     },
-    [zoom, pan]
+    [zoom, viewCenter, getSvgPoint]
   );
 
   const handleMouseDown = useCallback(
@@ -170,21 +176,30 @@ export function JapanMap({
       if (e.button !== 0) return;
 
       setIsPanning(true);
-      setPanStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
+      setLastMousePos({ x: e.clientX, y: e.clientY });
     },
-    [pan, selectionMode]
+    [selectionMode]
   );
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent) => {
-      if (!isPanning) return;
+      if (!isPanning || !svgRef.current) return;
 
-      setPan({
-        x: e.clientX - panStart.x,
-        y: e.clientY - panStart.y,
-      });
+      const svg = svgRef.current;
+      const rect = svg.getBoundingClientRect();
+      const scaleX = viewWidth / rect.width;
+      const scaleY = viewHeight / rect.height;
+
+      const dx = (e.clientX - lastMousePos.x) * scaleX;
+      const dy = (e.clientY - lastMousePos.y) * scaleY;
+
+      setViewCenter((prev) => ({
+        x: prev.x - dx,
+        y: prev.y - dy,
+      }));
+      setLastMousePos({ x: e.clientX, y: e.clientY });
     },
-    [isPanning, panStart]
+    [isPanning, lastMousePos, viewWidth, viewHeight]
   );
 
   const handleMouseUp = useCallback(() => {
@@ -206,15 +221,16 @@ export function JapanMap({
 
   const resetView = useCallback(() => {
     setZoom(1);
-    setPan({ x: 0, y: 0 });
+    setViewCenter({ x: BASE_WIDTH / 2, y: BASE_HEIGHT / 2 });
   }, []);
 
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
+    const svg = svgRef.current;
+    if (!svg) return;
 
-    container.addEventListener("wheel", handleWheel, { passive: false });
-    return () => container.removeEventListener("wheel", handleWheel);
+    const wheelHandler = (e: WheelEvent) => handleWheel(e);
+    svg.addEventListener("wheel", wheelHandler, { passive: false });
+    return () => svg.removeEventListener("wheel", wheelHandler);
   }, [handleWheel]);
 
   useEffect(() => {
@@ -228,202 +244,200 @@ export function JapanMap({
       ? []
       : PREFECTURES.filter((p) => activePrefectures.includes(p.id));
 
-  const markerScale = 1 / zoom;
+  const baseMarkerSize = 10 / zoom;
+  const hoverMarkerSize = 14 / zoom;
+  const innerDotSize = 4 / zoom;
+  const strokeWidth = 2 / zoom;
+  const tooltipHeight = 28 / zoom;
+  const tooltipRadius = 4 / zoom;
+  const fontSize = 14 / zoom;
+  const tooltipOffset = 42 / zoom;
 
   return (
-    <div className="w-full h-full flex items-center justify-center relative overflow-hidden p-2">
-      <div
-        ref={containerRef}
-        className={`relative ${
+    <div className="w-full h-full relative overflow-hidden">
+      <svg
+        ref={svgRef}
+        viewBox={`${viewX} ${viewY} ${viewWidth} ${viewHeight}`}
+        className={`w-full h-full ${
           isPanning
             ? "cursor-grabbing"
             : selectionMode
             ? "cursor-crosshair"
             : "cursor-grab"
         }`}
-        style={{
-          aspectRatio: "1000 / 846",
-          maxWidth: "100%",
-          maxHeight: "100%",
-        }}
+        preserveAspectRatio="xMidYMid slice"
+        onClick={handleSvgClick}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
       >
-        <svg
-          ref={svgRef}
-          viewBox="0 0 1000 846"
-          className="w-full h-full"
-          preserveAspectRatio="xMidYMid meet"
-          onClick={handleSvgClick}
-          style={{
-            transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
-            transformOrigin: "0 0",
-            transition: isPanning ? "none" : "transform 0.1s ease-out",
-          }}
-        >
-          <image href="/jp.svg" x="0" y="0" width="1000" height="846" />
+        <image
+          href="/jp.svg"
+          x="0"
+          y="0"
+          width={BASE_WIDTH}
+          height={BASE_HEIGHT}
+        />
 
-          {visiblePrefectures.map((prefecture) => {
-            const isHovered = hoveredPrefecture === prefecture.id;
-            const isSelected = selectedPrefecture === prefecture.id;
-            const baseRadius = isHovered || isSelected ? 14 : 10;
-            const radius = baseRadius * markerScale;
+        {visiblePrefectures.map((prefecture) => {
+          const isHovered = hoveredPrefecture === prefecture.id;
+          const isSelected = selectedPrefecture === prefecture.id;
+          const radius =
+            isHovered || isSelected ? hoverMarkerSize : baseMarkerSize;
 
-            return (
-              <g
-                key={prefecture.id}
-                className="cursor-pointer"
-                onMouseEnter={() => setHoveredPrefecture(prefecture.id)}
-                onMouseLeave={() => setHoveredPrefecture(null)}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handlePrefectureClick(prefecture);
-                }}
-              >
-                <circle
-                  cx={prefecture.x}
-                  cy={prefecture.y}
-                  r={radius}
-                  className={`
-                    transition-all duration-200
-                    ${
-                      isSelected
-                        ? "fill-primary stroke-background stroke-2"
-                        : isHovered
-                        ? "fill-primary/80 stroke-background stroke-2"
-                        : "fill-destructive stroke-background stroke-[1.5]"
-                    }
-                  `}
-                  style={{ strokeWidth: 1.5 * markerScale }}
-                />
-                <circle
-                  cx={prefecture.x}
-                  cy={prefecture.y}
-                  r={4 * markerScale}
-                  className="fill-background pointer-events-none"
-                />
-
-                {(isHovered || isSelected) && (
-                  <g className="pointer-events-none">
-                    <rect
-                      x={prefecture.x - 55 * markerScale}
-                      y={prefecture.y - 42 * markerScale}
-                      width={110 * markerScale}
-                      height={28 * markerScale}
-                      rx={4 * markerScale}
-                      className="fill-popover stroke-border"
-                      style={{ strokeWidth: markerScale }}
-                    />
-                    <text
-                      x={prefecture.x}
-                      y={prefecture.y - 23 * markerScale}
-                      textAnchor="middle"
-                      className="fill-popover-foreground font-medium"
-                      style={{ fontSize: `${14 * markerScale}px` }}
-                    >
-                      {prefecture.name}
-                    </text>
-                  </g>
-                )}
-              </g>
-            );
-          })}
-
-          {markers.map((marker) => {
-            const isHovered = hoveredMarker === marker.id;
-            const baseRadius = isHovered ? 14 : 10;
-            const radius = baseRadius * markerScale;
-
-            return (
-              <g
-                key={marker.id}
-                className="cursor-pointer"
-                onMouseEnter={() => setHoveredMarker(marker.id)}
-                onMouseLeave={() => setHoveredMarker(null)}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onMarkerClick?.(marker);
-                }}
-              >
-                <circle
-                  cx={marker.x}
-                  cy={marker.y}
-                  r={radius}
-                  className={`
-                    transition-all duration-200
-                    ${
-                      isHovered
-                        ? "fill-primary stroke-background stroke-2"
-                        : "fill-destructive stroke-background stroke-[1.5]"
-                    }
-                  `}
-                  style={{ strokeWidth: 1.5 * markerScale }}
-                />
-                <circle
-                  cx={marker.x}
-                  cy={marker.y}
-                  r={4 * markerScale}
-                  className="fill-background pointer-events-none"
-                />
-
-                {isHovered && (
-                  <g className="pointer-events-none">
-                    <rect
-                      x={marker.x - 65 * markerScale}
-                      y={marker.y - 42 * markerScale}
-                      width={130 * markerScale}
-                      height={28 * markerScale}
-                      rx={4 * markerScale}
-                      className="fill-popover stroke-border"
-                      style={{ strokeWidth: markerScale }}
-                    />
-                    <text
-                      x={marker.x}
-                      y={marker.y - 23 * markerScale}
-                      textAnchor="middle"
-                      className="fill-popover-foreground font-medium"
-                      style={{ fontSize: `${14 * markerScale}px` }}
-                    >
-                      {marker.name}
-                    </text>
-                  </g>
-                )}
-              </g>
-            );
-          })}
-
-          {selectedLocation && (
-            <g className="pointer-events-none">
+          return (
+            <g
+              key={prefecture.id}
+              className="cursor-pointer"
+              onMouseEnter={() => setHoveredPrefecture(prefecture.id)}
+              onMouseLeave={() => setHoveredPrefecture(null)}
+              onClick={(e) => {
+                e.stopPropagation();
+                handlePrefectureClick(prefecture);
+              }}
+            >
               <circle
-                cx={selectedLocation.x}
-                cy={selectedLocation.y}
-                r={14 * markerScale}
-                className="fill-primary stroke-background"
-                style={{ strokeWidth: 2 * markerScale }}
+                cx={prefecture.x}
+                cy={prefecture.y}
+                r={radius}
+                fill={
+                  isSelected
+                    ? "hsl(var(--primary))"
+                    : isHovered
+                    ? "hsl(var(--primary) / 0.8)"
+                    : "hsl(var(--destructive))"
+                }
+                stroke="hsl(var(--background))"
+                strokeWidth={strokeWidth}
               />
               <circle
-                cx={selectedLocation.x}
-                cy={selectedLocation.y}
-                r={4 * markerScale}
-                className="fill-background"
+                cx={prefecture.x}
+                cy={prefecture.y}
+                r={innerDotSize}
+                fill="hsl(var(--background))"
+                className="pointer-events-none"
               />
+
+              {(isHovered || isSelected) && (
+                <g className="pointer-events-none">
+                  <rect
+                    x={prefecture.x - 55 / zoom}
+                    y={prefecture.y - tooltipOffset}
+                    width={110 / zoom}
+                    height={tooltipHeight}
+                    rx={tooltipRadius}
+                    fill="hsl(var(--popover))"
+                    stroke="hsl(var(--border))"
+                    strokeWidth={1 / zoom}
+                  />
+                  <text
+                    x={prefecture.x}
+                    y={prefecture.y - tooltipOffset + tooltipHeight * 0.65}
+                    textAnchor="middle"
+                    fill="hsl(var(--popover-foreground))"
+                    fontWeight="500"
+                    fontSize={fontSize}
+                  >
+                    {prefecture.name}
+                  </text>
+                </g>
+              )}
             </g>
-          )}
-        </svg>
-      </div>
+          );
+        })}
 
-      {zoom > 1 && (
+        {markers.map((marker) => {
+          const isHovered = hoveredMarker === marker.id;
+          const radius = isHovered ? hoverMarkerSize : baseMarkerSize;
+
+          return (
+            <g
+              key={marker.id}
+              className="cursor-pointer"
+              onMouseEnter={() => setHoveredMarker(marker.id)}
+              onMouseLeave={() => setHoveredMarker(null)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onMarkerClick?.(marker);
+              }}
+            >
+              <circle
+                cx={marker.x}
+                cy={marker.y}
+                r={radius}
+                fill={
+                  isHovered ? "hsl(var(--primary))" : "hsl(var(--destructive))"
+                }
+                stroke="hsl(var(--background))"
+                strokeWidth={strokeWidth}
+              />
+              <circle
+                cx={marker.x}
+                cy={marker.y}
+                r={innerDotSize}
+                fill="hsl(var(--background))"
+                className="pointer-events-none"
+              />
+
+              {isHovered && (
+                <g className="pointer-events-none">
+                  <rect
+                    x={marker.x - 65 / zoom}
+                    y={marker.y - tooltipOffset}
+                    width={130 / zoom}
+                    height={tooltipHeight}
+                    rx={tooltipRadius}
+                    fill="hsl(var(--popover))"
+                    stroke="hsl(var(--border))"
+                    strokeWidth={1 / zoom}
+                  />
+                  <text
+                    x={marker.x}
+                    y={marker.y - tooltipOffset + tooltipHeight * 0.65}
+                    textAnchor="middle"
+                    fill="hsl(var(--popover-foreground))"
+                    fontWeight="500"
+                    fontSize={fontSize}
+                  >
+                    {marker.name}
+                  </text>
+                </g>
+              )}
+            </g>
+          );
+        })}
+
+        {selectedLocation && (
+          <g className="pointer-events-none">
+            <circle
+              cx={selectedLocation.x}
+              cy={selectedLocation.y}
+              r={hoverMarkerSize}
+              fill="hsl(var(--primary))"
+              stroke="hsl(var(--background))"
+              strokeWidth={strokeWidth}
+            />
+            <circle
+              cx={selectedLocation.x}
+              cy={selectedLocation.y}
+              r={innerDotSize}
+              fill="hsl(var(--background))"
+            />
+          </g>
+        )}
+      </svg>
+
+      {zoom > 1.05 && (
         <button
           onClick={resetView}
-          className="absolute bottom-4 right-4 bg-background/90 backdrop-blur-sm border border-border rounded-md px-3 py-1.5 text-xs font-medium hover:bg-muted transition-colors"
+          className="absolute bottom-4 right-4 bg-background/90 backdrop-blur-sm border border-border rounded-md px-3 py-1.5 text-xs font-medium hover:bg-muted transition-colors z-10"
         >
           Reset View
         </button>
       )}
 
-      <div className="absolute bottom-4 left-4 bg-background/90 backdrop-blur-sm border border-border rounded-md px-2 py-1 text-xs text-muted-foreground">
+      <div className="absolute bottom-4 left-4 bg-background/90 backdrop-blur-sm border border-border rounded-md px-2 py-1 text-xs text-muted-foreground z-10">
         {Math.round(zoom * 100)}%
       </div>
     </div>
