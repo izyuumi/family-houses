@@ -59,6 +59,27 @@ function buildFullAddress(address: StructuredAddress): string {
   return parts.join(" ");
 }
 
+function buildSearchAddress(address: StructuredAddress): string {
+  const parts: string[] = [];
+
+  const locationParts = [
+    address.prefecture,
+    address.city_ward_town,
+    address.area,
+  ].filter(Boolean);
+
+  if (locationParts.length > 0) {
+    parts.push(locationParts.join(""));
+  }
+
+  const numberParts = [address.chome, address.block].filter(Boolean);
+  if (numberParts.length > 0) {
+    parts.push(numberParts.join("-"));
+  }
+
+  return parts.join(" ");
+}
+
 function buildRegionLine(address: StructuredAddress): string {
   const parts: string[] = [];
 
@@ -289,8 +310,8 @@ export function AddressDisplay({
     });
   }
 
-  const searchAddress = fullAddress || fallbackAddress || "";
-  const encodedAddress = encodeURIComponent(searchAddress);
+  const mapSearchAddress = buildSearchAddress(address) || fallbackAddress || "";
+  const encodedAddress = encodeURIComponent(mapSearchAddress);
 
   const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
   const appleMapsUrl = `https://maps.apple.com/?q=${encodedAddress}`;
