@@ -4,15 +4,26 @@ import { useState } from "react";
 import { useI18n } from "@/lib/i18n/context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Eye, Copy, Check, Info, Wifi, MapPin } from "lucide-react";
+import { Eye, Copy, Check, Info, Wifi } from "lucide-react";
 import { WifiQRCodeLazy } from "@/components/wifi-qrcode-lazy";
+import { AddressDisplay, type StructuredAddress } from "@/components/address-display";
 
 interface Property {
   id: string;
   name: string;
   address: string;
+  postal_code?: string | null;
+  prefecture?: string | null;
+  city_ward_town?: string | null;
+  area?: string | null;
+  chome?: string | null;
+  block?: string | null;
+  building?: string | null;
+  room?: string | null;
   wifi_ssid: string | null;
   guest_wifi_ssid: string | null;
+  location_x?: number | null;
+  location_y?: number | null;
 }
 
 interface InfoCardProps {
@@ -71,13 +82,21 @@ export function InfoCard({ property }: InfoCardProps) {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="flex items-start gap-2 text-sm">
-          <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
-          <div>
-            <div className="text-muted-foreground text-xs">{t.form.address}</div>
-            <div>{property.address}</div>
-          </div>
-        </div>
+        <AddressDisplay
+          address={{
+            postal_code: property.postal_code ?? null,
+            prefecture: property.prefecture ?? null,
+            city_ward_town: property.city_ward_town ?? null,
+            area: property.area ?? null,
+            chome: property.chome ?? null,
+            block: property.block ?? null,
+            building: property.building ?? null,
+            room: property.room ?? null,
+          }}
+          fallbackAddress={property.address}
+          latitude={property.location_y}
+          longitude={property.location_x}
+        />
 
         <div className="pt-3 border-t space-y-4">
           <div className="flex items-start gap-2">

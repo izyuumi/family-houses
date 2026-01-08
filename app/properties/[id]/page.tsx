@@ -11,8 +11,18 @@ interface Property {
   id: string;
   name: string;
   address: string;
+  postal_code: string | null;
+  prefecture: string | null;
+  city_ward_town: string | null;
+  area: string | null;
+  chome: string | null;
+  block: string | null;
+  building: string | null;
+  room: string | null;
   wifi_ssid: string | null;
   guest_wifi_ssid: string | null;
+  location_x: number | null;
+  location_y: number | null;
 }
 
 async function PropertyContent({ propertyId }: { propertyId: string }) {
@@ -26,7 +36,7 @@ async function PropertyContent({ propertyId }: { propertyId: string }) {
   const [propertyResult, profileResult] = await Promise.all([
     supabase
       .from("properties")
-      .select("id, name, address, wifi_ssid, guest_wifi_ssid")
+      .select("id, name, address, postal_code, prefecture, city_ward_town, area, chome, block, building, room, wifi_ssid, guest_wifi_ssid, location_x, location_y")
       .eq("id", propertyId)
       .maybeSingle(),
     supabase.from("profiles").select("role").eq("id", user.id).single(),

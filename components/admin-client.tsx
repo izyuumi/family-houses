@@ -8,6 +8,14 @@ interface Property {
   id: string;
   name: string;
   address: string;
+  postal_code: string | null;
+  prefecture: string | null;
+  city_ward_town: string | null;
+  area: string | null;
+  chome: string | null;
+  block: string | null;
+  building: string | null;
+  room: string | null;
   wifi_ssid: string | null;
   wifi_password: string | null;
   guest_wifi_ssid: string | null;

@@ -85,6 +85,11 @@ export type Database = {
       properties: {
         Row: {
           address: string
+          area: string | null
+          block: string | null
+          building: string | null
+          chome: string | null
+          city_ward_town: string | null
           created_at: string | null
           guest_wifi_password: string | null
           guest_wifi_ssid: string | null
@@ -92,13 +97,21 @@ export type Database = {
           location_x: number | null
           location_y: number | null
           name: string
+          postal_code: string | null
+          prefecture: string | null
           prefecture_id: string | null
+          room: string | null
           updated_at: string | null
           wifi_password: string | null
           wifi_ssid: string | null
         }
         Insert: {
           address: string
+          area?: string | null
+          block?: string | null
+          building?: string | null
+          chome?: string | null
+          city_ward_town?: string | null
           created_at?: string | null
           guest_wifi_password?: string | null
           guest_wifi_ssid?: string | null
@@ -106,13 +119,21 @@ export type Database = {
           location_x?: number | null
           location_y?: number | null
           name: string
+          postal_code?: string | null
+          prefecture?: string | null
           prefecture_id?: string | null
+          room?: string | null
           updated_at?: string | null
           wifi_password?: string | null
           wifi_ssid?: string | null
         }
         Update: {
           address?: string
+          area?: string | null
+          block?: string | null
+          building?: string | null
+          chome?: string | null
+          city_ward_town?: string | null
           created_at?: string | null
           guest_wifi_password?: string | null
           guest_wifi_ssid?: string | null
@@ -120,7 +141,10 @@ export type Database = {
           location_x?: number | null
           location_y?: number | null
           name?: string
+          postal_code?: string | null
+          prefecture?: string | null
           prefecture_id?: string | null
+          room?: string | null
           updated_at?: string | null
           wifi_password?: string | null
           wifi_ssid?: string | null

@@ -15,6 +15,14 @@ interface Property {
   id: string;
   name: string;
   address: string;
+  postal_code: string | null;
+  prefecture: string | null;
+  city_ward_town: string | null;
+  area: string | null;
+  chome: string | null;
+  block: string | null;
+  building: string | null;
+  room: string | null;
   wifi_ssid: string | null;
   wifi_password: string | null;
   guest_wifi_ssid: string | null;
@@ -40,6 +48,14 @@ export function AdminForm({ property }: AdminFormProps) {
   const [formData, setFormData] = useState({
     name: property?.name ?? "",
     address: property?.address ?? "",
+    postal_code: property?.postal_code ?? "",
+    prefecture: property?.prefecture ?? "",
+    city_ward_town: property?.city_ward_town ?? "",
+    area: property?.area ?? "",
+    chome: property?.chome ?? "",
+    block: property?.block ?? "",
+    building: property?.building ?? "",
+    room: property?.room ?? "",
     wifi_ssid: property?.wifi_ssid ?? "",
     wifi_password: property?.wifi_password ?? "",
     guest_wifi_ssid: property?.guest_wifi_ssid ?? "",
@@ -63,6 +79,14 @@ export function AdminForm({ property }: AdminFormProps) {
     const payload = {
       name: formData.name,
       address: formData.address,
+      postal_code: formData.postal_code || null,
+      prefecture: formData.prefecture || null,
+      city_ward_town: formData.city_ward_town || null,
+      area: formData.area || null,
+      chome: formData.chome || null,
+      block: formData.block || null,
+      building: formData.building || null,
+      room: formData.room || null,
       location_x: location?.x ?? null,
       location_y: location?.y ?? null,
       wifi_ssid: formData.wifi_ssid || null,
@@ -92,6 +116,14 @@ export function AdminForm({ property }: AdminFormProps) {
       setFormData({
         name: "",
         address: "",
+        postal_code: "",
+        prefecture: "",
+        city_ward_town: "",
+        area: "",
+        chome: "",
+        block: "",
+        building: "",
+        room: "",
         wifi_ssid: "",
         wifi_password: "",
         guest_wifi_ssid: "",
@@ -145,16 +177,129 @@ export function AdminForm({ property }: AdminFormProps) {
           />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="address">{t.form.address} *</Label>
-          <Input
-            id="address"
-            name="address"
-            value={formData.address}
-            onChange={handleChange}
-            placeholder={t.form.addressPlaceholder}
-            required
-          />
+        <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
+          <Label className="text-base font-medium">{t.form.address}</Label>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="postal_code" className="text-xs text-muted-foreground">
+                {t.form.postalCode}
+              </Label>
+              <Input
+                id="postal_code"
+                name="postal_code"
+                value={formData.postal_code}
+                onChange={handleChange}
+                placeholder="123-4567"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="prefecture" className="text-xs text-muted-foreground">
+                {t.form.prefecture}
+              </Label>
+              <Input
+                id="prefecture"
+                name="prefecture"
+                value={formData.prefecture}
+                onChange={handleChange}
+                placeholder={t.form.prefecturePlaceholder}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="city_ward_town" className="text-xs text-muted-foreground">
+              {t.form.cityWardTown}
+            </Label>
+            <Input
+              id="city_ward_town"
+              name="city_ward_town"
+              value={formData.city_ward_town}
+              onChange={handleChange}
+              placeholder={t.form.cityWardTownPlaceholder}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="area" className="text-xs text-muted-foreground">
+              {t.form.area}
+            </Label>
+            <Input
+              id="area"
+              name="area"
+              value={formData.area}
+              onChange={handleChange}
+              placeholder={t.form.areaPlaceholder}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="chome" className="text-xs text-muted-foreground">
+                {t.form.chome}
+              </Label>
+              <Input
+                id="chome"
+                name="chome"
+                value={formData.chome}
+                onChange={handleChange}
+                placeholder="1"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="block" className="text-xs text-muted-foreground">
+                {t.form.block}
+              </Label>
+              <Input
+                id="block"
+                name="block"
+                value={formData.block}
+                onChange={handleChange}
+                placeholder="1-1"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="building" className="text-xs text-muted-foreground">
+                {t.form.building}
+              </Label>
+              <Input
+                id="building"
+                name="building"
+                value={formData.building}
+                onChange={handleChange}
+                placeholder={t.form.buildingPlaceholder}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="room" className="text-xs text-muted-foreground">
+                {t.form.room}
+              </Label>
+              <Input
+                id="room"
+                name="room"
+                value={formData.room}
+                onChange={handleChange}
+                placeholder="101"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1.5 pt-2 border-t">
+            <Label htmlFor="address" className="text-xs text-muted-foreground">
+              {t.form.fullAddressFallback}
+            </Label>
+            <Input
+              id="address"
+              name="address"
+              value={formData.address}
+              onChange={handleChange}
+              placeholder={t.form.addressPlaceholder}
+              required
+            />
+          </div>
         </div>
 
         <div className="space-y-2">
