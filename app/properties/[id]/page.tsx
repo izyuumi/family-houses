@@ -10,20 +10,10 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
 interface PageProps {
-  params: { id?: string | string[] };
+  params: Promise<{ id: string }>;
 }
 
-function resolvePropertyId(params: { id?: string | string[] }) {
-  if (!params.id) return null;
-  if (Array.isArray(params.id)) return params.id[0] ?? null;
-  return params.id;
-}
-
-async function PropertyData({ params }: { params: { id?: string | string[] } }) {
-  const id = resolvePropertyId(params);
-  if (!id || id === "undefined") {
-    redirect("/properties");
-  }
+async function PropertyContent({ propertyId }: { propertyId: string }) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -34,7 +24,7 @@ async function PropertyData({ params }: { params: { id?: string | string[] } }) 
   const { data: property, error } = await supabase
     .from("properties")
     .select("id, name, address, notes, wifi_ssid")
-    .eq("id", id)
+    .eq("id", propertyId)
     .maybeSingle();
 
   if (error) {
@@ -46,7 +36,7 @@ async function PropertyData({ params }: { params: { id?: string | string[] } }) 
   }
 
   return (
-    <main className="min-h-dvh p-4 max-w-xl mx-auto pb-20">
+    <>
       <header className="py-2">
         <Link href="/properties">
           <Button variant="ghost" size="sm" className="mb-2 -ml-2">
@@ -63,13 +53,25 @@ async function PropertyData({ params }: { params: { id?: string | string[] } }) 
         <Groceries propertyId={property.id} />
         <Deliveries propertyId={property.id} />
       </div>
-    </main>
+    </>
   );
+}
+
+async function PropertyData({
+  paramsPromise,
+}: {
+  paramsPromise: Promise<{ id: string }>;
+}) {
+  const { id } = await paramsPromise;
+  if (!id || id === "undefined") {
+    redirect("/properties");
+  }
+  return <PropertyContent propertyId={id} />;
 }
 
 function LoadingState() {
   return (
-    <main className="min-h-dvh p-4 max-w-xl mx-auto pb-20">
+    <>
       <header className="py-2">
         <Button variant="ghost" size="sm" className="mb-2 -ml-2">
           <ChevronLeft className="h-4 w-4 mr-1" />
@@ -89,14 +91,16 @@ function LoadingState() {
           </Card>
         ))}
       </div>
-    </main>
+    </>
   );
 }
 
 export default function PropertyDetail({ params }: PageProps) {
   return (
-    <Suspense fallback={<LoadingState />}>
-      <PropertyData params={params} />
-    </Suspense>
+    <main className="min-h-dvh p-4 max-w-xl mx-auto pb-20">
+      <Suspense fallback={<LoadingState />}>
+        <PropertyData paramsPromise={params} />
+      </Suspense>
+    </main>
   );
 }
