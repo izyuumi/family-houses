@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { InfoCard } from "@/components/info-card";
 import { Groceries } from "@/components/groceries";
 import { Deliveries } from "@/components/deliveries";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
@@ -21,15 +21,21 @@ async function PropertyContent({ propertyId }: { propertyId: string }) {
 
   if (!user) redirect("/");
 
-  const { data: property, error } = await supabase
-    .from("properties")
-    .select("id, name, address, notes, wifi_ssid")
-    .eq("id", propertyId)
-    .maybeSingle();
+  const [propertyResult, profileResult] = await Promise.all([
+    supabase
+      .from("properties")
+      .select("id, name, address, notes, wifi_ssid")
+      .eq("id", propertyId)
+      .maybeSingle(),
+    supabase.from("profiles").select("role").eq("id", user.id).single(),
+  ]);
 
-  if (error) {
-    throw new Error(error.message);
+  if (propertyResult.error) {
+    throw new Error(propertyResult.error.message);
   }
+
+  const property = propertyResult.data;
+  const isAdmin = profileResult.data?.role === "admin";
 
   if (!property) {
     redirect("/properties");
@@ -38,12 +44,22 @@ async function PropertyContent({ propertyId }: { propertyId: string }) {
   return (
     <>
       <header className="py-2">
-        <Link href="/properties">
-          <Button variant="ghost" size="sm" className="mb-2 -ml-2">
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            Back
-          </Button>
-        </Link>
+        <div className="flex items-center justify-between">
+          <Link href="/properties">
+            <Button variant="ghost" size="sm" className="mb-2 -ml-2">
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Back
+            </Button>
+          </Link>
+          {isAdmin && (
+            <Link href={`/admin/properties/${property.id}/edit`}>
+              <Button variant="outline" size="sm">
+                <Pencil className="h-4 w-4 mr-1" />
+                Edit
+              </Button>
+            </Link>
+          )}
+        </div>
         <h1 className="text-xl font-semibold">{property.name}</h1>
         <p className="text-sm text-muted-foreground">{property.address}</p>
       </header>

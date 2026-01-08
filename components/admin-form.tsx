@@ -8,23 +8,43 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { Plus, Loader2, MapPin, Pencil, X } from "lucide-react";
+import { Plus, Loader2, MapPin, Pencil, X, Save } from "lucide-react";
 
-export function AdminForm() {
+interface Property {
+  id: string;
+  name: string;
+  address: string;
+  notes: string | null;
+  wifi_ssid: string | null;
+  location_x: number | null;
+  location_y: number | null;
+}
+
+interface AdminFormProps {
+  property?: Property;
+}
+
+export function AdminForm({ property }: AdminFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [isEditingLocation, setIsEditingLocation] = useState(false);
 
+  const isEditMode = !!property;
+
   const [formData, setFormData] = useState({
-    name: "",
-    address: "",
-    notes: "",
-    wifi_ssid: "",
+    name: property?.name ?? "",
+    address: property?.address ?? "",
+    notes: property?.notes ?? "",
+    wifi_ssid: property?.wifi_ssid ?? "",
   });
 
-  const [location, setLocation] = useState<MapLocation | null>(null);
+  const [location, setLocation] = useState<MapLocation | null>(
+    property?.location_x != null && property?.location_y != null
+      ? { x: property.location_x, y: property.location_y }
+      : null
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,34 +54,44 @@ export function AdminForm() {
 
     const supabase = createClient();
 
-    const { error: insertError } = await supabase.from("properties").insert({
+    const payload = {
       name: formData.name,
       address: formData.address,
       location_x: location?.x ?? null,
       location_y: location?.y ?? null,
       notes: formData.notes || null,
       wifi_ssid: formData.wifi_ssid || null,
-    });
+    };
+
+    const { error: dbError } = isEditMode
+      ? await supabase.from("properties").update(payload).eq("id", property.id)
+      : await supabase.from("properties").insert(payload);
 
     setLoading(false);
 
-    if (insertError) {
-      setError(insertError.message);
+    if (dbError) {
+      setError(dbError.message);
       return;
     }
 
     setSuccess(true);
-    setFormData({
-      name: "",
-      address: "",
-      notes: "",
-      wifi_ssid: "",
-    });
-    setLocation(null);
 
-    setTimeout(() => {
-      router.refresh();
-    }, 1000);
+    if (isEditMode) {
+      setTimeout(() => {
+        router.push(`/properties/${property.id}`);
+      }, 1000);
+    } else {
+      setFormData({
+        name: "",
+        address: "",
+        notes: "",
+        wifi_ssid: "",
+      });
+      setLocation(null);
+      setTimeout(() => {
+        router.refresh();
+      }, 1000);
+    }
   };
 
   const handleChange = (
@@ -241,13 +271,18 @@ export function AdminForm() {
 
         {success && (
           <div className="text-sm text-green-600 bg-green-50 dark:bg-green-950 dark:text-green-400 p-3 rounded-md">
-            Property added successfully!
+            {isEditMode ? "Property updated successfully!" : "Property added successfully!"}
           </div>
         )}
 
         <Button type="submit" className="w-full" disabled={loading}>
           {loading ? (
             <Loader2 className="h-4 w-4 animate-spin" />
+          ) : isEditMode ? (
+            <>
+              <Save className="h-4 w-4 mr-2" />
+              Save Changes
+            </>
           ) : (
             <>
               <Plus className="h-4 w-4 mr-2" />
