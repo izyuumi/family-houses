@@ -344,9 +344,7 @@ export function AddressDisplay({
               className="w-full justify-start"
             >
               <Copy className="h-4 w-4 mr-2 shrink-0" />
-              <span className="truncate">
-                {language === "ja" ? "住所をコピー" : "Copy Full Address"}
-              </span>
+              <span className="truncate">{fullAddress}</span>
             </Button>
           </div>
 
