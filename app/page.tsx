@@ -4,6 +4,7 @@ import { HomeClient } from "@/components/home-client";
 
 interface Property {
   id: string;
+  slug: string | null;
   name: string;
   postal_code: string | null;
   prefecture: string | null;
@@ -29,7 +30,7 @@ async function HomeContent() {
 
   const { data: properties } = await supabase
     .from("properties")
-    .select("id, name, postal_code, prefecture, city_ward_town, area, chome, block, building, room, location_x, location_y")
+    .select("id, slug, name, postal_code, prefecture, city_ward_town, area, chome, block, building, room, location_x, location_y")
     .order("name");
 
   return (

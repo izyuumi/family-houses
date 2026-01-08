@@ -14,6 +14,7 @@ import { buildFullAddress, type StructuredAddress } from "@/components/address-d
 
 interface Property {
   id: string;
+  slug: string | null;
   name: string;
   postal_code: string | null;
   prefecture: string | null;
@@ -47,6 +48,7 @@ export function AdminForm({ property }: AdminFormProps) {
 
   const [formData, setFormData] = useState({
     name: property?.name ?? "",
+    slug: property?.slug ?? "",
     postal_code: property?.postal_code ?? "",
     prefecture: property?.prefecture ?? "",
     city_ward_town: property?.city_ward_town ?? "",
@@ -77,6 +79,7 @@ export function AdminForm({ property }: AdminFormProps) {
 
     const payload = {
       name: formData.name,
+      slug: formData.slug || null,
       postal_code: formData.postal_code || null,
       prefecture: formData.prefecture || null,
       city_ward_town: formData.city_ward_town || null,
@@ -108,11 +111,12 @@ export function AdminForm({ property }: AdminFormProps) {
 
     if (isEditMode) {
       setTimeout(() => {
-        router.push(`/properties/${property.id}`);
+        router.push(`/properties/${formData.slug || property.id}`);
       }, 1000);
     } else {
       setFormData({
         name: "",
+        slug: "",
         postal_code: "",
         prefecture: "",
         city_ward_town: "",
@@ -172,6 +176,19 @@ export function AdminForm({ property }: AdminFormProps) {
             placeholder={t.form.namePlaceholder}
             required
           />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="slug">{t.form.slug}</Label>
+          <Input
+            id="slug"
+            name="slug"
+            value={formData.slug}
+            onChange={handleChange}
+            placeholder="my-house"
+            pattern="^[a-z0-9-]+$"
+          />
+          <p className="text-xs text-muted-foreground">{t.form.slugHint}</p>
         </div>
 
         <div className="space-y-4 p-4 border rounded-lg bg-muted/30">

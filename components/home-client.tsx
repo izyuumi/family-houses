@@ -6,10 +6,11 @@ import { useI18n } from "@/lib/i18n/context";
 import { AppleSignInButton } from "@/components/apple-sign-in-button";
 import { MapDashboard } from "@/components/map-dashboard";
 import { Button } from "@/components/ui/button";
-import { Home, List, User as UserIcon } from "lucide-react";
+import { Home, User as UserIcon } from "lucide-react";
 
 interface Property {
   id: string;
+  slug: string | null;
   name: string;
   postal_code: string | null;
   prefecture: string | null;
@@ -54,12 +55,6 @@ export function HomeClient({ user, properties }: HomeClientProps) {
         <div className="w-full max-w-5xl flex justify-between items-center px-4 text-sm">
           <span className="font-semibold">{t.home.title}</span>
           <div className="flex items-center gap-2">
-            <Link href="/properties">
-              <Button variant="ghost" size="sm">
-                <List className="h-4 w-4 mr-1" />
-                {t.common.list}
-              </Button>
-            </Link>
             <Link href="/profile">
               <Button variant="ghost" size="sm">
                 <UserIcon className="h-4 w-4" />

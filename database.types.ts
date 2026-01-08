@@ -100,6 +100,7 @@ export type Database = {
           prefecture: string | null
           prefecture_id: string | null
           room: string | null
+          slug: string | null
           updated_at: string | null
           wifi_password: string | null
           wifi_ssid: string | null
@@ -121,6 +122,7 @@ export type Database = {
           prefecture?: string | null
           prefecture_id?: string | null
           room?: string | null
+          slug?: string | null
           updated_at?: string | null
           wifi_password?: string | null
           wifi_ssid?: string | null
@@ -142,6 +144,7 @@ export type Database = {
           prefecture?: string | null
           prefecture_id?: string | null
           room?: string | null
+          slug?: string | null
           updated_at?: string | null
           wifi_password?: string | null
           wifi_ssid?: string | null

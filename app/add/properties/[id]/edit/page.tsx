@@ -9,6 +9,7 @@ interface PageProps {
 
 interface Property {
   id: string;
+  slug: string | null;
   name: string;
   postal_code: string | null;
   prefecture: string | null;
@@ -26,7 +27,7 @@ interface Property {
   location_y: number | null;
 }
 
-async function EditContent({ propertyId }: { propertyId: string }) {
+async function EditContent({ slugOrId }: { slugOrId: string }) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -36,21 +37,24 @@ async function EditContent({ propertyId }: { propertyId: string }) {
     redirect("/");
   }
 
-  const [{ data: profile }, { data: property, error }] = await Promise.all([
-    supabase.from("profiles").select("role").eq("id", user.id).single(),
-    supabase
-      .from("properties")
-      .select("id, name, postal_code, prefecture, city_ward_town, area, chome, block, building, room, wifi_ssid, wifi_password, guest_wifi_ssid, guest_wifi_password, location_x, location_y")
-      .eq("id", propertyId)
-      .maybeSingle(),
-  ]);
+  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
 
   if (profile?.role !== "admin") {
     redirect("/");
   }
 
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slugOrId);
+  
+  const propertyQuery = supabase
+    .from("properties")
+    .select("id, slug, name, postal_code, prefecture, city_ward_town, area, chome, block, building, room, wifi_ssid, wifi_password, guest_wifi_ssid, guest_wifi_password, location_x, location_y");
+  
+  const { data: property, error } = isUuid 
+    ? await propertyQuery.eq("id", slugOrId).maybeSingle()
+    : await propertyQuery.eq("slug", slugOrId).maybeSingle();
+
   if (error || !property) {
-    redirect("/properties");
+    redirect("/");
   }
 
   return <AdminClient mode="edit" property={property as Property} />;
@@ -63,9 +67,9 @@ async function EditData({
 }) {
   const { id } = await paramsPromise;
   if (!id || id === "undefined") {
-    redirect("/properties");
+    redirect("/");
   }
-  return <EditContent propertyId={id} />;
+  return <EditContent slugOrId={id} />;
 }
 
 export default function EditPropertyPage({ params }: PageProps) {

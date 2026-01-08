@@ -9,6 +9,7 @@ interface PageProps {
 
 interface Property {
   id: string;
+  slug: string | null;
   name: string;
   postal_code: string | null;
   prefecture: string | null;
@@ -33,7 +34,7 @@ interface GroceryItem {
   updated_at: string | null;
 }
 
-async function PropertyContent({ propertyId }: { propertyId: string }) {
+async function PropertyContent({ slugOrId }: { slugOrId: string }) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -41,31 +42,40 @@ async function PropertyContent({ propertyId }: { propertyId: string }) {
 
   if (!user) redirect("/");
 
-  const [propertyResult, profileResult, groceriesResult] = await Promise.all([
-    supabase
-      .from("properties")
-      .select("id, name, postal_code, prefecture, city_ward_town, area, chome, block, building, room, wifi_ssid, guest_wifi_ssid")
-      .eq("id", propertyId)
-      .maybeSingle(),
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slugOrId);
+  
+  const propertyQuery = supabase
+    .from("properties")
+    .select("id, slug, name, postal_code, prefecture, city_ward_town, area, chome, block, building, room, wifi_ssid, guest_wifi_ssid");
+  
+  const propertyResult = isUuid 
+    ? await propertyQuery.eq("id", slugOrId).maybeSingle()
+    : await propertyQuery.eq("slug", slugOrId).maybeSingle();
+
+  const property = propertyResult.data as Property | null;
+  const propertyId = property?.id;
+
+  const [profileResult, groceriesResult] = await Promise.all([
     supabase.from("profiles").select("role").eq("id", user.id).single(),
-    supabase
-      .from("grocery_items")
-      .select("*")
-      .eq("property_id", propertyId)
-      .order("checked", { ascending: true })
-      .order("created_at", { ascending: false }),
+    propertyId 
+      ? supabase
+          .from("grocery_items")
+          .select("*")
+          .eq("property_id", propertyId)
+          .order("checked", { ascending: true })
+          .order("created_at", { ascending: false })
+      : Promise.resolve({ data: [], error: null }),
   ]);
 
   if (propertyResult.error) {
     throw new Error(propertyResult.error.message);
   }
 
-  const property = propertyResult.data as Property | null;
   const isAdmin = profileResult.data?.role === "admin";
   const groceries = (groceriesResult.data as GroceryItem[]) ?? [];
 
   if (!property) {
-    redirect("/properties");
+    redirect("/");
   }
 
   return <PropertyClient property={property} isAdmin={isAdmin} initialGroceries={groceries} />;
@@ -78,9 +88,9 @@ async function PropertyData({
 }) {
   const { id } = await paramsPromise;
   if (!id || id === "undefined") {
-    redirect("/properties");
+    redirect("/");
   }
-  return <PropertyContent propertyId={id} />;
+  return <PropertyContent slugOrId={id} />;
 }
 
 function LoadingState() {

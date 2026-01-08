@@ -64,6 +64,8 @@ export const translations = {
       guestWifiSSID: "Guest WiFi SSID",
       guestWifiSSIDPlaceholder: "HomeNetwork-Guest",
       guestWifiPassword: "Guest WiFi Password",
+      slug: "URL Slug",
+      slugHint: "Lowercase letters, numbers, and hyphens only (e.g. my-house)",
     },
     info: {
       propertyInfo: "Property Info",
@@ -175,6 +177,8 @@ export const translations = {
       guestWifiSSID: "ゲストWiFi SSID",
       guestWifiSSIDPlaceholder: "HomeNetwork-Guest",
       guestWifiPassword: "ゲストWiFiパスワード",
+      slug: "URLスラッグ",
+      slugHint: "小文字、数字、ハイフンのみ（例：my-house）",
     },
     info: {
       propertyInfo: "物件情報",

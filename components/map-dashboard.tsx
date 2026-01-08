@@ -11,6 +11,7 @@ import { buildFullAddress } from "@/components/address-display";
 
 interface Property {
   id: string;
+  slug: string | null;
   name: string;
   postal_code: string | null;
   prefecture: string | null;
@@ -48,13 +49,12 @@ export function MapDashboard({ properties }: MapDashboardProps) {
   const handleMarkerClick = (marker: PropertyMarker) => {
     const property = properties.find((p) => p.id === marker.id);
     if (property) {
-      setSelectedProperty(property);
-      setShowAllProperties(false);
+      router.push(`/properties/${property.slug || property.id}`);
     }
   };
 
-  const navigateToProperty = (propertyId: string) => {
-    router.push(`/properties/${propertyId}`);
+  const navigateToProperty = (property: Property) => {
+    router.push(`/properties/${property.slug || property.id}`);
   };
 
   const clearSelection = () => {
@@ -135,7 +135,7 @@ export function MapDashboard({ properties }: MapDashboardProps) {
                   <Card
                     key={property.id}
                     className="p-4 transition-all hover:border-foreground/30 active:scale-[0.98] active:bg-muted/50 cursor-pointer touch-manipulation"
-                    onClick={() => navigateToProperty(property.id)}
+                    onClick={() => navigateToProperty(property)}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 flex-1">

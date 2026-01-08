@@ -11,6 +11,7 @@ import { buildFullAddress } from "@/components/address-display";
 
 interface Property {
   id: string;
+  slug: string | null;
   name: string;
   postal_code?: string | null;
   prefecture?: string | null;
@@ -60,7 +61,7 @@ export function PropertyClient({ property, isAdmin, initialGroceries }: Property
       <nav className="w-full flex justify-center border-b border-b-foreground/10 h-14 shrink-0">
         <div className="w-full max-w-5xl flex justify-between items-center px-4">
           <div className="flex items-center gap-2">
-            <Link href="/properties">
+            <Link href="/">
               <Button variant="ghost" size="sm" className="-ml-2">
                 <span className="text-muted-foreground mr-1">←</span>
                 <span className="font-semibold">{property.name}</span>
@@ -68,7 +69,7 @@ export function PropertyClient({ property, isAdmin, initialGroceries }: Property
             </Link>
           </div>
           {isAdmin && (
-            <Link href={`/add/properties/${property.id}/edit`}>
+            <Link href={`/add/properties/${property.slug || property.id}/edit`}>
               <Button variant="ghost" size="sm">
                 <Pencil className="h-4 w-4" />
               </Button>
