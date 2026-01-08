@@ -4,6 +4,7 @@ import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
 import { I18nProvider } from "@/lib/i18n/context";
 import "./globals.css";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -48,6 +49,7 @@ export default function RootLayout({
             <Toaster position="top-center" richColors closeButton />
           </I18nProvider>
         </ThemeProvider>
+        <SpeedInsights />
       </body>
     </html>
   );
