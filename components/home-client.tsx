@@ -56,7 +56,7 @@ export function HomeClient({ user, properties, isAdmin }: HomeClientProps) {
           <span className="font-semibold">{t.home.title}</span>
           <div className="flex items-center gap-2">
             {isAdmin && (
-              <Link href="/admin">
+              <Link href="/add">
                 <Button variant="ghost" size="sm">
                   <Plus className="h-4 w-4 mr-1" />
                   {t.common.add}

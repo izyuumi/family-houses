@@ -34,7 +34,7 @@ export function ProfileClient({ email, isAdmin }: ProfileClientProps) {
         <div className="space-y-6">
           {isAdmin && (
             <Button asChild className="w-full">
-              <Link href="/admin">
+              <Link href="/add">
                 <Plus className="h-4 w-4 mr-2" />
                 {t.admin.addProperty}
               </Link>

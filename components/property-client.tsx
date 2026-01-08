@@ -68,7 +68,7 @@ export function PropertyClient({ property, isAdmin, initialGroceries }: Property
             </Link>
           </div>
           {isAdmin && (
-            <Link href={`/admin/properties/${property.id}/edit`}>
+            <Link href={`/add/properties/${property.id}/edit`}>
               <Button variant="ghost" size="sm">
                 <Pencil className="h-4 w-4" />
               </Button>
