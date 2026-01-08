@@ -24,12 +24,24 @@ interface Property {
   guest_wifi_ssid: string | null;
 }
 
+interface GroceryItem {
+  id: string;
+  property_id: string;
+  item_name: string;
+  quantity: string | null;
+  checked: boolean | null;
+  added_by: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
 interface PropertyClientProps {
   property: Property;
   isAdmin: boolean;
+  initialGroceries?: GroceryItem[];
 }
 
-export function PropertyClient({ property, isAdmin }: PropertyClientProps) {
+export function PropertyClient({ property, isAdmin, initialGroceries }: PropertyClientProps) {
   const { t } = useI18n();
 
   return (
@@ -57,7 +69,7 @@ export function PropertyClient({ property, isAdmin }: PropertyClientProps) {
         <p className="text-sm text-muted-foreground mb-4">{property.address}</p>
         <div className="space-y-6">
           <InfoCard property={property} />
-          <Groceries propertyId={property.id} />
+          <Groceries propertyId={property.id} initialItems={initialGroceries} />
         </div>
       </div>
     </main>

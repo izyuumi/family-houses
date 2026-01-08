@@ -37,21 +37,18 @@ async function EditContent({ propertyId }: { propertyId: string }) {
     redirect("/");
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
+  const [{ data: profile }, { data: property, error }] = await Promise.all([
+    supabase.from("profiles").select("role").eq("id", user.id).single(),
+    supabase
+      .from("properties")
+      .select("id, name, address, postal_code, prefecture, city_ward_town, area, chome, block, building, room, wifi_ssid, wifi_password, guest_wifi_ssid, guest_wifi_password, location_x, location_y")
+      .eq("id", propertyId)
+      .maybeSingle(),
+  ]);
 
   if (profile?.role !== "admin") {
     redirect("/");
   }
-
-  const { data: property, error } = await supabase
-    .from("properties")
-    .select("id, name, address, postal_code, prefecture, city_ward_town, area, chome, block, building, room, wifi_ssid, wifi_password, guest_wifi_ssid, guest_wifi_password, location_x, location_y")
-    .eq("id", propertyId)
-    .maybeSingle();
 
   if (error || !property) {
     redirect("/properties");

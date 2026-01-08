@@ -14,12 +14,13 @@ type GroceryItem = Tables<"grocery_items">;
 
 interface GroceriesProps {
   propertyId: string;
+  initialItems?: GroceryItem[];
 }
 
-export function Groceries({ propertyId }: GroceriesProps) {
+export function Groceries({ propertyId, initialItems }: GroceriesProps) {
   const { t } = useI18n();
   const supabase = useMemo(() => createClient(), []);
-  const [items, setItems] = useState<GroceryItem[]>([]);
+  const [items, setItems] = useState<GroceryItem[]>(initialItems ?? []);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -34,8 +35,10 @@ export function Groceries({ propertyId }: GroceriesProps) {
   }, [supabase, propertyId]);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    if (!initialItems) {
+      load();
+    }
+  }, [load, initialItems]);
 
   const addItem = async () => {
     const itemName = text.trim();

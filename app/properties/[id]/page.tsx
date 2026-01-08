@@ -23,6 +23,17 @@ interface Property {
   guest_wifi_ssid: string | null;
 }
 
+interface GroceryItem {
+  id: string;
+  property_id: string;
+  item_name: string;
+  quantity: string | null;
+  checked: boolean | null;
+  added_by: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
 async function PropertyContent({ propertyId }: { propertyId: string }) {
   const supabase = await createClient();
   const {
@@ -31,13 +42,19 @@ async function PropertyContent({ propertyId }: { propertyId: string }) {
 
   if (!user) redirect("/");
 
-  const [propertyResult, profileResult] = await Promise.all([
+  const [propertyResult, profileResult, groceriesResult] = await Promise.all([
     supabase
       .from("properties")
       .select("id, name, address, postal_code, prefecture, city_ward_town, area, chome, block, building, room, wifi_ssid, guest_wifi_ssid")
       .eq("id", propertyId)
       .maybeSingle(),
     supabase.from("profiles").select("role").eq("id", user.id).single(),
+    supabase
+      .from("grocery_items")
+      .select("*")
+      .eq("property_id", propertyId)
+      .order("checked", { ascending: true })
+      .order("created_at", { ascending: false }),
   ]);
 
   if (propertyResult.error) {
@@ -46,12 +63,13 @@ async function PropertyContent({ propertyId }: { propertyId: string }) {
 
   const property = propertyResult.data as Property | null;
   const isAdmin = profileResult.data?.role === "admin";
+  const groceries = (groceriesResult.data as GroceryItem[]) ?? [];
 
   if (!property) {
     redirect("/properties");
   }
 
-  return <PropertyClient property={property} isAdmin={isAdmin} />;
+  return <PropertyClient property={property} isAdmin={isAdmin} initialGroceries={groceries} />;
 }
 
 async function PropertyData({
