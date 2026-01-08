@@ -11,7 +11,15 @@ async function ProfileContent() {
 
   if (!user) redirect("/");
 
-  return <ProfileClient email={user.email} />;
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  const isAdmin = profile?.role === "admin";
+
+  return <ProfileClient email={user.email} isAdmin={isAdmin} />;
 }
 
 function LoadingState() {

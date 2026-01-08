@@ -3,16 +3,18 @@
 import { useI18n } from "@/lib/i18n/context";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Navbar } from "@/components/navbar";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Globe, Moon, Sun, Laptop, LogOut, Check } from "lucide-react";
+import { Globe, Moon, Sun, Laptop, LogOut, Check, Plus } from "lucide-react";
 
 interface ProfileClientProps {
   email?: string;
+  isAdmin?: boolean;
 }
 
-export function ProfileClient({ email }: ProfileClientProps) {
+export function ProfileClient({ email, isAdmin }: ProfileClientProps) {
   const { t, language, setLanguage } = useI18n();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -30,6 +32,14 @@ export function ProfileClient({ email }: ProfileClientProps) {
         )}
 
         <div className="space-y-6">
+          {isAdmin && (
+            <Button asChild className="w-full">
+              <Link href="/admin">
+                <Plus className="h-4 w-4 mr-2" />
+                {t.admin.addProperty}
+              </Link>
+            </Button>
+          )}
           <Card className="p-4">
             <div className="flex items-center gap-2 mb-4">
               <Globe className="h-4 w-4 text-muted-foreground" />
