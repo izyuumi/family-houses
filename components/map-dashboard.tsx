@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { JapanMap } from "@/components/japan-map";
+import { JapanMap, type PropertyMarker } from "@/components/japan-map";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MapPin, Home, X, ChevronRight, List } from "lucide-react";
@@ -14,13 +14,6 @@ interface Property {
   address: string;
   location_x: number | null;
   location_y: number | null;
-}
-
-interface PropertyMarker {
-  id: string;
-  name: string;
-  x: number;
-  y: number;
 }
 
 interface MapDashboardProps {
@@ -66,7 +59,7 @@ export function MapDashboard({ properties }: MapDashboardProps) {
   return (
     <div className="relative w-full h-full flex flex-col md:flex-row">
       <div className="flex-1 relative min-h-[50vh] md:min-h-0">
-        <JapanMap markers={markers} onMarkerClick={handleMarkerClick} />
+        <JapanMap mode="view" markers={markers} onMarkerClick={handleMarkerClick} />
 
         <div className="absolute top-4 left-4 z-10">
           <Button

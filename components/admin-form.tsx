@@ -3,17 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { JapanMap } from "@/components/japan-map";
+import { JapanMap, type MapLocation } from "@/components/japan-map";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Plus, Loader2, MapPin, Pencil, X } from "lucide-react";
-
-interface MapLocation {
-  x: number;
-  y: number;
-}
 
 export function AdminForm() {
   const router = useRouter();
@@ -126,11 +121,18 @@ export function AdminForm() {
           <Label>Location on Map</Label>
           <div className={`border rounded-md overflow-hidden transition-colors ${isEditingLocation ? "border-primary ring-2 ring-primary/20" : "border-input"}`}>
             <div className="h-[300px] bg-muted/30 relative">
-              <JapanMap
-                selectionMode={isEditingLocation}
-                selectedLocation={location}
-                onLocationClick={handleLocationSelect}
-              />
+              {isEditingLocation ? (
+                <JapanMap
+                  mode="edit"
+                  selectedLocation={location}
+                  onLocationClick={handleLocationSelect}
+                />
+              ) : (
+                <JapanMap
+                  mode="view"
+                  markers={location ? [{ id: "selected", name: "Selected Location", x: location.x, y: location.y }] : []}
+                />
+              )}
               {isEditingLocation && (
                 <div className="absolute inset-0 pointer-events-none flex items-start justify-center pt-4">
                   <div className="bg-primary text-primary-foreground px-3 py-1.5 rounded-full text-sm font-medium animate-pulse">
