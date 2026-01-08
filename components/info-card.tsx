@@ -112,8 +112,14 @@ export function InfoCard({ property }: InfoCardProps) {
                   <Copy className="h-4 w-4" />
                 )}
               </Button>
-              {wifiPassword && property.wifi_ssid && (
-                <WifiQRCode ssid={property.wifi_ssid} password={wifiPassword} />
+              {property.wifi_ssid && (
+                <WifiQRCode
+                  ssid={property.wifi_ssid}
+                  password={wifiPassword}
+                  propertyId={property.id}
+                  type="main"
+                  onPasswordRevealed={setWifiPassword}
+                />
               )}
             </div>
           </div>
@@ -153,9 +159,13 @@ export function InfoCard({ property }: InfoCardProps) {
                     <Copy className="h-4 w-4" />
                   )}
                 </Button>
-                {guestWifiPassword && property.guest_wifi_ssid && (
-                  <WifiQRCode ssid={property.guest_wifi_ssid} password={guestWifiPassword} />
-                )}
+                <WifiQRCode
+                  ssid={property.guest_wifi_ssid}
+                  password={guestWifiPassword}
+                  propertyId={property.id}
+                  type="guest"
+                  onPasswordRevealed={setGuestWifiPassword}
+                />
               </div>
             </div>
           )}

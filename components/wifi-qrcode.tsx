@@ -6,7 +6,10 @@ import { QrCode, X } from "lucide-react";
 
 interface WifiQRCodeProps {
   ssid: string;
-  password: string;
+  password: string | null;
+  propertyId: string;
+  type: "main" | "guest";
+  onPasswordRevealed?: (password: string) => void;
 }
 
 const QRCode = (function () {
@@ -687,18 +690,46 @@ function generateWifiString(ssid: string, password: string, security = "WPA") {
   return `WIFI:T:${security};S:${escapeWifiString(ssid)};P:${escapeWifiString(password)};;`;
 }
 
-export function WifiQRCode({ ssid, password }: WifiQRCodeProps) {
+export function WifiQRCode({ ssid, password, propertyId, type, onPasswordRevealed }: WifiQRCodeProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [showQR, setShowQR] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [localPassword, setLocalPassword] = useState<string | null>(password);
 
   useEffect(() => {
-    if (!showQR || !canvasRef.current) return;
+    setLocalPassword(password);
+  }, [password]);
+
+  const handleOpen = async () => {
+    if (localPassword) {
+      setShowQR(true);
+      return;
+    }
+
+    setLoading(true);
+    const res = await fetch("/api/wifi/reveal", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ propertyId, type }),
+    });
+    const json = await res.json();
+    setLoading(false);
+
+    if (json.password) {
+      setLocalPassword(json.password);
+      onPasswordRevealed?.(json.password);
+      setShowQR(true);
+    }
+  };
+
+  useEffect(() => {
+    if (!showQR || !canvasRef.current || !localPassword) return;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const wifiString = generateWifiString(ssid, password);
+    const wifiString = generateWifiString(ssid, localPassword);
     const qr = QRCode.create(wifiString);
     const moduleCount = qr.getModuleCount();
 
@@ -724,11 +755,11 @@ export function WifiQRCode({ ssid, password }: WifiQRCodeProps) {
         }
       }
     }
-  }, [showQR, ssid, password]);
+  }, [showQR, ssid, localPassword]);
 
   if (!showQR) {
     return (
-      <Button variant="outline" size="sm" onClick={() => setShowQR(true)}>
+      <Button variant="outline" size="sm" onClick={handleOpen} disabled={loading}>
         <QrCode className="h-4 w-4" />
       </Button>
     );
