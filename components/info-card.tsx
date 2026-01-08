@@ -9,7 +9,6 @@ interface Property {
   id: string;
   name: string;
   address: string;
-  floor_unit: string | null;
   notes: string | null;
   wifi_ssid: string | null;
 }
@@ -57,9 +56,6 @@ export function InfoCard({ property }: InfoCardProps) {
             <div>
               <div className="text-muted-foreground text-xs">Address</div>
               <div>{property.address}</div>
-              {property.floor_unit && (
-                <div className="text-muted-foreground">{property.floor_unit}</div>
-              )}
             </div>
           </div>
 

@@ -24,7 +24,7 @@ async function PropertyData({ params }: { params: { id: string } }) {
 
   const { data: property, error } = await supabase
     .from("properties")
-    .select("id, name, address, floor_unit, notes, wifi_ssid")
+    .select("id, name, address, notes, wifi_ssid")
     .eq("id", id)
     .maybeSingle();
 
