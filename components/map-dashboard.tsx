@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useI18n } from "@/lib/i18n/context";
 import { JapanMap, type PropertyMarker } from "@/components/japan-map";
@@ -39,7 +38,15 @@ export function MapDashboard({ properties }: MapDashboardProps) {
   }, [properties]);
 
   const handleMarkerClick = (marker: PropertyMarker) => {
-    router.push(`/properties/${marker.id}`);
+    const property = properties.find((p) => p.id === marker.id);
+    if (property) {
+      setSelectedProperty(property);
+      setShowAllProperties(false);
+    }
+  };
+
+  const navigateToProperty = (propertyId: string) => {
+    router.push(`/properties/${propertyId}`);
   };
 
   const clearSelection = () => {
@@ -66,57 +73,64 @@ export function MapDashboard({ properties }: MapDashboardProps) {
         <div className="absolute top-4 left-4 z-10">
           <Button
             variant={showAllProperties ? "default" : "outline"}
-            size="sm"
+            size="default"
             onClick={toggleAllProperties}
-            className="shadow-md"
+            className="shadow-md touch-manipulation h-10 px-4"
           >
             <List className="h-4 w-4 mr-2" />
-            {t.properties.allProperties} ({properties.length})
+            <span className="hidden sm:inline">{t.properties.allProperties}</span>
+            <span className="sm:hidden">{t.common.list}</span>
+            <span className="ml-1">({properties.length})</span>
           </Button>
         </div>
       </div>
 
       {(selectedProperty || showAllProperties) && (
-        <div className="w-full md:w-80 lg:w-96 border-t md:border-t-0 md:border-l bg-background flex flex-col max-h-[50vh] md:max-h-full">
-          <div className="p-4 border-b flex items-center justify-between shrink-0">
+        <div className="w-full md:w-80 lg:w-96 border-t md:border-t-0 md:border-l bg-background flex flex-col max-h-[45vh] md:max-h-full animate-in slide-in-from-bottom md:slide-in-from-right duration-200">
+          <div className="md:hidden w-12 h-1 bg-border rounded-full mx-auto mt-2 mb-1" />
+          
+          <div className="px-4 py-3 md:p-4 border-b flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2">
               <MapPin className="h-4 w-4 text-muted-foreground" />
-              <h2 className="font-semibold">
+              <h2 className="font-semibold text-base">
                 {showAllProperties ? t.properties.allProperties : selectedProperty?.name ?? "Property"}
               </h2>
             </div>
-            <Button variant="ghost" size="icon" onClick={clearSelection}>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={clearSelection}
+              className="h-9 w-9 touch-manipulation"
+            >
               <X className="h-4 w-4" />
             </Button>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          <div className="flex-1 overflow-y-auto overscroll-contain p-4 space-y-3">
             {displayedProperties.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground text-sm">
                 {t.properties.noProperties}
               </div>
             ) : (
               displayedProperties.map((property) => (
-                <Link
+                <Card
                   key={property.id}
-                  href={`/properties/${property.id}`}
-                  prefetch={false}
+                  className="p-4 transition-all hover:border-foreground/30 active:scale-[0.98] active:bg-muted/50 cursor-pointer touch-manipulation"
+                  onClick={() => navigateToProperty(property.id)}
                 >
-                  <Card className="p-4 transition-all hover:border-foreground/30 active:scale-[0.99]">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <div className="font-medium flex items-center gap-2">
-                          <Home className="h-4 w-4 shrink-0 text-muted-foreground" />
-                          <span className="truncate">{property.name}</span>
-                        </div>
-                        <div className="text-sm text-muted-foreground mt-1 truncate">
-                          {property.address}
-                        </div>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="font-medium flex items-center gap-2">
+                        <Home className="h-4 w-4 shrink-0 text-muted-foreground" />
+                        <span className="truncate">{property.name}</span>
                       </div>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <div className="text-sm text-muted-foreground mt-1.5 truncate">
+                        {property.address}
+                      </div>
                     </div>
-                  </Card>
-                </Link>
+                    <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
+                  </div>
+                </Card>
               ))
             )}
           </div>
@@ -124,9 +138,12 @@ export function MapDashboard({ properties }: MapDashboardProps) {
       )}
 
       {!selectedProperty && !showAllProperties && properties.length > 0 && (
-        <div className="absolute bottom-4 right-4 z-10 md:hidden">
-          <Button onClick={toggleAllProperties} className="shadow-lg">
-            <Home className="h-4 w-4 mr-2" />
+        <div className="absolute bottom-20 right-4 z-10 md:hidden">
+          <Button 
+            onClick={toggleAllProperties} 
+            className="shadow-lg h-12 px-5 text-base touch-manipulation"
+          >
+            <Home className="h-5 w-5 mr-2" />
             {t.properties.viewProperties}
           </Button>
         </div>
