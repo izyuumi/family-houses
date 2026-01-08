@@ -42,15 +42,21 @@ async function PropertyContent({ slugOrId }: { slugOrId: string }) {
 
   if (!user) redirect("/");
 
-  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slugOrId);
+  const selectFields = "id, slug, name, postal_code, prefecture, city_ward_town, area, chome, block, building, room, wifi_ssid, guest_wifi_ssid";
   
-  const propertyQuery = supabase
+  let propertyResult = await supabase
     .from("properties")
-    .select("id, slug, name, postal_code, prefecture, city_ward_town, area, chome, block, building, room, wifi_ssid, guest_wifi_ssid");
-  
-  const propertyResult = isUuid 
-    ? await propertyQuery.eq("id", slugOrId).maybeSingle()
-    : await propertyQuery.eq("slug", slugOrId).maybeSingle();
+    .select(selectFields)
+    .eq("slug", slugOrId)
+    .maybeSingle();
+
+  if (!propertyResult.data && !propertyResult.error) {
+    propertyResult = await supabase
+      .from("properties")
+      .select(selectFields)
+      .eq("id", slugOrId)
+      .maybeSingle();
+  }
 
   const property = propertyResult.data as Property | null;
   const propertyId = property?.id;

@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { AdminClient } from "@/components/admin-client";
+import { AdminClientLazy } from "@/components/admin-client-lazy";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -43,21 +43,29 @@ async function EditContent({ slugOrId }: { slugOrId: string }) {
     redirect("/");
   }
 
-  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slugOrId);
+  const selectFields = "id, slug, name, postal_code, prefecture, city_ward_town, area, chome, block, building, room, wifi_ssid, wifi_password, guest_wifi_ssid, guest_wifi_password, location_x, location_y";
   
-  const propertyQuery = supabase
+  let propertyResult = await supabase
     .from("properties")
-    .select("id, slug, name, postal_code, prefecture, city_ward_town, area, chome, block, building, room, wifi_ssid, wifi_password, guest_wifi_ssid, guest_wifi_password, location_x, location_y");
-  
-  const { data: property, error } = isUuid 
-    ? await propertyQuery.eq("id", slugOrId).maybeSingle()
-    : await propertyQuery.eq("slug", slugOrId).maybeSingle();
+    .select(selectFields)
+    .eq("slug", slugOrId)
+    .maybeSingle();
+
+  if (!propertyResult.data && !propertyResult.error) {
+    propertyResult = await supabase
+      .from("properties")
+      .select(selectFields)
+      .eq("id", slugOrId)
+      .maybeSingle();
+  }
+
+  const { data: property, error } = propertyResult;
 
   if (error || !property) {
     redirect("/");
   }
 
-  return <AdminClient mode="edit" property={property as Property} />;
+  return <AdminClientLazy mode="edit" property={property as Property} />;
 }
 
 async function EditData({
@@ -72,9 +80,29 @@ async function EditData({
   return <EditContent slugOrId={id} />;
 }
 
+function LoadingState() {
+  return (
+    <main className="min-h-dvh flex flex-col">
+      <nav className="w-full flex justify-center border-b border-b-foreground/10 h-14 shrink-0">
+        <div className="w-full max-w-5xl flex justify-between items-center px-4">
+          <div className="h-6 w-32 bg-muted animate-pulse rounded" />
+        </div>
+      </nav>
+      <div className="flex-1 p-4 max-w-xl mx-auto w-full pb-20">
+        <div className="h-4 w-48 bg-muted animate-pulse rounded mb-4" />
+        <div className="space-y-4">
+          <div className="h-10 bg-muted animate-pulse rounded-md" />
+          <div className="h-10 bg-muted animate-pulse rounded-md" />
+          <div className="h-10 bg-muted animate-pulse rounded-md" />
+        </div>
+      </div>
+    </main>
+  );
+}
+
 export default function EditPropertyPage({ params }: PageProps) {
   return (
-    <Suspense fallback={<div className="min-h-dvh p-4 max-w-xl mx-auto" />}>
+    <Suspense fallback={<LoadingState />}>
       <EditData paramsPromise={params} />
     </Suspense>
   );

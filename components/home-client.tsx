@@ -4,7 +4,7 @@ import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
 import { useI18n } from "@/lib/i18n/context";
 import { AppleSignInButton } from "@/components/apple-sign-in-button";
-import { MapDashboard } from "@/components/map-dashboard";
+import { MapDashboardLazy } from "@/components/map-dashboard-lazy";
 import { Button } from "@/components/ui/button";
 import { Home, User as UserIcon } from "lucide-react";
 
@@ -41,7 +41,9 @@ export function HomeClient({ user, properties }: HomeClientProps) {
             <h1 className="text-4xl font-bold tracking-tight">
               {t.home.title}
             </h1>
-            <p className="text-muted-foreground text-center text-lg">{t.home.subtitle}</p>
+            <p className="text-muted-foreground text-center text-lg">
+              {t.home.subtitle}
+            </p>
           </div>
           <AppleSignInButton />
         </div>
@@ -64,7 +66,7 @@ export function HomeClient({ user, properties }: HomeClientProps) {
         </div>
       </nav>
       <div className="flex-1 overflow-hidden">
-        <MapDashboard properties={properties} />
+        <MapDashboardLazy properties={properties} />
       </div>
     </main>
   );

@@ -2,9 +2,8 @@
 
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n/context";
-import { InfoCard } from "@/components/info-card";
-import { Groceries } from "@/components/groceries";
-import { Navbar } from "@/components/navbar";
+import { InfoCardLazy } from "@/components/info-card-lazy";
+import { GroceriesLazy } from "@/components/groceries-lazy";
 import { Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { buildFullAddress } from "@/components/address-display";
@@ -86,8 +85,11 @@ export function PropertyClient({
           <p className="text-sm text-muted-foreground mb-4">{fullAddress}</p>
         )}
         <div className="space-y-6">
-          <InfoCard property={property} />
-          <Groceries propertyId={property.id} initialItems={initialGroceries} />
+          <InfoCardLazy property={property} />
+          <GroceriesLazy
+            propertyId={property.id}
+            initialItems={initialGroceries}
+          />
         </div>
       </div>
     </main>
