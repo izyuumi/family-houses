@@ -34,14 +34,14 @@ export function HomeClient({ user, properties, isAdmin }: HomeClientProps) {
 
   if (!user) {
     return (
-      <main className="min-h-dvh flex flex-col items-center justify-center p-6">
-        <div className="flex flex-col items-center gap-12">
-          <div className="flex flex-col items-center gap-3">
-            <Home className="h-12 w-12" />
-            <h1 className="text-4xl font-semibold tracking-tight">
+      <main className="min-h-dvh flex flex-col items-center justify-center p-8">
+        <div className="flex flex-col items-center gap-16">
+          <div className="flex flex-col items-center gap-4">
+            <Home className="h-14 w-14 text-primary" />
+            <h1 className="text-4xl font-bold tracking-tight">
               {t.home.title}
             </h1>
-            <p className="text-muted-foreground text-center">{t.home.subtitle}</p>
+            <p className="text-muted-foreground text-center text-lg">{t.home.subtitle}</p>
           </div>
           <AppleSignInButton />
         </div>

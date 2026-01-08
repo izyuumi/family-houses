@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { I18nProvider } from "@/lib/i18n/context";
 import "./globals.css";
@@ -22,8 +22,8 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const plusJakarta = Plus_Jakarta_Sans({
+  variable: "--font-plus-jakarta",
   display: "swap",
   subsets: ["latin"],
 });
@@ -35,7 +35,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.className} antialiased`}>
+      <body className={`${plusJakarta.className} antialiased`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
