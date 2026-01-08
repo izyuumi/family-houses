@@ -22,8 +22,6 @@ interface Property {
   room?: string | null;
   wifi_ssid: string | null;
   guest_wifi_ssid: string | null;
-  location_x?: number | null;
-  location_y?: number | null;
 }
 
 interface InfoCardProps {
@@ -94,8 +92,6 @@ export function InfoCard({ property }: InfoCardProps) {
             room: property.room ?? null,
           }}
           fallbackAddress={property.address}
-          latitude={property.location_y}
-          longitude={property.location_x}
         />
 
         <div className="pt-3 border-t space-y-4">

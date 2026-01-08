@@ -22,8 +22,6 @@ interface Property {
   room?: string | null;
   wifi_ssid: string | null;
   guest_wifi_ssid: string | null;
-  location_x?: number | null;
-  location_y?: number | null;
 }
 
 interface PropertyClientProps {

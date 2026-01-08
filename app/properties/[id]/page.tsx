@@ -21,8 +21,6 @@ interface Property {
   room: string | null;
   wifi_ssid: string | null;
   guest_wifi_ssid: string | null;
-  location_x: number | null;
-  location_y: number | null;
 }
 
 async function PropertyContent({ propertyId }: { propertyId: string }) {
@@ -36,7 +34,7 @@ async function PropertyContent({ propertyId }: { propertyId: string }) {
   const [propertyResult, profileResult] = await Promise.all([
     supabase
       .from("properties")
-      .select("id, name, address, postal_code, prefecture, city_ward_town, area, chome, block, building, room, wifi_ssid, guest_wifi_ssid, location_x, location_y")
+      .select("id, name, address, postal_code, prefecture, city_ward_town, area, chome, block, building, room, wifi_ssid, guest_wifi_ssid")
       .eq("id", propertyId)
       .maybeSingle(),
     supabase.from("profiles").select("role").eq("id", user.id).single(),
