@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { Plus, Minus } from "lucide-react";
 
 export interface MapLocation {
@@ -57,7 +57,8 @@ export function JapanMap(props: JapanMapProps) {
   const hasMoved = useRef(false);
 
   const isEditMode = props.mode === "edit";
-  const markers = isEditMode ? [] : props.markers;
+  const propsMarkers = isEditMode ? undefined : props.markers;
+  const markers = useMemo(() => propsMarkers ?? [], [propsMarkers]);
   const selectedLocation = isEditMode ? props.selectedLocation : null;
 
   const viewWidth = BASE_WIDTH / zoom;
