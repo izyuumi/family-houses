@@ -1,23 +1,19 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { auth } from "@clerk/nextjs/server";
+import { getConvexClient } from "@/lib/convex";
+import { api } from "@/convex/_generated/api";
 import { AdminClientLazy } from "@/components/admin-client-lazy";
 
 async function AdminContent() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { userId } = await auth();
 
-  if (!user) {
+  if (!userId) {
     redirect("/");
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
+  const convex = getConvexClient();
+  const profile = await convex.query(api.profiles.getByClerkId, { clerkId: userId });
 
   if (profile?.role !== "admin") {
     redirect("/");

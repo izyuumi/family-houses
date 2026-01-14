@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { useState } from "react";
+import { useMutation, useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
 import { useI18n } from "@/lib/i18n/context";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,39 +21,62 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { ShoppingCart, Plus, Trash2, Loader2 } from "lucide-react";
-import type { Tables } from "@/database.types";
+import { ListTodo, Plus, Trash2, Loader2 } from "lucide-react";
 
-type GroceryItem = Tables<"grocery_items">;
+interface GroceryItem {
+  id: string;
+  property_id: string;
+  item_name: string;
+  quantity: string | null;
+  checked: boolean | null;
+  added_by: string | null;
+  completed_by: string | null;
+  completed_at: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+  adder?: { display_name: string | null } | null;
+  completer?: { display_name: string | null } | null;
+}
 
 interface GroceriesProps {
   propertyId: string;
   initialItems?: GroceryItem[];
+  userId?: string;
 }
 
-export function Groceries({ propertyId, initialItems }: GroceriesProps) {
+export function Groceries({
+  propertyId,
+  initialItems,
+  userId,
+}: GroceriesProps) {
   const { t } = useI18n();
-  const supabase = useMemo(() => createClient(), []);
-  const [items, setItems] = useState<GroceryItem[]>(initialItems ?? []);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
   const [clearDialogOpen, setClearDialogOpen] = useState(false);
 
-  const load = useCallback(async () => {
-    const { data } = await supabase
-      .from("grocery_items")
-      .select("*")
-      .eq("property_id", propertyId)
-      .order("checked", { ascending: true })
-      .order("created_at", { ascending: false });
-    setItems(data ?? []);
-  }, [supabase, propertyId]);
+  const convexPropertyId = propertyId as Id<"properties">;
+  const liveItems = useQuery(api.groceryItems.listByProperty, { propertyId: convexPropertyId });
+  const addMutation = useMutation(api.groceryItems.add);
+  const toggleMutation = useMutation(api.groceryItems.toggle);
+  const removeMutation = useMutation(api.groceryItems.remove);
+  const clearCheckedMutation = useMutation(api.groceryItems.clearChecked);
 
-  useEffect(() => {
-    if (!initialItems) {
-      load();
-    }
-  }, [load, initialItems]);
+  const items: GroceryItem[] = liveItems
+    ? liveItems.map((item) => ({
+        id: item._id,
+        property_id: item.propertyId,
+        item_name: item.itemName,
+        quantity: item.quantity ?? null,
+        checked: item.checked,
+        added_by: item.addedBy ?? null,
+        completed_by: item.completedBy ?? null,
+        completed_at: item.completedAt ? new Date(item.completedAt).toISOString() : null,
+        created_at: item._creationTime ? new Date(item._creationTime).toISOString() : null,
+        updated_at: null,
+        adder: item.adder ? { display_name: item.adder.displayName ?? null } : null,
+        completer: item.completer ? { display_name: item.completer.displayName ?? null } : null,
+      }))
+    : (initialItems ?? []);
 
   const addItem = async () => {
     const itemName = text.trim();
@@ -60,101 +85,78 @@ export function Groceries({ propertyId, initialItems }: GroceriesProps) {
     setLoading(true);
     setText("");
 
-    const optimisticItem: GroceryItem = {
-      id: `temp-${Date.now()}`,
-      property_id: propertyId,
-      item_name: itemName,
-      quantity: null,
-      checked: false,
-      added_by: null,
-      created_at: new Date().toISOString(),
-      updated_at: null,
-    };
-
-    setItems((prev) => [optimisticItem, ...prev]);
-
-    const { error } = await supabase.from("grocery_items").insert({
-      property_id: propertyId,
-      item_name: itemName,
-      checked: false,
-    });
-
-    if (error) {
-      setItems((prev) => prev.filter((item) => item.id !== optimisticItem.id));
-      toast.error(t.groceries.errorAdding);
-    } else {
+    try {
+      await addMutation({
+        propertyId: convexPropertyId,
+        itemName,
+        addedBy: userId,
+      });
       toast.success(t.groceries.itemAdded);
-      await load();
+    } catch {
+      toast.error(t.groceries.errorAdding);
     }
 
     setLoading(false);
   };
 
   const toggleItem = async (id: string, checked: boolean | null) => {
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, checked: !checked } : item
-      )
-    );
-
-    const { error } = await supabase
-      .from("grocery_items")
-      .update({ checked: !checked })
-      .eq("id", id);
-
-    if (error) {
-      setItems((prev) =>
-        prev.map((item) =>
-          item.id === id ? { ...item, checked: checked } : item
-        )
-      );
+    try {
+      await toggleMutation({
+        id: id as Id<"groceryItems">,
+        checked: !checked,
+        completedBy: userId,
+      });
+    } catch {
       toast.error(t.groceries.errorToggling);
     }
   };
 
   const deleteItem = async (id: string) => {
-    const deletedItem = items.find((item) => item.id === id);
-    setItems((prev) => prev.filter((item) => item.id !== id));
-
-    const { error } = await supabase.from("grocery_items").delete().eq("id", id);
-
-    if (error) {
-      if (deletedItem) {
-        setItems((prev) => [...prev, deletedItem]);
-      }
-      toast.error(t.groceries.errorDeleting);
-    } else {
+    try {
+      await removeMutation({ id: id as Id<"groceryItems"> });
       toast.success(t.groceries.itemDeleted);
+    } catch {
+      toast.error(t.groceries.errorDeleting);
     }
   };
 
   const clearChecked = async () => {
-    const checkedItems = items.filter((i) => i.checked);
-    const checkedIds = checkedItems.map((i) => i.id);
-    if (checkedIds.length === 0) return;
-
-    setItems((prev) => prev.filter((item) => !item.checked));
     setClearDialogOpen(false);
-
-    const { error } = await supabase.from("grocery_items").delete().in("id", checkedIds);
-
-    if (error) {
-      setItems((prev) => [...prev, ...checkedItems]);
-      toast.error(t.groceries.errorClearing);
-    } else {
+    try {
+      await clearCheckedMutation({ propertyId: convexPropertyId });
       toast.success(t.groceries.itemsCleared);
+    } catch {
+      toast.error(t.groceries.errorClearing);
     }
   };
 
-  const uncheckedCount = items.filter((i) => !i.checked).length;
-  const checkedCount = items.filter((i) => i.checked).length;
+  const formatRelativeTime = (dateString: string | null) => {
+    if (!dateString) return null;
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return t.groceries.justNow;
+    if (diffMins < 60) return `${diffMins}${t.groceries.minutesAgo}`;
+    if (diffHours < 24) return `${diffHours}${t.groceries.hoursAgo}`;
+    if (diffDays < 7) return `${diffDays}${t.groceries.daysAgo}`;
+    return date.toLocaleDateString();
+  };
+
+  const uncheckedItems = items.filter((i) => !i.checked);
+  const checkedItems = items.filter((i) => i.checked);
+  const uncheckedCount = uncheckedItems.length;
+  const checkedCount = checkedItems.length;
 
   return (
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center justify-between text-base">
           <span className="flex items-center gap-2">
-            <ShoppingCart className="h-4 w-4" />
+            <ListTodo className="h-4 w-4" />
             {t.groceries.title}
             {uncheckedCount > 0 && (
               <span className="text-xs bg-primary text-primary-foreground rounded-full px-2 py-0.5">
@@ -163,7 +165,10 @@ export function Groceries({ propertyId, initialItems }: GroceriesProps) {
             )}
           </span>
           {checkedCount > 0 && (
-            <AlertDialog open={clearDialogOpen} onOpenChange={setClearDialogOpen}>
+            <AlertDialog
+              open={clearDialogOpen}
+              onOpenChange={setClearDialogOpen}
+            >
               <AlertDialogTrigger asChild>
                 <Button variant="ghost" size="sm">
                   {t.groceries.clearDone}
@@ -171,7 +176,9 @@ export function Groceries({ propertyId, initialItems }: GroceriesProps) {
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>{t.groceries.confirmClearTitle}</AlertDialogTitle>
+                  <AlertDialogTitle>
+                    {t.groceries.confirmClearTitle}
+                  </AlertDialogTitle>
                   <AlertDialogDescription>
                     {t.groceries.confirmClearDescription}
                   </AlertDialogDescription>
@@ -217,30 +224,77 @@ export function Groceries({ propertyId, initialItems }: GroceriesProps) {
             </p>
           )}
 
-          {items.map((item) => (
+          {uncheckedItems.map((item) => (
             <div
               key={item.id}
-              className="flex items-center gap-3 py-2 px-3 rounded-lg border bg-card"
+              className="flex items-start gap-3 py-2 px-3 rounded-lg border bg-card"
             >
               <Checkbox
-                checked={item.checked ?? false}
+                checked={false}
                 onCheckedChange={() => toggleItem(item.id, item.checked)}
-                className="h-5 w-5"
+                className="h-5 w-5 mt-0.5"
               />
-              <span
-                className={`flex-1 text-sm ${item.checked ? "line-through text-muted-foreground" : ""}`}
-              >
-                {item.item_name}
-                {item.quantity && (
-                  <span className="text-muted-foreground ml-1">
-                    ({item.quantity})
-                  </span>
-                )}
-              </span>
+              <div className="flex-1 min-w-0">
+                <span className="text-sm">
+                  {item.item_name}
+                  {item.quantity && (
+                    <span className="text-muted-foreground ml-1">
+                      ({item.quantity})
+                    </span>
+                  )}
+                </span>
+                <div className="text-xs text-muted-foreground mt-0.5">
+                  {item.adder?.display_name && (
+                    <span>{item.adder.display_name} · </span>
+                  )}
+                  {formatRelativeTime(item.created_at)}
+                </div>
+              </div>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                className="h-8 w-8 text-muted-foreground hover:text-destructive shrink-0"
+                onClick={() => deleteItem(item.id)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+
+          {checkedItems.length > 0 && uncheckedItems.length > 0 && (
+            <div className="border-t my-3" />
+          )}
+
+          {checkedItems.map((item) => (
+            <div
+              key={item.id}
+              className="flex items-start gap-3 py-2 px-3 rounded-lg border bg-card opacity-60"
+            >
+              <Checkbox
+                checked={true}
+                onCheckedChange={() => toggleItem(item.id, item.checked)}
+                className="h-5 w-5 mt-0.5"
+              />
+              <div className="flex-1 min-w-0">
+                <span className="text-sm line-through text-muted-foreground">
+                  {item.item_name}
+                  {item.quantity && (
+                    <span className="ml-1">({item.quantity})</span>
+                  )}
+                </span>
+                <div className="text-xs text-muted-foreground mt-0.5">
+                  {item.completer?.display_name && (
+                    <span>
+                      {t.groceries.completedBy} {item.completer.display_name} ·{" "}
+                    </span>
+                  )}
+                  {formatRelativeTime(item.completed_at)}
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground hover:text-destructive shrink-0"
                 onClick={() => deleteItem(item.id)}
               >
                 <Trash2 className="h-4 w-4" />

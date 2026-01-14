@@ -1,38 +1,39 @@
 "use client";
 
 import Link from "next/link";
-import type { User } from "@supabase/supabase-js";
+import { SignInButton } from "@clerk/nextjs";
 import { useI18n } from "@/lib/i18n/context";
-import { AppleSignInButton } from "@/components/apple-sign-in-button";
 import { MapDashboardLazy } from "@/components/map-dashboard-lazy";
 import { Button } from "@/components/ui/button";
 import { Home, User as UserIcon } from "lucide-react";
+import type { Id } from "@/convex/_generated/dataModel";
 
 interface Property {
-  id: string;
-  slug: string | null;
+  _id: Id<"properties">;
+  _creationTime: number;
   name: string;
-  postal_code: string | null;
-  prefecture: string | null;
-  city_ward_town: string | null;
-  area: string | null;
-  chome: string | null;
-  block: string | null;
-  building: string | null;
-  room: string | null;
-  location_x: number | null;
-  location_y: number | null;
+  slug?: string;
+  postalCode?: string;
+  prefecture?: string;
+  cityWardTown?: string;
+  area?: string;
+  chome?: string;
+  block?: string;
+  building?: string;
+  room?: string;
+  locationX?: number;
+  locationY?: number;
 }
 
 interface HomeClientProps {
-  user: User | null;
+  userId: string | null;
   properties: Property[];
 }
 
-export function HomeClient({ user, properties }: HomeClientProps) {
+export function HomeClient({ userId, properties }: HomeClientProps) {
   const { t } = useI18n();
 
-  if (!user) {
+  if (!userId) {
     return (
       <main className="min-h-dvh flex flex-col items-center justify-center p-8">
         <div className="flex flex-col items-center gap-16">
@@ -45,11 +46,31 @@ export function HomeClient({ user, properties }: HomeClientProps) {
               {t.home.subtitle}
             </p>
           </div>
-          <AppleSignInButton />
+          <SignInButton mode="modal">
+            <button className="flex items-center justify-center gap-3 bg-primary text-primary-foreground px-8 py-4 rounded-xl text-lg font-medium transition-all duration-300 hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl">
+              {t.common.signIn}
+            </button>
+          </SignInButton>
         </div>
       </main>
     );
   }
+
+  const mappedProperties = properties.map((p) => ({
+    id: p._id,
+    slug: p.slug ?? null,
+    name: p.name,
+    postal_code: p.postalCode ?? null,
+    prefecture: p.prefecture ?? null,
+    city_ward_town: p.cityWardTown ?? null,
+    area: p.area ?? null,
+    chome: p.chome ?? null,
+    block: p.block ?? null,
+    building: p.building ?? null,
+    room: p.room ?? null,
+    location_x: p.locationX ?? null,
+    location_y: p.locationY ?? null,
+  }));
 
   return (
     <main className="h-dvh flex flex-col">
@@ -66,7 +87,7 @@ export function HomeClient({ user, properties }: HomeClientProps) {
         </div>
       </nav>
       <div className="flex-1 overflow-hidden">
-        <MapDashboardLazy properties={properties} />
+        <MapDashboardLazy properties={mappedProperties} />
       </div>
     </main>
   );

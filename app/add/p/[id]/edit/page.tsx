@@ -1,71 +1,53 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { auth } from "@clerk/nextjs/server";
+import { getConvexClient } from "@/lib/convex";
+import { api } from "@/convex/_generated/api";
 import { AdminClientLazy } from "@/components/admin-client-lazy";
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-interface Property {
-  id: string;
-  slug: string | null;
-  name: string;
-  postal_code: string | null;
-  prefecture: string | null;
-  city_ward_town: string | null;
-  area: string | null;
-  chome: string | null;
-  block: string | null;
-  building: string | null;
-  room: string | null;
-  wifi_ssid: string | null;
-  wifi_password: string | null;
-  guest_wifi_ssid: string | null;
-  guest_wifi_password: string | null;
-  location_x: number | null;
-  location_y: number | null;
-}
-
 async function EditContent({ slugOrId }: { slugOrId: string }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { userId } = await auth();
 
-  if (!user) {
+  if (!userId) {
     redirect("/");
   }
 
-  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
+  const convex = getConvexClient();
+  const profile = await convex.query(api.profiles.getByClerkId, { clerkId: userId });
 
   if (profile?.role !== "admin") {
     redirect("/");
   }
 
-  const selectFields = "id, slug, name, postal_code, prefecture, city_ward_town, area, chome, block, building, room, wifi_ssid, wifi_password, guest_wifi_ssid, guest_wifi_password, location_x, location_y";
-  
-  let propertyResult = await supabase
-    .from("properties")
-    .select(selectFields)
-    .eq("slug", slugOrId)
-    .maybeSingle();
+  const property = await convex.query(api.properties.getBySlugOrId, { slugOrId });
 
-  if (!propertyResult.data && !propertyResult.error) {
-    propertyResult = await supabase
-      .from("properties")
-      .select(selectFields)
-      .eq("id", slugOrId)
-      .maybeSingle();
-  }
-
-  const { data: property, error } = propertyResult;
-
-  if (error || !property) {
+  if (!property) {
     redirect("/");
   }
 
-  return <AdminClientLazy mode="edit" property={property as Property} />;
+  return <AdminClientLazy mode="edit" property={{
+    id: property._id,
+    slug: property.slug ?? null,
+    name: property.name,
+    postal_code: property.postalCode ?? null,
+    prefecture: property.prefecture ?? null,
+    city_ward_town: property.cityWardTown ?? null,
+    area: property.area ?? null,
+    chome: property.chome ?? null,
+    block: property.block ?? null,
+    building: property.building ?? null,
+    room: property.room ?? null,
+    wifi_ssid: property.wifiSsid ?? null,
+    wifi_password: property.wifiPassword ?? null,
+    guest_wifi_ssid: property.guestWifiSsid ?? null,
+    guest_wifi_password: property.guestWifiPassword ?? null,
+    location_x: property.locationX ?? null,
+    location_y: property.locationY ?? null,
+  }} />;
 }
 
 async function EditData({

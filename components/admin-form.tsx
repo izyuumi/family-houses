@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
 import { useI18n } from "@/lib/i18n/context";
 import { JapanMap, type MapLocation } from "@/components/japan-map";
 import { Button } from "@/components/ui/button";
@@ -10,10 +12,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Plus, Loader2, MapPin, Pencil, X, Save } from "lucide-react";
-import {
-  buildFullAddress,
-  type StructuredAddress,
-} from "@/components/address-display";
 
 interface Property {
   id: string;
@@ -47,6 +45,9 @@ export function AdminForm({ property }: AdminFormProps) {
   const [success, setSuccess] = useState(false);
   const [isEditingLocation, setIsEditingLocation] = useState(false);
 
+  const createMutation = useMutation(api.properties.create);
+  const updateMutation = useMutation(api.properties.update);
+
   const isEditMode = !!property;
 
   const [formData, setFormData] = useState({
@@ -78,66 +79,68 @@ export function AdminForm({ property }: AdminFormProps) {
     setError(null);
     setSuccess(false);
 
-    const supabase = createClient();
-
     const payload = {
       name: formData.name,
-      slug: formData.slug || null,
-      postal_code: formData.postal_code || null,
-      prefecture: formData.prefecture || null,
-      city_ward_town: formData.city_ward_town || null,
-      area: formData.area || null,
-      chome: formData.chome || null,
-      block: formData.block || null,
-      building: formData.building || null,
-      room: formData.room || null,
-      location_x: location?.x ?? null,
-      location_y: location?.y ?? null,
-      wifi_ssid: formData.wifi_ssid || null,
-      wifi_password: formData.wifi_password || null,
-      guest_wifi_ssid: formData.guest_wifi_ssid || null,
-      guest_wifi_password: formData.guest_wifi_password || null,
+      slug: formData.slug || undefined,
+      postalCode: formData.postal_code || undefined,
+      prefecture: formData.prefecture || undefined,
+      cityWardTown: formData.city_ward_town || undefined,
+      area: formData.area || undefined,
+      chome: formData.chome || undefined,
+      block: formData.block || undefined,
+      building: formData.building || undefined,
+      room: formData.room || undefined,
+      locationX: location?.x,
+      locationY: location?.y,
+      wifiSsid: formData.wifi_ssid || undefined,
+      wifiPassword: formData.wifi_password || undefined,
+      guestWifiSsid: formData.guest_wifi_ssid || undefined,
+      guestWifiPassword: formData.guest_wifi_password || undefined,
     };
 
-    const { error: dbError } = isEditMode
-      ? await supabase.from("properties").update(payload).eq("id", property.id)
-      : await supabase.from("properties").insert(payload);
+    try {
+      if (isEditMode) {
+        await updateMutation({
+          id: property.id as Id<"properties">,
+          ...payload,
+        });
+      } else {
+        await createMutation(payload);
+      }
+
+      setSuccess(true);
+
+      if (isEditMode) {
+        setTimeout(() => {
+          router.push(`/p/${formData.slug || property.id}`);
+        }, 1000);
+      } else {
+        setFormData({
+          name: "",
+          slug: "",
+          postal_code: "",
+          prefecture: "",
+          city_ward_town: "",
+          area: "",
+          chome: "",
+          block: "",
+          building: "",
+          room: "",
+          wifi_ssid: "",
+          wifi_password: "",
+          guest_wifi_ssid: "",
+          guest_wifi_password: "",
+        });
+        setLocation(null);
+        setTimeout(() => {
+          router.refresh();
+        }, 1000);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+    }
 
     setLoading(false);
-
-    if (dbError) {
-      setError(dbError.message);
-      return;
-    }
-
-    setSuccess(true);
-
-    if (isEditMode) {
-      setTimeout(() => {
-        router.push(`/p/${formData.slug || property.id}`);
-      }, 1000);
-    } else {
-      setFormData({
-        name: "",
-        slug: "",
-        postal_code: "",
-        prefecture: "",
-        city_ward_town: "",
-        area: "",
-        chome: "",
-        block: "",
-        building: "",
-        room: "",
-        wifi_ssid: "",
-        wifi_password: "",
-        guest_wifi_ssid: "",
-        guest_wifi_password: "",
-      });
-      setLocation(null);
-      setTimeout(() => {
-        router.refresh();
-      }, 1000);
-    }
   };
 
   const handleChange = (

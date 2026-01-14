@@ -4,12 +4,13 @@
 - `app/`: Next.js App Router pages, route handlers, and layouts (`app/page.tsx`, `app/api/`, `app/auth/`).
 - `components/`: Reusable UI components (shadcn/ui + custom).
 - `lib/`: Shared utilities and data helpers.
+- `convex/`: Convex database schema, queries, and mutations.
 - `public/`: Static assets served as-is (images, icons).
-- `supabase/`: Supabase config and migrations (if present).
 - Config files live at the repo root (`next.config.ts`, `tailwind.config.ts`, `eslint.config.mjs`, `tsconfig.json`).
 
 ## Build, Test, and Development Commands
 - `npm run dev`: Start the local Next.js dev server.
+- `npx convex dev`: Start the Convex dev server (run in parallel with Next.js).
 - `npm run build`: Create a production build.
 - `npm run start`: Run the production server after a build.
 - `npm run lint`: Run ESLint with Next.js rules.
@@ -30,5 +31,5 @@
 - PRs should include: a concise description, relevant screenshots for UI changes, and linked issues if applicable.
 
 ## Configuration & Environment
-- Supabase credentials are expected in `.env.local` (see `README.md` for keys).
+- Clerk and Convex credentials are expected in `.env.local` (see `README.md` for keys).
 - Do not commit secrets; use environment variables for all external services.

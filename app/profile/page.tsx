@@ -1,25 +1,23 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
+import { getConvexClient } from "@/lib/convex";
+import { api } from "@/convex/_generated/api";
 import { ProfileClient } from "@/components/profile-client";
 
 async function ProfileContent() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { userId } = await auth();
 
-  if (!user) redirect("/");
+  if (!userId) redirect("/");
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
+  const user = await currentUser();
+  const convex = getConvexClient();
 
+  const profile = await convex.query(api.profiles.getByClerkId, { clerkId: userId });
   const isAdmin = profile?.role === "admin";
+  const email = user?.primaryEmailAddress?.emailAddress;
 
-  return <ProfileClient email={user.email} isAdmin={isAdmin} />;
+  return <ProfileClient email={email} isAdmin={isAdmin} />;
 }
 
 function LoadingState() {

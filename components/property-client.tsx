@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useI18n } from "@/lib/i18n/context";
 import { InfoCardLazy } from "@/components/info-card-lazy";
 import { GroceriesLazy } from "@/components/groceries-lazy";
+import { PropertyItemsLazy } from "@/components/property-items-lazy";
+import { PropertyNotesLazy } from "@/components/property-notes-lazy";
 import { Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { buildFullAddress } from "@/components/address-display";
@@ -31,23 +32,54 @@ interface GroceryItem {
   quantity: string | null;
   checked: boolean | null;
   added_by: string | null;
+  completed_by: string | null;
+  completed_at: string | null;
   created_at: string | null;
   updated_at: string | null;
+  adder?: { display_name: string | null } | null;
+  completer?: { display_name: string | null } | null;
+}
+
+interface PropertyItem {
+  id: string;
+  property_id: string;
+  title: string;
+  bought_date: string | null;
+  note: string | null;
+  category: string | null;
+  created_by: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+  creator?: { display_name: string | null } | null;
+}
+
+interface PropertyNote {
+  id: string;
+  property_id: string;
+  content: string;
+  created_by: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+  creator?: { display_name: string | null } | null;
 }
 
 interface PropertyClientProps {
   property: Property;
   isAdmin: boolean;
+  userId?: string;
   initialGroceries?: GroceryItem[];
+  initialPropertyItems?: PropertyItem[];
+  initialPropertyNotes?: PropertyNote[];
 }
 
 export function PropertyClient({
   property,
   isAdmin,
+  userId,
   initialGroceries,
+  initialPropertyItems,
+  initialPropertyNotes,
 }: PropertyClientProps) {
-  const { t } = useI18n();
-
   const fullAddress = buildFullAddress({
     postal_code: property.postal_code ?? null,
     prefecture: property.prefecture ?? null,
@@ -86,9 +118,20 @@ export function PropertyClient({
         )}
         <div className="space-y-6">
           <InfoCardLazy property={property} />
+          <PropertyNotesLazy
+            propertyId={property.id}
+            initialNotes={initialPropertyNotes}
+            userId={userId}
+          />
+          <PropertyItemsLazy
+            propertyId={property.id}
+            initialItems={initialPropertyItems}
+            userId={userId}
+          />
           <GroceriesLazy
             propertyId={property.id}
             initialItems={initialGroceries}
+            userId={userId}
           />
         </div>
       </div>

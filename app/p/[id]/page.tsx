@@ -1,90 +1,91 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { auth } from "@clerk/nextjs/server";
+import { getConvexClient } from "@/lib/convex";
+import { api } from "@/convex/_generated/api";
 import { PropertyClient } from "@/components/property-client";
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-interface Property {
-  id: string;
-  slug: string | null;
-  name: string;
-  postal_code: string | null;
-  prefecture: string | null;
-  city_ward_town: string | null;
-  area: string | null;
-  chome: string | null;
-  block: string | null;
-  building: string | null;
-  room: string | null;
-  wifi_ssid: string | null;
-  guest_wifi_ssid: string | null;
-}
-
-interface GroceryItem {
-  id: string;
-  property_id: string;
-  item_name: string;
-  quantity: string | null;
-  checked: boolean | null;
-  added_by: string | null;
-  created_at: string | null;
-  updated_at: string | null;
-}
-
 async function PropertyContent({ slugOrId }: { slugOrId: string }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { userId } = await auth();
 
-  if (!user) redirect("/");
+  if (!userId) redirect("/");
 
-  const selectFields = "id, slug, name, postal_code, prefecture, city_ward_town, area, chome, block, building, room, wifi_ssid, guest_wifi_ssid";
-  
-  let propertyResult = await supabase
-    .from("properties")
-    .select(selectFields)
-    .eq("slug", slugOrId)
-    .maybeSingle();
-
-  if (!propertyResult.data && !propertyResult.error) {
-    propertyResult = await supabase
-      .from("properties")
-      .select(selectFields)
-      .eq("id", slugOrId)
-      .maybeSingle();
-  }
-
-  const property = propertyResult.data as Property | null;
-  const propertyId = property?.id;
-
-  const [profileResult, groceriesResult] = await Promise.all([
-    supabase.from("profiles").select("role").eq("id", user.id).single(),
-    propertyId 
-      ? supabase
-          .from("grocery_items")
-          .select("*")
-          .eq("property_id", propertyId)
-          .order("checked", { ascending: true })
-          .order("created_at", { ascending: false })
-      : Promise.resolve({ data: [], error: null }),
-  ]);
-
-  if (propertyResult.error) {
-    throw new Error(propertyResult.error.message);
-  }
-
-  const isAdmin = profileResult.data?.role === "admin";
-  const groceries = (groceriesResult.data as GroceryItem[]) ?? [];
+  const convex = getConvexClient();
+  const property = await convex.query(api.properties.getBySlugOrId, { slugOrId });
 
   if (!property) {
     redirect("/");
   }
 
-  return <PropertyClient property={property} isAdmin={isAdmin} initialGroceries={groceries} />;
+  const [profile, groceries, propertyItems, propertyNotes] = await Promise.all([
+    convex.query(api.profiles.getByClerkId, { clerkId: userId }),
+    convex.query(api.groceryItems.listByProperty, { propertyId: property._id }),
+    convex.query(api.propertyItems.listByProperty, { propertyId: property._id }),
+    convex.query(api.propertyNotes.listByProperty, { propertyId: property._id }),
+  ]);
+
+  const isAdmin = profile?.role === "admin";
+
+  return (
+    <PropertyClient
+      property={{
+        id: property._id,
+        slug: property.slug ?? null,
+        name: property.name,
+        postal_code: property.postalCode ?? null,
+        prefecture: property.prefecture ?? null,
+        city_ward_town: property.cityWardTown ?? null,
+        area: property.area ?? null,
+        chome: property.chome ?? null,
+        block: property.block ?? null,
+        building: property.building ?? null,
+        room: property.room ?? null,
+        wifi_ssid: property.wifiSsid ?? null,
+        guest_wifi_ssid: property.guestWifiSsid ?? null,
+      }}
+      isAdmin={isAdmin}
+      userId={userId}
+      initialGroceries={groceries.map((g) => ({
+        id: g._id,
+        property_id: g.propertyId,
+        item_name: g.itemName,
+        quantity: g.quantity ?? null,
+        checked: g.checked,
+        added_by: g.addedBy ?? null,
+        completed_by: g.completedBy ?? null,
+        completed_at: g.completedAt ? new Date(g.completedAt).toISOString() : null,
+        created_at: g._creationTime ? new Date(g._creationTime).toISOString() : null,
+        updated_at: null,
+        adder: g.adder ? { display_name: g.adder.displayName ?? null } : null,
+        completer: g.completer ? { display_name: g.completer.displayName ?? null } : null,
+      }))}
+      initialPropertyItems={propertyItems.map((i) => ({
+        id: i._id,
+        property_id: i.propertyId,
+        title: i.title,
+        bought_date: i.boughtDate ?? null,
+        note: i.note ?? null,
+        category: i.category ?? null,
+        created_by: i.createdBy ?? null,
+        created_at: i._creationTime ? new Date(i._creationTime).toISOString() : null,
+        updated_at: null,
+        creator: i.creator ? { display_name: i.creator.displayName ?? null } : null,
+      }))}
+      initialPropertyNotes={propertyNotes.map((n) => ({
+        id: n._id,
+        property_id: n.propertyId,
+        content: n.content,
+        created_by: n.createdBy ?? null,
+        created_at: n._creationTime ? new Date(n._creationTime).toISOString() : null,
+        updated_at: null,
+        creator: n.creator ? { display_name: n.creator.displayName ?? null } : null,
+      }))}
+    />
+  );
 }
 
 async function PropertyData({

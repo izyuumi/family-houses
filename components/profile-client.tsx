@@ -4,6 +4,7 @@ import { useI18n } from "@/lib/i18n/context";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { SignOutButton, UserButton } from "@clerk/nextjs";
 import { Navbar } from "@/components/navbar";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,9 +28,12 @@ export function ProfileClient({ email, isAdmin }: ProfileClientProps) {
     <main className="h-dvh flex flex-col">
       <Navbar showBack backHref="/" title={t.profile.title} showProfile={false} />
       <div className="flex-1 overflow-auto p-4 max-w-xl mx-auto w-full">
-        {email && (
-          <p className="text-sm text-muted-foreground mb-6">{email}</p>
-        )}
+        <div className="flex items-center gap-3 mb-6">
+          <UserButton afterSignOutUrl="/" />
+          {email && (
+            <p className="text-sm text-muted-foreground">{email}</p>
+          )}
+        </div>
 
         <div className="space-y-6">
           {isAdmin && (
@@ -105,12 +109,12 @@ export function ProfileClient({ email, isAdmin }: ProfileClientProps) {
             </Card>
           )}
 
-          <form action="/auth/signout" method="post">
-            <Button variant="outline" className="w-full" type="submit">
+          <SignOutButton>
+            <Button variant="outline" className="w-full">
               <LogOut className="h-4 w-4 mr-2" />
               {t.common.signOut}
             </Button>
-          </form>
+          </SignOutButton>
         </div>
       </div>
     </main>
