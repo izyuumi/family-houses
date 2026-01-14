@@ -67,6 +67,8 @@ export const translations = {
       guestWifiPassword: "Guest WiFi Password",
       slug: "URL Slug",
       slugHint: "Lowercase letters, numbers, and hyphens only (e.g. my-house)",
+      appleMapsUrl: "Apple Maps Link",
+      appleMapsUrlHint: "Direct link to Apple Maps (overrides address search)",
     },
     info: {
       propertyInfo: "Property Info",
@@ -223,6 +225,8 @@ export const translations = {
       guestWifiPassword: "ゲストWiFiパスワード",
       slug: "URLスラッグ",
       slugHint: "小文字、数字、ハイフンのみ（例：my-house）",
+      appleMapsUrl: "Apple Mapsリンク",
+      appleMapsUrlHint: "Apple Mapsへの直接リンク（住所検索より優先）",
     },
     info: {
       propertyInfo: "物件情報",

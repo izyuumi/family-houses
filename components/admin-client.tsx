@@ -16,6 +16,7 @@ interface Property {
   block: string | null;
   building: string | null;
   room: string | null;
+  apple_maps_url: string | null;
   wifi_ssid: string | null;
   wifi_password: string | null;
   guest_wifi_ssid: string | null;

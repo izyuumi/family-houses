@@ -24,6 +24,7 @@ export default defineSchema({
     room: v.optional(v.string()),
     locationX: v.optional(v.number()),
     locationY: v.optional(v.number()),
+    appleMapsUrl: v.optional(v.string()),
     wifiSsid: v.optional(v.string()),
     wifiPassword: v.optional(v.string()),
     guestWifiSsid: v.optional(v.string()),

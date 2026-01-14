@@ -31,6 +31,7 @@ interface Property {
   guest_wifi_password: string | null;
   location_x: number | null;
   location_y: number | null;
+  apple_maps_url: string | null;
 }
 
 interface AdminFormProps {
@@ -61,6 +62,7 @@ export function AdminForm({ property }: AdminFormProps) {
     block: property?.block ?? "",
     building: property?.building ?? "",
     room: property?.room ?? "",
+    apple_maps_url: property?.apple_maps_url ?? "",
     wifi_ssid: property?.wifi_ssid ?? "",
     wifi_password: property?.wifi_password ?? "",
     guest_wifi_ssid: property?.guest_wifi_ssid ?? "",
@@ -92,6 +94,7 @@ export function AdminForm({ property }: AdminFormProps) {
       room: formData.room || undefined,
       locationX: location?.x,
       locationY: location?.y,
+      appleMapsUrl: formData.apple_maps_url || undefined,
       wifiSsid: formData.wifi_ssid || undefined,
       wifiPassword: formData.wifi_password || undefined,
       guestWifiSsid: formData.guest_wifi_ssid || undefined,
@@ -126,6 +129,7 @@ export function AdminForm({ property }: AdminFormProps) {
           block: "",
           building: "",
           room: "",
+          apple_maps_url: "",
           wifi_ssid: "",
           wifi_password: "",
           guest_wifi_ssid: "",
@@ -319,6 +323,25 @@ export function AdminForm({ property }: AdminFormProps) {
                 placeholder="101"
               />
             </div>
+          </div>
+
+          <div className="space-y-1.5 pt-2 border-t border-dashed">
+            <Label
+              htmlFor="apple_maps_url"
+              className="text-xs text-muted-foreground"
+            >
+              {t.form.appleMapsUrl}
+            </Label>
+            <Input
+              id="apple_maps_url"
+              name="apple_maps_url"
+              value={formData.apple_maps_url}
+              onChange={handleChange}
+              placeholder="https://maps.apple.com/?..."
+            />
+            <p className="text-xs text-muted-foreground">
+              {t.form.appleMapsUrlHint}
+            </p>
           </div>
         </div>
 

@@ -48,6 +48,7 @@ async function EditContent({ slugOrId }: { slugOrId: string }) {
         block: property.block ?? null,
         building: property.building ?? null,
         room: property.room ?? null,
+        apple_maps_url: property.appleMapsUrl ?? null,
         wifi_ssid: property.wifiSsid ?? null,
         wifi_password: property.wifiPassword ?? null,
         guest_wifi_ssid: property.guestWifiSsid ?? null,

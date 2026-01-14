@@ -19,6 +19,7 @@ export interface StructuredAddress {
 interface AddressDisplayProps {
   address: StructuredAddress;
   fallbackAddress?: string;
+  appleMapsUrl?: string | null;
 }
 
 type CopyState = "idle" | "copied";
@@ -214,6 +215,7 @@ function AddressLineRow({
 export function AddressDisplay({
   address,
   fallbackAddress,
+  appleMapsUrl,
 }: AddressDisplayProps) {
   const { t, language } = useI18n();
   const [toast, setToast] = useState<string | null>(null);
@@ -232,7 +234,7 @@ export function AddressDisplay({
 
     const encodedFallback = encodeURIComponent(fallbackAddress);
     const fallbackGoogleUrl = `https://www.google.com/maps/search/?api=1&query=${encodedFallback}`;
-    const fallbackAppleUrl = `https://maps.apple.com/?q=${encodedFallback}`;
+    const fallbackAppleUrl = appleMapsUrl || `https://maps.apple.com/?q=${encodedFallback}`;
 
     return (
       <div className="relative">
@@ -314,7 +316,7 @@ export function AddressDisplay({
   const encodedAddress = encodeURIComponent(mapSearchAddress);
 
   const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
-  const appleMapsUrl = `https://maps.apple.com/?q=${encodedAddress}`;
+  const finalAppleMapsUrl = appleMapsUrl || `https://maps.apple.com/?q=${encodedAddress}`;
 
   return (
     <div className="relative">
@@ -360,7 +362,7 @@ export function AddressDisplay({
 
           <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t">
             <Button asChild variant="ghost" size="sm">
-              <a href={appleMapsUrl} target="_blank" rel="noopener noreferrer">
+              <a href={finalAppleMapsUrl} target="_blank" rel="noopener noreferrer">
                 <ExternalLink className="h-4 w-4 mr-1.5" />
                 Apple Maps
               </a>

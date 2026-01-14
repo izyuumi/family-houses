@@ -52,6 +52,7 @@ export const create = mutation({
     room: v.optional(v.string()),
     locationX: v.optional(v.number()),
     locationY: v.optional(v.number()),
+    appleMapsUrl: v.optional(v.string()),
     wifiSsid: v.optional(v.string()),
     wifiPassword: v.optional(v.string()),
     guestWifiSsid: v.optional(v.string()),
@@ -77,6 +78,7 @@ export const update = mutation({
     room: v.optional(v.string()),
     locationX: v.optional(v.number()),
     locationY: v.optional(v.number()),
+    appleMapsUrl: v.optional(v.string()),
     wifiSsid: v.optional(v.string()),
     wifiPassword: v.optional(v.string()),
     guestWifiSsid: v.optional(v.string()),
@@ -93,6 +95,8 @@ export const getWifiPassword = query({
   handler: async (ctx, args) => {
     const property = await ctx.db.get(args.id);
     if (!property) return null;
-    return args.type === "guest" ? property.guestWifiPassword : property.wifiPassword;
+    return args.type === "guest"
+      ? property.guestWifiPassword
+      : property.wifiPassword;
   },
 });

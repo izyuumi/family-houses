@@ -20,6 +20,7 @@ interface Property {
   block?: string | null;
   building?: string | null;
   room?: string | null;
+  apple_maps_url?: string | null;
   wifi_ssid: string | null;
   guest_wifi_ssid: string | null;
 }
@@ -106,6 +107,7 @@ export function InfoCard({ property }: InfoCardProps) {
             building: property.building ?? null,
             room: property.room ?? null,
           }}
+          appleMapsUrl={property.apple_maps_url}
         />
 
         {(property.wifi_ssid || property.guest_wifi_ssid) && (
