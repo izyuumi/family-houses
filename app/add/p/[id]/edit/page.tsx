@@ -17,37 +17,46 @@ async function EditContent({ slugOrId }: { slugOrId: string }) {
   }
 
   const convex = getConvexClient();
-  const profile = await convex.query(api.profiles.getByClerkId, { clerkId: userId });
+  const profile = await convex.query(api.profiles.getByClerkId, {
+    clerkId: userId,
+  });
 
   if (profile?.role !== "admin") {
     redirect("/");
   }
 
-  const property = await convex.query(api.properties.getBySlugOrId, { slugOrId });
+  const property = await convex.query(api.properties.getBySlugOrId, {
+    slugOrId,
+  });
 
   if (!property) {
     redirect("/");
   }
 
-  return <AdminClientLazy mode="edit" property={{
-    id: property._id,
-    slug: property.slug ?? null,
-    name: property.name,
-    postal_code: property.postalCode ?? null,
-    prefecture: property.prefecture ?? null,
-    city_ward_town: property.cityWardTown ?? null,
-    area: property.area ?? null,
-    chome: property.chome ?? null,
-    block: property.block ?? null,
-    building: property.building ?? null,
-    room: property.room ?? null,
-    wifi_ssid: property.wifiSsid ?? null,
-    wifi_password: property.wifiPassword ?? null,
-    guest_wifi_ssid: property.guestWifiSsid ?? null,
-    guest_wifi_password: property.guestWifiPassword ?? null,
-    location_x: property.locationX ?? null,
-    location_y: property.locationY ?? null,
-  }} />;
+  return (
+    <AdminClientLazy
+      mode="edit"
+      property={{
+        id: property._id,
+        slug: property.slug ?? null,
+        name: property.name,
+        postal_code: property.postalCode ?? null,
+        prefecture: property.prefecture ?? null,
+        city_ward_town: property.cityWardTown ?? null,
+        area: property.area ?? null,
+        chome: property.chome ?? null,
+        block: property.block ?? null,
+        building: property.building ?? null,
+        room: property.room ?? null,
+        wifi_ssid: property.wifiSsid ?? null,
+        wifi_password: property.wifiPassword ?? null,
+        guest_wifi_ssid: property.guestWifiSsid ?? null,
+        guest_wifi_password: property.guestWifiPassword ?? null,
+        location_x: property.locationX ?? null,
+        location_y: property.locationY ?? null,
+      }}
+    />
+  );
 }
 
 async function EditData({

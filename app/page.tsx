@@ -14,12 +14,7 @@ async function HomeContent() {
   const convex = getConvexClient();
   const properties = await convex.query(api.properties.list);
 
-  return (
-    <HomeClient
-      userId={userId}
-      properties={properties}
-    />
-  );
+  return <HomeClient userId={userId} properties={properties} />;
 }
 
 function LoadingState() {

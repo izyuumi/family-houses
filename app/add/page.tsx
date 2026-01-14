@@ -13,7 +13,9 @@ async function AdminContent() {
   }
 
   const convex = getConvexClient();
-  const profile = await convex.query(api.profiles.getByClerkId, { clerkId: userId });
+  const profile = await convex.query(api.profiles.getByClerkId, {
+    clerkId: userId,
+  });
 
   if (profile?.role !== "admin") {
     redirect("/");
