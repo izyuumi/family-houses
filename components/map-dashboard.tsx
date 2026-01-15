@@ -100,7 +100,7 @@ export function MapDashboard({ properties }: MapDashboardProps) {
       )}
 
       <Dialog open={showAllProperties} onOpenChange={setShowAllProperties}>
-        <DialogContent className="max-w-md max-h-[80vh] flex flex-col">
+        <DialogContent className="max-w-md max-h-[80vh] flex flex-col" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <MapPin className="h-5 w-5 text-muted-foreground" />
