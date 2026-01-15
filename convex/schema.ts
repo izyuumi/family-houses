@@ -71,8 +71,4 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_property_user", ["propertyId", "userId"]),
 
-  appSettings: defineTable({
-    key: v.string(),
-    value: v.any(),
-  }).index("by_key", ["key"]),
 });

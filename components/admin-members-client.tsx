@@ -8,9 +8,7 @@ import { useI18n } from "@/lib/i18n/context";
 import { Navbar } from "@/components/navbar";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import {
-  Settings,
   UserCheck,
   Users,
   Check,
@@ -49,10 +47,8 @@ export function AdminMembersClient() {
   const { t } = useI18n();
   const allProfiles = useQuery(api.profiles.listAll);
   const pendingProfiles = useQuery(api.profiles.listPending);
-  const allowSignups = useQuery(api.appSettings.getAllowSignups);
   const allProperties = useQuery(api.properties.list);
 
-  const setAllowSignups = useMutation(api.appSettings.setAllowSignups);
   const approveUser = useMutation(api.profiles.approveUser);
   const rejectUser = useMutation(api.profiles.rejectUser);
   const addMember = useMutation(api.propertyMembers.addMember);
@@ -71,13 +67,6 @@ export function AdminMembersClient() {
       next.delete(key);
       return next;
     });
-
-  const handleToggleSignups = async () => {
-    const key = "toggle-signups";
-    addLoading(key);
-    await setAllowSignups({ allow: !allowSignups });
-    removeLoading(key);
-  };
 
   const handleApprove = async (clerkId: string) => {
     const key = `approve-${clerkId}`;
@@ -144,35 +133,6 @@ export function AdminMembersClient() {
                 ))}
               </div>
             )}
-          </div>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center gap-2 mb-4">
-            <Settings className="h-4 w-4 text-muted-foreground" />
-            <span className="font-medium">{t.memberManagement.settings}</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <div>
-              <Label>{t.memberManagement.allowSignups}</Label>
-              <p className="text-sm text-muted-foreground">
-                {t.memberManagement.allowSignupsDesc}
-              </p>
-            </div>
-            <Button
-              variant={allowSignups ? "default" : "outline"}
-              size="sm"
-              onClick={handleToggleSignups}
-              disabled={loadingActions.has("toggle-signups")}
-            >
-              {loadingActions.has("toggle-signups") ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : allowSignups ? (
-                <Check className="h-4 w-4" />
-              ) : (
-                <X className="h-4 w-4" />
-              )}
-            </Button>
           </div>
         </Card>
 

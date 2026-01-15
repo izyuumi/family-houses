@@ -158,9 +158,6 @@ export const translations = {
     },
     memberManagement: {
       title: "Member Management",
-      settings: "Settings",
-      allowSignups: "Allow New Signups",
-      allowSignupsDesc: "When enabled, new users can sign up",
       pendingApproval: "Pending Approval",
       noPending: "No pending users",
       approvedMembers: "Approved Members",
@@ -342,9 +339,6 @@ export const translations = {
     },
     memberManagement: {
       title: "メンバー管理",
-      settings: "設定",
-      allowSignups: "新規登録を許可",
-      allowSignupsDesc: "有効にすると新規ユーザーが登録できます",
       pendingApproval: "承認待ち",
       noPending: "承認待ちのユーザーはいません",
       approvedMembers: "承認済みメンバー",
