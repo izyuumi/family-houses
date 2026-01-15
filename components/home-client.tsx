@@ -47,9 +47,9 @@ export function HomeClient({ userId, properties }: HomeClientProps) {
             </p>
           </div>
           <SignInButton mode="modal">
-            <button className="flex items-center justify-center gap-3 bg-primary text-primary-foreground px-8 py-4 rounded-xl text-lg font-medium transition-all duration-300 hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl">
+            <Button size="lg" className="px-8 py-6 text-lg">
               {t.common.signIn}
-            </button>
+            </Button>
           </SignInButton>
         </div>
       </main>

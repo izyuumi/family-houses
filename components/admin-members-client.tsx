@@ -9,6 +9,13 @@ import { Navbar } from "@/components/navbar";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   UserCheck,
   Users,
   Check,
@@ -379,33 +386,38 @@ function UserCard({
                 {t.memberManagement.assignToProperty}
               </p>
               <div className="flex flex-wrap gap-2">
-                <select
+                <Select
                   value={selectedProperty ?? ""}
-                  onChange={(e) =>
+                  onValueChange={(value: string) =>
                     setSelectedProperty(
-                      e.target.value
-                        ? (e.target.value as Id<"properties">)
-                        : null
+                      value ? (value as Id<"properties">) : null
                     )
                   }
-                  className="flex-1 min-w-[120px] h-9 rounded-md border border-input bg-background px-3 text-sm"
                 >
-                  <option value="">{t.memberManagement.selectProperty}</option>
-                  {availableProperties.map((p) => (
-                    <option key={p._id} value={p._id}>
-                      {p.name}
-                    </option>
-                  ))}
-                </select>
-                <select
+                  <SelectTrigger className="flex-1 min-w-[120px]">
+                    <SelectValue placeholder={t.memberManagement.selectProperty} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableProperties.map((p) => (
+                      <SelectItem key={p._id} value={p._id}>
+                        {p.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select
                   value={selectedRole}
-                  onChange={(e) => setSelectedRole(e.target.value as MemberRole)}
-                  className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+                  onValueChange={(value: string) => setSelectedRole(value as MemberRole)}
                 >
-                  <option value="owner">{t.memberManagement.roleOwner}</option>
-                  <option value="member">{t.memberManagement.roleMember}</option>
-                  <option value="guest">{t.memberManagement.roleGuest}</option>
-                </select>
+                  <SelectTrigger className="w-[100px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="owner">{t.memberManagement.roleOwner}</SelectItem>
+                    <SelectItem value="member">{t.memberManagement.roleMember}</SelectItem>
+                    <SelectItem value="guest">{t.memberManagement.roleGuest}</SelectItem>
+                  </SelectContent>
+                </Select>
                 <Button
                   size="sm"
                   onClick={handleAssign}

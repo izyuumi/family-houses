@@ -5,7 +5,7 @@ import { InfoCard } from "@/components/info-card";
 import { Groceries } from "@/components/groceries";
 import { PropertyItems } from "@/components/property-items";
 import { PropertyNotes } from "@/components/property-notes";
-import { Pencil } from "lucide-react";
+import { ChevronLeft, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { buildFullAddress } from "@/components/address-display";
 
@@ -99,10 +99,10 @@ export function PropertyClient({
           <div className="flex items-center gap-2">
             <Link href="/">
               <Button variant="ghost" size="sm" className="-ml-2">
-                <span className="text-muted-foreground mr-1">←</span>
-                <span className="font-semibold">{property.name}</span>
+                <ChevronLeft className="h-4 w-4" />
               </Button>
             </Link>
+            <span className="font-semibold">{property.name}</span>
           </div>
           {isAdmin && (
             <Link href={`/add/p/${property.slug || property.id}/edit`}>
