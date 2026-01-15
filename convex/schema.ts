@@ -61,7 +61,6 @@ export default defineSchema({
     userId: v.string(),
     role: v.union(
       v.literal("owner"),
-      v.literal("admin"),
       v.literal("member"),
       v.literal("guest")
     ),
@@ -71,4 +70,9 @@ export default defineSchema({
     .index("by_property", ["propertyId"])
     .index("by_user", ["userId"])
     .index("by_property_user", ["propertyId", "userId"]),
+
+  appSettings: defineTable({
+    key: v.string(),
+    value: v.any(),
+  }).index("by_key", ["key"]),
 });

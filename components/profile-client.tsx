@@ -8,7 +8,7 @@ import { SignOutButton, UserButton } from "@clerk/nextjs";
 import { Navbar } from "@/components/navbar";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Globe, Moon, Sun, Laptop, LogOut, Check, Plus } from "lucide-react";
+import { Globe, Moon, Sun, Laptop, LogOut, Check, Users } from "lucide-react";
 
 interface ProfileClientProps {
   email?: string;
@@ -38,9 +38,9 @@ export function ProfileClient({ email, isAdmin }: ProfileClientProps) {
         <div className="space-y-6">
           {isAdmin && (
             <Button asChild className="w-full">
-              <Link href="/add">
-                <Plus className="h-4 w-4 mr-2" />
-                {t.admin.addProperty}
+              <Link href="/admin">
+                <Users className="h-4 w-4 mr-2" />
+                {t.memberManagement.title}
               </Link>
             </Button>
           )}

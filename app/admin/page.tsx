@@ -1,16 +1,14 @@
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
 import { getConvexClient } from "@/lib/convex";
 import { api } from "@/convex/_generated/api";
-import { HomeClient } from "@/components/home-client";
-import { PendingApprovalClient } from "@/components/pending-approval-client";
+import { AdminMembersClient } from "@/components/admin-members-client";
 
-async function HomeContent() {
+async function AdminContent() {
   const { userId } = await auth();
 
-  if (!userId) {
-    return <HomeClient userId={null} properties={[]} />;
-  }
+  if (!userId) redirect("/");
 
   const convex = getConvexClient();
 
@@ -18,13 +16,11 @@ async function HomeContent() {
     clerkId: userId,
   });
 
-  if (profile && profile.approved !== true && profile.role !== "admin") {
-    return <PendingApprovalClient />;
+  if (profile?.role !== "admin") {
+    redirect("/");
   }
 
-  const properties = await convex.query(api.properties.list);
-
-  return <HomeClient userId={userId} properties={properties} />;
+  return <AdminMembersClient />;
 }
 
 function LoadingState() {
@@ -35,10 +31,10 @@ function LoadingState() {
   );
 }
 
-export default function HomePage() {
+export default function AdminPage() {
   return (
     <Suspense fallback={<LoadingState />}>
-      <HomeContent />
+      <AdminContent />
     </Suspense>
   );
 }

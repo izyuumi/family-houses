@@ -1,19 +1,25 @@
 import { v } from "convex/values";
 import { query, mutation, QueryCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
+import { getCurrentUser, requireAdmin } from "./profiles";
+
+async function isApprovedOrAdmin(ctx: QueryCtx) {
+  const user = await getCurrentUser(ctx);
+  if (!user) return false;
+  if (user.role === "admin") return true;
+  return user.approved === true;
+}
 
 export const memberRoleValidator = v.union(
   v.literal("owner"),
-  v.literal("admin"),
   v.literal("member"),
   v.literal("guest")
 );
 
-export type MemberRole = "owner" | "admin" | "member" | "guest";
+export type MemberRole = "owner" | "member" | "guest";
 
 const ROLE_HIERARCHY: Record<MemberRole, number> = {
-  owner: 4,
-  admin: 3,
+  owner: 3,
   member: 2,
   guest: 1,
 };
@@ -44,6 +50,7 @@ export const getMembership = query({
     userId: v.string(),
   },
   handler: async (ctx, args) => {
+    if (!(await isApprovedOrAdmin(ctx))) return null;
     return await getMembershipInternal(ctx, args.propertyId, args.userId);
   },
 });
@@ -51,6 +58,8 @@ export const getMembership = query({
 export const listByProperty = query({
   args: { propertyId: v.id("properties") },
   handler: async (ctx, args) => {
+    if (!(await isApprovedOrAdmin(ctx))) return [];
+
     const members = await ctx.db
       .query("propertyMembers")
       .withIndex("by_property", (q) => q.eq("propertyId", args.propertyId))
@@ -80,6 +89,8 @@ export const listByProperty = query({
 export const listByUser = query({
   args: { userId: v.string() },
   handler: async (ctx, args) => {
+    if (!(await isApprovedOrAdmin(ctx))) return [];
+
     const memberships = await ctx.db
       .query("propertyMembers")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
@@ -105,6 +116,7 @@ export const hasAccess = query({
     userId: v.string(),
   },
   handler: async (ctx, args) => {
+    if (!(await isApprovedOrAdmin(ctx))) return false;
     const membership = await getMembershipInternal(
       ctx,
       args.propertyId,
@@ -122,6 +134,8 @@ export const addMember = mutation({
     invitedBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+
     const existing = await getMembershipInternal(
       ctx,
       args.propertyId,
@@ -148,6 +162,8 @@ export const updateRole = mutation({
     newRole: memberRoleValidator,
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+
     const membership = await getMembershipInternal(
       ctx,
       args.propertyId,
@@ -167,6 +183,8 @@ export const removeMember = mutation({
     userId: v.string(),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+
     const membership = await getMembershipInternal(
       ctx,
       args.propertyId,

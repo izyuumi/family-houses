@@ -1,9 +1,35 @@
 import { v } from "convex/values";
-import { query, mutation } from "./_generated/server";
+import { query, mutation, QueryCtx } from "./_generated/server";
+import { getCurrentUser } from "./profiles";
+import type { Id } from "./_generated/dataModel";
+
+async function canAccessProperty(ctx: QueryCtx, propertyId: Id<"properties">) {
+  const user = await getCurrentUser(ctx);
+  if (!user) return false;
+  if (!user.approved && user.role !== "admin") return false;
+  if (user.role === "admin") return true;
+
+  const membership = await ctx.db
+    .query("propertyMembers")
+    .withIndex("by_property_user", (q) =>
+      q.eq("propertyId", propertyId).eq("userId", user.clerkId)
+    )
+    .first();
+
+  return membership !== null;
+}
+
+async function requirePropertyAccess(ctx: QueryCtx, propertyId: Id<"properties">) {
+  if (!(await canAccessProperty(ctx, propertyId))) {
+    throw new Error("You do not have access to this property");
+  }
+}
 
 export const listByProperty = query({
   args: { propertyId: v.id("properties") },
   handler: async (ctx, args) => {
+    if (!(await canAccessProperty(ctx, args.propertyId))) return [];
+
     const items = await ctx.db
       .query("groceryItems")
       .withIndex("by_property", (q) => q.eq("propertyId", args.propertyId))
@@ -56,6 +82,7 @@ export const add = mutation({
     addedBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await requirePropertyAccess(ctx, args.propertyId);
     return await ctx.db.insert("groceryItems", {
       propertyId: args.propertyId,
       itemName: args.itemName,
@@ -72,6 +99,10 @@ export const toggle = mutation({
     completedBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const item = await ctx.db.get(args.id);
+    if (!item) throw new Error("Item not found");
+    await requirePropertyAccess(ctx, item.propertyId);
+
     await ctx.db.patch(args.id, {
       checked: args.checked,
       completedBy: args.checked ? args.completedBy : undefined,
@@ -83,6 +114,10 @@ export const toggle = mutation({
 export const remove = mutation({
   args: { id: v.id("groceryItems") },
   handler: async (ctx, args) => {
+    const item = await ctx.db.get(args.id);
+    if (!item) throw new Error("Item not found");
+    await requirePropertyAccess(ctx, item.propertyId);
+
     await ctx.db.delete(args.id);
   },
 });
@@ -90,6 +125,7 @@ export const remove = mutation({
 export const clearChecked = mutation({
   args: { propertyId: v.id("properties") },
   handler: async (ctx, args) => {
+    await requirePropertyAccess(ctx, args.propertyId);
     const items = await ctx.db
       .query("groceryItems")
       .withIndex("by_property", (q) => q.eq("propertyId", args.propertyId))

@@ -138,3 +138,60 @@ async function profileByClerkId(ctx: QueryCtx, clerkId: string) {
     .withIndex("by_clerk_id", (q) => q.eq("clerkId", clerkId))
     .first();
 }
+
+export const listAll = query({
+  args: {},
+  handler: async (ctx) => {
+    await requireAdmin(ctx);
+    return await ctx.db.query("profiles").order("desc").collect();
+  },
+});
+
+export const listPending = query({
+  args: {},
+  handler: async (ctx) => {
+    await requireAdmin(ctx);
+    const all = await ctx.db.query("profiles").collect();
+    return all.filter((p) => p.approved !== true);
+  },
+});
+
+export const approveUser = mutation({
+  args: { clerkId: v.string() },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+
+    const profile = await ctx.db
+      .query("profiles")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
+      .first();
+
+    if (!profile) {
+      throw new Error("Profile not found");
+    }
+
+    await ctx.db.patch(profile._id, { approved: true });
+  },
+});
+
+export const rejectUser = mutation({
+  args: { clerkId: v.string() },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+
+    const profile = await ctx.db
+      .query("profiles")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
+      .first();
+
+    if (!profile) {
+      throw new Error("Profile not found");
+    }
+
+    if (profile.role === "admin") {
+      throw new Error("Cannot reject an admin user");
+    }
+
+    await ctx.db.delete(profile._id);
+  },
+});

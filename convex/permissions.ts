@@ -28,7 +28,7 @@ export async function canEditProperty(
   const membership = await getMembershipInternal(ctx, propertyId, user.clerkId);
   if (!membership) return false;
 
-  return hasMinimumRole(membership.role, "admin");
+  return hasMinimumRole(membership.role, "owner");
 }
 
 export async function canManageMembers(
