@@ -125,24 +125,7 @@ The current inline QR implementation is ~700 lines.
 
 ## 🟡 Medium Priority - User Experience
 
-### 7. Search & Filtering
-
-**Files:** New search components, Convex queries
-
-Add comprehensive search functionality.
-
-**Tasks:**
-
-- [ ] Property search by name and location
-- [ ] Inventory items search by title and category
-- [ ] Notes full-text search
-- [ ] Add search UI component with debounced input
-- [ ] Implement Convex search queries with indexes
-- [ ] Add filter chips for categories/tags
-
----
-
-### 8. Grocery List Enhancements
+### 7. Grocery List Enhancements
 
 **Files:** `components/groceries.tsx`, `convex/groceryItems.ts`, `convex/schema.ts`
 
@@ -159,7 +142,7 @@ Improve the to-do/grocery list functionality.
 
 ---
 
-### 9. Better Loading States
+### 8. Better Loading States
 
 **Files:** All page components, new skeleton components
 
@@ -178,7 +161,7 @@ Replace minimal loading indicators with proper skeletons.
 
 ## 🟡 Medium Priority - Data & Features
 
-### 10. Audit Trail - Completed Items & Note History
+### 9. Audit Trail - Completed Items & Note History
 
 **Files:** `convex/schema.ts`, `convex/groceryItems.ts`, `convex/propertyNotes.ts`
 
@@ -211,7 +194,7 @@ Track history of completed items and note edits.
 
 ---
 
-### 11. Calendar Integration
+### 10. Calendar Integration
 
 **Files:** New calendar components, `convex/schema.ts`
 
@@ -228,7 +211,7 @@ Add scheduling and reminders for properties.
 
 ---
 
-### 12. Guest Access
+### 11. Guest Access
 
 **Files:** New guest access system
 
@@ -245,25 +228,9 @@ Create temporary access links for visitors.
 
 ---
 
-### 13. Apple Maps Integration
-
-**Files:** `components/address-display.tsx`, `components/info-card.tsx`
-
-Improve map integration with Apple Maps.
-
-**Tasks:**
-
-- [ ] Generate Apple Maps URLs from address components
-- [ ] Add "Open in Apple Maps" button to property info
-- [ ] Support deep linking with directions
-- [ ] Fallback to Google Maps for non-Apple devices
-- [ ] Cache geocoded coordinates
-
----
-
 ## 🟢 Lower Priority - Code Quality
 
-### 14. Improve Type Safety
+### 12. Improve Type Safety
 
 **Files:** Throughout codebase
 
@@ -279,7 +246,7 @@ Eliminate unsafe type assertions.
 
 ---
 
-### 15. Form Validation
+### 13. Form Validation
 
 **Files:** `components/admin-form.tsx`, `components/groceries.tsx`
 
@@ -296,7 +263,7 @@ Implement proper form validation.
 
 ---
 
-### 16. Error Boundaries
+### 14. Error Boundaries
 
 **Files:** New error boundary components, `app/layout.tsx`
 
@@ -312,7 +279,7 @@ Prevent full-page crashes from component errors.
 
 ---
 
-### 17. Structured API Error Handling
+### 15. Structured API Error Handling
 
 **Files:** `app/api/**/*.ts`, client components
 
@@ -331,7 +298,7 @@ Improve error responses and handling.
 
 ## 🟢 Lower Priority - Accessibility
 
-### 18. Keyboard Navigation
+### 16. Keyboard Navigation
 
 **Files:** `components/japan-map.tsx`, interactive components
 
@@ -348,24 +315,7 @@ Add full keyboard support.
 
 ---
 
-### 19. Screen Reader Support
-
-**Files:** Throughout UI components
-
-Improve assistive technology support.
-
-**Tasks:**
-
-- [ ] Add ARIA labels to map markers
-- [ ] Label action buttons with descriptive text
-- [ ] Add live regions for dynamic updates (toast, real-time changes)
-- [ ] Implement proper heading hierarchy
-- [ ] Add alt text for decorative elements
-- [ ] Test with VoiceOver/NVDA
-
----
-
-### 20. Update Color Scheme ✅
+### 17. Update Color Scheme ✅
 
 **File:** `app/globals.css`
 
@@ -393,7 +343,7 @@ Replace current warm orange theme with new color scheme.
 
 ## 🟢 Lower Priority - Reliability
 
-### 21. Rate Limiting
+### 18. Rate Limiting
 
 **Files:** `app/api/**/*.ts`, middleware
 
@@ -422,18 +372,15 @@ Protect API endpoints from abuse.
 | 4   | Fix N+1 Query Problem         | ✅ Done        | Batch profile fetching in all 3 files            |
 | 5   | Optimize Map Re-renders       | ✅ Done        | React.memo, useMemo, RAF batching                |
 | 6   | Lighter QR Library            | ✅ Done        | `qrcode-generator` + dynamic import              |
-| 7   | Search & Filtering            | ⬜ Not Started |                                                  |
-| 8   | Grocery List Enhancements     | ⬜ Not Started |                                                  |
-| 9   | Better Loading States         | ⬜ Not Started |                                                  |
-| 10  | Audit Trail                   | ⬜ Not Started |                                                  |
-| 11  | Calendar Integration          | ⬜ Not Started |                                                  |
-| 12  | Guest Access                  | ⬜ Not Started |                                                  |
-| 13  | Apple Maps Integration        | ⬜ Not Started |                                                  |
-| 14  | Type Safety                   | ⬜ Not Started |                                                  |
-| 15  | Form Validation               | ⬜ Not Started |                                                  |
-| 16  | Error Boundaries              | ⬜ Not Started |                                                  |
-| 17  | API Error Handling            | ⬜ Not Started |                                                  |
-| 18  | Keyboard Navigation           | ⬜ Not Started |                                                  |
-| 19  | Screen Reader Support         | ⬜ Not Started |                                                  |
-| 20  | Update Color Scheme           | ✅ Done        | New Verdigris/Charcoal Blue palette              |
-| 21  | Rate Limiting                 | ⬜ Not Started |                                                  |
+| 7   | Grocery List Enhancements     | ⬜ Not Started |                                                  |
+| 8   | Better Loading States         | ⬜ Not Started |                                                  |
+| 9   | Audit Trail                   | ⬜ Not Started |                                                  |
+| 10  | Calendar Integration          | ⬜ Not Started |                                                  |
+| 11  | Guest Access                  | ⬜ Not Started |                                                  |
+| 12  | Type Safety                   | ⬜ Not Started |                                                  |
+| 13  | Form Validation               | ⬜ Not Started |                                                  |
+| 14  | Error Boundaries              | ⬜ Not Started |                                                  |
+| 15  | API Error Handling            | ⬜ Not Started |                                                  |
+| 16  | Keyboard Navigation           | ⬜ Not Started |                                                  |
+| 17  | Update Color Scheme           | ✅ Done        | New Verdigris/Charcoal Blue palette              |
+| 18  | Rate Limiting                 | ⬜ Not Started |                                                  |
