@@ -38,7 +38,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
+    <ClerkProvider telemetry={false}>
       <html lang="en" suppressHydrationWarning>
         <body className={`${plusJakarta.className} antialiased`}>
           <ConvexClientProvider>
