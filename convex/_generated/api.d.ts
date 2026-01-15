@@ -17,6 +17,7 @@ import type * as properties from "../properties.js";
 import type * as propertyItems from "../propertyItems.js";
 import type * as propertyMembers from "../propertyMembers.js";
 import type * as propertyNotes from "../propertyNotes.js";
+import type * as utils from "../utils.js";
 
 import type {
   ApiFromModules,
@@ -34,6 +35,7 @@ declare const fullApi: ApiFromModules<{
   propertyItems: typeof propertyItems;
   propertyMembers: typeof propertyMembers;
   propertyNotes: typeof propertyNotes;
+  utils: typeof utils;
 }>;
 
 /**

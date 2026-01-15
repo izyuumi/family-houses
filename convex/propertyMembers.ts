@@ -1,14 +1,13 @@
 import { v } from "convex/values";
 import { query, mutation, QueryCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
-import { getCurrentUser, requireAdmin } from "./profiles";
-
-async function isApprovedOrAdmin(ctx: QueryCtx) {
-  const user = await getCurrentUser(ctx);
-  if (!user) return false;
-  if (user.role === "admin") return true;
-  return user.approved === true;
-}
+import { requireAdmin } from "./profiles";
+import {
+  isApprovedOrAdmin,
+  getMembershipForProperty,
+  MemberRole,
+} from "./permissions";
+import { getProfileMap } from "./utils";
 
 export const memberRoleValidator = v.union(
   v.literal("owner"),
@@ -16,7 +15,7 @@ export const memberRoleValidator = v.union(
   v.literal("guest")
 );
 
-export type MemberRole = "owner" | "member" | "guest";
+export { MemberRole };
 
 const ROLE_HIERARCHY: Record<MemberRole, number> = {
   owner: 3,
@@ -24,24 +23,12 @@ const ROLE_HIERARCHY: Record<MemberRole, number> = {
   guest: 1,
 };
 
-export function hasMinimumRole(
-  userRole: MemberRole,
-  requiredRole: MemberRole
-): boolean {
-  return ROLE_HIERARCHY[userRole] >= ROLE_HIERARCHY[requiredRole];
-}
-
 export async function getMembershipInternal(
   ctx: QueryCtx,
   propertyId: Id<"properties">,
   userId: string
 ) {
-  return await ctx.db
-    .query("propertyMembers")
-    .withIndex("by_property_user", (q) =>
-      q.eq("propertyId", propertyId).eq("userId", userId)
-    )
-    .first();
+  return getMembershipForProperty(ctx, propertyId, userId);
 }
 
 export const getMembership = query({
@@ -65,20 +52,13 @@ export const listByProperty = query({
       .withIndex("by_property", (q) => q.eq("propertyId", args.propertyId))
       .collect();
 
-    const membersWithProfiles = await Promise.all(
-      members.map(async (member) => {
-        const profile = await ctx.db
-          .query("profiles")
-          .withIndex("by_clerk_id", (q) => q.eq("clerkId", member.userId))
-          .first();
-        return {
-          ...member,
-          profile: profile
-            ? { displayName: profile.displayName, email: profile.email }
-            : null,
-        };
-      })
-    );
+    const clerkIds = members.map((m) => m.userId);
+    const profileMap = await getProfileMap(ctx, clerkIds);
+
+    const membersWithProfiles = members.map((member) => ({
+      ...member,
+      profile: profileMap.get(member.userId) ?? null,
+    }));
 
     return membersWithProfiles.sort(
       (a, b) => ROLE_HIERARCHY[b.role] - ROLE_HIERARCHY[a.role]

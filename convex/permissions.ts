@@ -1,7 +1,63 @@
 import { QueryCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
-import { getMembershipInternal, hasMinimumRole } from "./propertyMembers";
 import { getCurrentUser, isAdmin } from "./profiles";
+
+export type MemberRole = "owner" | "member" | "guest";
+
+const ROLE_HIERARCHY: Record<MemberRole, number> = {
+  owner: 3,
+  member: 2,
+  guest: 1,
+};
+
+export function hasMinimumRole(
+  userRole: MemberRole,
+  requiredRole: MemberRole
+): boolean {
+  return ROLE_HIERARCHY[userRole] >= ROLE_HIERARCHY[requiredRole];
+}
+
+export async function isApprovedOrAdmin(ctx: QueryCtx): Promise<boolean> {
+  const user = await getCurrentUser(ctx);
+  if (!user) return false;
+  if (user.role === "admin") return true;
+  return user.approved === true;
+}
+
+export async function getMembershipForProperty(
+  ctx: QueryCtx,
+  propertyId: Id<"properties">,
+  userId: string
+) {
+  return await ctx.db
+    .query("propertyMembers")
+    .withIndex("by_property_user", (q) =>
+      q.eq("propertyId", propertyId).eq("userId", userId)
+    )
+    .first();
+}
+
+export async function canAccessProperty(
+  ctx: QueryCtx,
+  propertyId: Id<"properties">
+): Promise<boolean> {
+  const user = await getCurrentUser(ctx);
+  if (!user) return false;
+  if (!user.approved && user.role !== "admin") return false;
+  if (user.role === "admin") return true;
+
+  const membership = await getMembershipForProperty(ctx, propertyId, user.clerkId);
+  return membership !== null;
+}
+
+export async function requirePropertyAccess(
+  ctx: QueryCtx,
+  propertyId: Id<"properties">
+): Promise<void> {
+  if (!(await canAccessProperty(ctx, propertyId))) {
+    throw new Error("You do not have access to this property");
+  }
+}
 
 export async function canViewProperty(
   ctx: QueryCtx,
@@ -12,7 +68,7 @@ export async function canViewProperty(
 
   if (await isAdmin(ctx)) return true;
 
-  const membership = await getMembershipInternal(ctx, propertyId, user.clerkId);
+  const membership = await getMembershipForProperty(ctx, propertyId, user.clerkId);
   return membership !== null;
 }
 
@@ -25,7 +81,7 @@ export async function canEditProperty(
 
   if (await isAdmin(ctx)) return true;
 
-  const membership = await getMembershipInternal(ctx, propertyId, user.clerkId);
+  const membership = await getMembershipForProperty(ctx, propertyId, user.clerkId);
   if (!membership) return false;
 
   return hasMinimumRole(membership.role, "owner");
@@ -40,7 +96,7 @@ export async function canManageMembers(
 
   if (await isAdmin(ctx)) return true;
 
-  const membership = await getMembershipInternal(ctx, propertyId, user.clerkId);
+  const membership = await getMembershipForProperty(ctx, propertyId, user.clerkId);
   if (!membership) return false;
 
   return membership.role === "owner";
@@ -55,7 +111,7 @@ export async function canViewWifi(
 
   if (await isAdmin(ctx)) return true;
 
-  const membership = await getMembershipInternal(ctx, propertyId, user.clerkId);
+  const membership = await getMembershipForProperty(ctx, propertyId, user.clerkId);
   if (!membership) return false;
 
   return hasMinimumRole(membership.role, "member");
@@ -70,7 +126,7 @@ export async function canAddItems(
 
   if (await isAdmin(ctx)) return true;
 
-  const membership = await getMembershipInternal(ctx, propertyId, user.clerkId);
+  const membership = await getMembershipForProperty(ctx, propertyId, user.clerkId);
   if (!membership) return false;
 
   return hasMinimumRole(membership.role, "member");

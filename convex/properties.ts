@@ -1,30 +1,11 @@
 import { v } from "convex/values";
-import { query, mutation, QueryCtx } from "./_generated/server";
+import { query, mutation } from "./_generated/server";
 import { getCurrentUser, isAdmin, requireAdmin } from "./profiles";
-import type { Id } from "./_generated/dataModel";
-
-async function isApprovedOrAdmin(ctx: QueryCtx) {
-  const user = await getCurrentUser(ctx);
-  if (!user) return false;
-  if (user.role === "admin") return true;
-  return user.approved === true;
-}
-
-async function canAccessProperty(ctx: QueryCtx, propertyId: Id<"properties">) {
-  const user = await getCurrentUser(ctx);
-  if (!user) return false;
-  if (!user.approved && user.role !== "admin") return false;
-  if (user.role === "admin") return true;
-
-  const membership = await ctx.db
-    .query("propertyMembers")
-    .withIndex("by_property_user", (q) =>
-      q.eq("propertyId", propertyId).eq("userId", user.clerkId)
-    )
-    .first();
-
-  return membership !== null;
-}
+import {
+  isApprovedOrAdmin,
+  canAccessProperty,
+  getMembershipForProperty,
+} from "./permissions";
 
 export const list = query({
   args: {},
@@ -151,13 +132,11 @@ export const getWifiPassword = query({
     if (!user) return null;
 
     if (user.role !== "admin") {
-      const membership = await ctx.db
-        .query("propertyMembers")
-        .withIndex("by_property_user", (q) =>
-          q.eq("propertyId", args.id).eq("userId", user.clerkId)
-        )
-        .first();
-
+      const membership = await getMembershipForProperty(
+        ctx,
+        args.id,
+        user.clerkId
+      );
       if (membership?.role === "guest") return null;
     }
 

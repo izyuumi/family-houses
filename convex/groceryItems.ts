@@ -1,29 +1,7 @@
 import { v } from "convex/values";
-import { query, mutation, QueryCtx } from "./_generated/server";
-import { getCurrentUser } from "./profiles";
-import type { Id } from "./_generated/dataModel";
-
-async function canAccessProperty(ctx: QueryCtx, propertyId: Id<"properties">) {
-  const user = await getCurrentUser(ctx);
-  if (!user) return false;
-  if (!user.approved && user.role !== "admin") return false;
-  if (user.role === "admin") return true;
-
-  const membership = await ctx.db
-    .query("propertyMembers")
-    .withIndex("by_property_user", (q) =>
-      q.eq("propertyId", propertyId).eq("userId", user.clerkId)
-    )
-    .first();
-
-  return membership !== null;
-}
-
-async function requirePropertyAccess(ctx: QueryCtx, propertyId: Id<"properties">) {
-  if (!(await canAccessProperty(ctx, propertyId))) {
-    throw new Error("You do not have access to this property");
-  }
-}
+import { query, mutation } from "./_generated/server";
+import { canAccessProperty, requirePropertyAccess } from "./permissions";
+import { getProfileMap, extractClerkIds } from "./utils";
 
 export const listByProperty = query({
   args: { propertyId: v.id("properties") },
@@ -35,30 +13,8 @@ export const listByProperty = query({
       .withIndex("by_property", (q) => q.eq("propertyId", args.propertyId))
       .collect();
 
-    const clerkIds = [
-      ...new Set(
-        items.flatMap((item) =>
-          [item.addedBy, item.completedBy].filter(
-            (id): id is string => id !== undefined
-          )
-        )
-      ),
-    ];
-
-    const profiles = await Promise.all(
-      clerkIds.map((id) =>
-        ctx.db
-          .query("profiles")
-          .withIndex("by_clerk_id", (q) => q.eq("clerkId", id))
-          .first()
-      )
-    );
-
-    const profileMap = new Map(
-      profiles
-        .filter((p): p is NonNullable<typeof p> => p !== null)
-        .map((p) => [p.clerkId, { displayName: p.displayName }])
-    );
+    const clerkIds = extractClerkIds(items, "addedBy", "completedBy");
+    const profileMap = await getProfileMap(ctx, clerkIds);
 
     const itemsWithProfiles = items.map((item) => ({
       ...item,
