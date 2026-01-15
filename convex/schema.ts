@@ -55,4 +55,20 @@ export default defineSchema({
     content: v.string(),
     createdBy: v.optional(v.string()),
   }).index("by_property", ["propertyId"]),
+
+  propertyMembers: defineTable({
+    propertyId: v.id("properties"),
+    userId: v.string(),
+    role: v.union(
+      v.literal("owner"),
+      v.literal("admin"),
+      v.literal("member"),
+      v.literal("guest")
+    ),
+    invitedBy: v.optional(v.string()),
+    invitedAt: v.optional(v.number()),
+  })
+    .index("by_property", ["propertyId"])
+    .index("by_user", ["userId"])
+    .index("by_property_user", ["propertyId", "userId"]),
 });

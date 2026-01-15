@@ -9,30 +9,38 @@ export const listByProperty = query({
       .withIndex("by_property", (q) => q.eq("propertyId", args.propertyId))
       .collect();
 
-    const itemsWithProfiles = await Promise.all(
-      items.map(async (item) => {
-        let adder = null;
-        let completer = null;
+    const clerkIds = [
+      ...new Set(
+        items.flatMap((item) =>
+          [item.addedBy, item.completedBy].filter(
+            (id): id is string => id !== undefined
+          )
+        )
+      ),
+    ];
 
-        if (item.addedBy) {
-          const profile = await ctx.db
-            .query("profiles")
-            .withIndex("by_clerk_id", (q) => q.eq("clerkId", item.addedBy!))
-            .first();
-          adder = profile ? { displayName: profile.displayName } : null;
-        }
-
-        if (item.completedBy) {
-          const profile = await ctx.db
-            .query("profiles")
-            .withIndex("by_clerk_id", (q) => q.eq("clerkId", item.completedBy!))
-            .first();
-          completer = profile ? { displayName: profile.displayName } : null;
-        }
-
-        return { ...item, adder, completer };
-      })
+    const profiles = await Promise.all(
+      clerkIds.map((id) =>
+        ctx.db
+          .query("profiles")
+          .withIndex("by_clerk_id", (q) => q.eq("clerkId", id))
+          .first()
+      )
     );
+
+    const profileMap = new Map(
+      profiles
+        .filter((p): p is NonNullable<typeof p> => p !== null)
+        .map((p) => [p.clerkId, { displayName: p.displayName }])
+    );
+
+    const itemsWithProfiles = items.map((item) => ({
+      ...item,
+      adder: item.addedBy ? profileMap.get(item.addedBy) ?? null : null,
+      completer: item.completedBy
+        ? profileMap.get(item.completedBy) ?? null
+        : null,
+    }));
 
     return itemsWithProfiles.sort((a, b) => {
       if (a.checked !== b.checked) return a.checked ? 1 : -1;

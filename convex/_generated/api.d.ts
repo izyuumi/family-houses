@@ -9,9 +9,12 @@
  */
 
 import type * as groceryItems from "../groceryItems.js";
+import type * as http from "../http.js";
+import type * as permissions from "../permissions.js";
 import type * as profiles from "../profiles.js";
 import type * as properties from "../properties.js";
 import type * as propertyItems from "../propertyItems.js";
+import type * as propertyMembers from "../propertyMembers.js";
 import type * as propertyNotes from "../propertyNotes.js";
 
 import type {
@@ -22,9 +25,12 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   groceryItems: typeof groceryItems;
+  http: typeof http;
+  permissions: typeof permissions;
   profiles: typeof profiles;
   properties: typeof properties;
   propertyItems: typeof propertyItems;
+  propertyMembers: typeof propertyMembers;
   propertyNotes: typeof propertyNotes;
 }>;
 

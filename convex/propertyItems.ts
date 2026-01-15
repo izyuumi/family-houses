@@ -9,21 +9,33 @@ export const listByProperty = query({
       .withIndex("by_property", (q) => q.eq("propertyId", args.propertyId))
       .collect();
 
-    const itemsWithProfiles = await Promise.all(
-      items.map(async (item) => {
-        let creator = null;
+    const clerkIds = [
+      ...new Set(
+        items
+          .map((item) => item.createdBy)
+          .filter((id): id is string => id !== undefined)
+      ),
+    ];
 
-        if (item.createdBy) {
-          const profile = await ctx.db
-            .query("profiles")
-            .withIndex("by_clerk_id", (q) => q.eq("clerkId", item.createdBy!))
-            .first();
-          creator = profile ? { displayName: profile.displayName } : null;
-        }
-
-        return { ...item, creator };
-      })
+    const profiles = await Promise.all(
+      clerkIds.map((id) =>
+        ctx.db
+          .query("profiles")
+          .withIndex("by_clerk_id", (q) => q.eq("clerkId", id))
+          .first()
+      )
     );
+
+    const profileMap = new Map(
+      profiles
+        .filter((p): p is NonNullable<typeof p> => p !== null)
+        .map((p) => [p.clerkId, { displayName: p.displayName }])
+    );
+
+    const itemsWithProfiles = items.map((item) => ({
+      ...item,
+      creator: item.createdBy ? profileMap.get(item.createdBy) ?? null : null,
+    }));
 
     return itemsWithProfiles.sort(
       (a, b) => (b._creationTime ?? 0) - (a._creationTime ?? 0)

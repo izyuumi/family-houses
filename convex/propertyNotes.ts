@@ -9,21 +9,33 @@ export const listByProperty = query({
       .withIndex("by_property", (q) => q.eq("propertyId", args.propertyId))
       .collect();
 
-    const notesWithProfiles = await Promise.all(
-      notes.map(async (note) => {
-        let creator = null;
+    const clerkIds = [
+      ...new Set(
+        notes
+          .map((note) => note.createdBy)
+          .filter((id): id is string => id !== undefined)
+      ),
+    ];
 
-        if (note.createdBy) {
-          const profile = await ctx.db
-            .query("profiles")
-            .withIndex("by_clerk_id", (q) => q.eq("clerkId", note.createdBy!))
-            .first();
-          creator = profile ? { displayName: profile.displayName } : null;
-        }
-
-        return { ...note, creator };
-      })
+    const profiles = await Promise.all(
+      clerkIds.map((id) =>
+        ctx.db
+          .query("profiles")
+          .withIndex("by_clerk_id", (q) => q.eq("clerkId", id))
+          .first()
+      )
     );
+
+    const profileMap = new Map(
+      profiles
+        .filter((p): p is NonNullable<typeof p> => p !== null)
+        .map((p) => [p.clerkId, { displayName: p.displayName }])
+    );
+
+    const notesWithProfiles = notes.map((note) => ({
+      ...note,
+      creator: note.createdBy ? profileMap.get(note.createdBy) ?? null : null,
+    }));
 
     return notesWithProfiles.sort(
       (a, b) => (b._creationTime ?? 0) - (a._creationTime ?? 0)

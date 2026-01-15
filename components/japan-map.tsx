@@ -1,6 +1,13 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect, useMemo } from "react";
+import React, {
+  useState,
+  useRef,
+  useCallback,
+  useEffect,
+  useMemo,
+  memo,
+} from "react";
 import { Plus, Minus } from "lucide-react";
 
 export interface MapLocation {
@@ -36,6 +43,121 @@ type JapanMapEditProps = {
 
 type JapanMapProps = JapanMapViewProps | JapanMapEditProps;
 
+interface MarkerSizes {
+  baseMarkerSize: number;
+  hoverMarkerSize: number;
+  activeMarkerSize: number;
+  innerDotSize: number;
+  strokeWidth: number;
+  tooltipHeight: number;
+  tooltipRadius: number;
+  fontSize: number;
+  tooltipOffset: number;
+  touchTargetSize: number;
+  tooltipWidth: number;
+}
+
+interface MapMarkerProps {
+  marker: PropertyMarker;
+  isHovered: boolean;
+  isActive: boolean;
+  sizes: MarkerSizes;
+  onMouseEnter: () => void;
+  onMouseLeave: () => void;
+  onClick: (e: React.MouseEvent) => void;
+}
+
+const MapMarker = memo(function MapMarker({
+  marker,
+  isHovered,
+  isActive,
+  sizes,
+  onMouseEnter,
+  onMouseLeave,
+  onClick,
+}: MapMarkerProps) {
+  const radius = isActive
+    ? sizes.activeMarkerSize
+    : isHovered
+      ? sizes.hoverMarkerSize
+      : sizes.baseMarkerSize;
+
+  return (
+    <g
+      className="cursor-pointer"
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      onClick={onClick}
+    >
+      <circle
+        cx={marker.x}
+        cy={marker.y}
+        r={sizes.touchTargetSize}
+        fill="transparent"
+        className="pointer-events-auto"
+      />
+
+      {isActive && (
+        <circle
+          cx={marker.x}
+          cy={marker.y}
+          r={sizes.activeMarkerSize * 1.8}
+          fill="hsl(var(--primary) / 0.2)"
+          className="pointer-events-none"
+        />
+      )}
+
+      <circle
+        cx={marker.x}
+        cy={marker.y}
+        r={radius}
+        fill={
+          isActive
+            ? "hsl(var(--primary))"
+            : isHovered
+              ? "hsl(var(--primary))"
+              : "hsl(var(--destructive))"
+        }
+        stroke="hsl(var(--background))"
+        strokeWidth={sizes.strokeWidth}
+        className="transition-all duration-100"
+      />
+      <circle
+        cx={marker.x}
+        cy={marker.y}
+        r={sizes.innerDotSize}
+        fill="hsl(var(--background))"
+        className="pointer-events-none"
+      />
+
+      {(isHovered || isActive) && (
+        <g className="pointer-events-none">
+          <rect
+            x={marker.x - sizes.tooltipWidth / 2}
+            y={marker.y - sizes.tooltipOffset}
+            width={sizes.tooltipWidth}
+            height={sizes.tooltipHeight}
+            rx={sizes.tooltipRadius}
+            fill="hsl(var(--popover))"
+            stroke="hsl(var(--border))"
+            strokeWidth={sizes.strokeWidth / 2.5}
+          />
+          <text
+            x={marker.x}
+            y={marker.y - sizes.tooltipOffset + sizes.tooltipHeight * 0.65}
+            textAnchor="middle"
+            fill="hsl(var(--popover-foreground))"
+            fontWeight="500"
+            fontSize={sizes.fontSize}
+          >
+            {marker.name}
+          </text>
+        </g>
+      )}
+    </g>
+  );
+});
+
 export function JapanMap(props: JapanMapProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -48,13 +170,20 @@ export function JapanMap(props: JapanMapProps) {
     y: BASE_HEIGHT / 2,
   });
   const [isPanning, setIsPanning] = useState(false);
-  const [lastMousePos, setLastMousePos] = useState({ x: 0, y: 0 });
-  
+  const lastMousePosRef = useRef({ x: 0, y: 0 });
+  const viewCenterRef = useRef({ x: BASE_WIDTH / 2, y: BASE_HEIGHT / 2 });
+
   const lastTouchDistance = useRef<number | null>(null);
   const lastTouchCenter = useRef<{ x: number; y: number } | null>(null);
   const touchStartTime = useRef<number>(0);
   const touchStartPos = useRef<{ x: number; y: number } | null>(null);
   const hasMoved = useRef(false);
+  const pendingViewCenter = useRef<{ x: number; y: number } | null>(null);
+  const rafId = useRef<number | null>(null);
+
+  useEffect(() => {
+    viewCenterRef.current = viewCenter;
+  }, [viewCenter]);
 
   const isEditMode = props.mode === "edit";
   const propsMarkers = isEditMode ? undefined : props.markers;
@@ -65,6 +194,48 @@ export function JapanMap(props: JapanMapProps) {
   const viewHeight = BASE_HEIGHT / zoom;
   const viewX = viewCenter.x - viewWidth / 2;
   const viewY = viewCenter.y - viewHeight / 2;
+
+  const sizes = useMemo<MarkerSizes>(
+    () => ({
+      baseMarkerSize: 12 / zoom,
+      hoverMarkerSize: 16 / zoom,
+      activeMarkerSize: 18 / zoom,
+      innerDotSize: 5 / zoom,
+      strokeWidth: 2.5 / zoom,
+      tooltipHeight: 28 / zoom,
+      tooltipRadius: 4 / zoom,
+      fontSize: 14 / zoom,
+      tooltipOffset: 46 / zoom,
+      touchTargetSize: MOBILE_MARKER_TAP_RADIUS / zoom,
+      tooltipWidth: 130 / zoom,
+    }),
+    [zoom]
+  );
+
+  const scheduleViewCenterUpdate = useCallback(
+    (newCenter: { x: number; y: number }) => {
+      pendingViewCenter.current = newCenter;
+      viewCenterRef.current = newCenter;
+      if (rafId.current === null) {
+        rafId.current = requestAnimationFrame(() => {
+          if (pendingViewCenter.current) {
+            setViewCenter(pendingViewCenter.current);
+            pendingViewCenter.current = null;
+          }
+          rafId.current = null;
+        });
+      }
+    },
+    []
+  );
+
+  useEffect(() => {
+    return () => {
+      if (rafId.current !== null) {
+        cancelAnimationFrame(rafId.current);
+      }
+    };
+  }, []);
 
   const getSvgPoint = useCallback(
     (clientX: number, clientY: number): MapLocation | null => {
@@ -95,10 +266,7 @@ export function JapanMap(props: JapanMapProps) {
       if (!point) return;
 
       const delta = -e.deltaY * ZOOM_SENSITIVITY;
-      const newZoom = Math.min(
-        MAX_ZOOM,
-        Math.max(MIN_ZOOM, zoom * (1 + delta))
-      );
+      const newZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom * (1 + delta)));
 
       const zoomFactor = newZoom / zoom;
       const newCenterX = point.x + (viewCenter.x - point.x) / zoomFactor;
@@ -116,7 +284,7 @@ export function JapanMap(props: JapanMapProps) {
       if (e.button !== 0) return;
 
       setIsPanning(true);
-      setLastMousePos({ x: e.clientX, y: e.clientY });
+      lastMousePosRef.current = { x: e.clientX, y: e.clientY };
     },
     [isEditMode]
   );
@@ -130,16 +298,17 @@ export function JapanMap(props: JapanMapProps) {
       const scaleX = viewWidth / rect.width;
       const scaleY = viewHeight / rect.height;
 
-      const dx = (e.clientX - lastMousePos.x) * scaleX;
-      const dy = (e.clientY - lastMousePos.y) * scaleY;
+      const dx = (e.clientX - lastMousePosRef.current.x) * scaleX;
+      const dy = (e.clientY - lastMousePosRef.current.y) * scaleY;
 
-      setViewCenter((prev) => ({
-        x: prev.x - dx,
-        y: prev.y - dy,
-      }));
-      setLastMousePos({ x: e.clientX, y: e.clientY });
+      const currentCenter = pendingViewCenter.current ?? viewCenterRef.current;
+      scheduleViewCenterUpdate({
+        x: currentCenter.x - dx,
+        y: currentCenter.y - dy,
+      });
+      lastMousePosRef.current = { x: e.clientX, y: e.clientY };
     },
-    [isPanning, lastMousePos, viewWidth, viewHeight]
+    [isPanning, viewWidth, viewHeight, scheduleViewCenterUpdate]
   );
 
   const handleMouseUp = useCallback(() => {
@@ -192,7 +361,7 @@ export function JapanMap(props: JapanMapProps) {
   const handleTouchStart = useCallback(
     (e: React.TouchEvent) => {
       if (isEditMode && e.touches.length === 1) return;
-      
+
       touchStartTime.current = Date.now();
       hasMoved.current = false;
 
@@ -200,7 +369,7 @@ export function JapanMap(props: JapanMapProps) {
         const touch = e.touches[0];
         touchStartPos.current = { x: touch.clientX, y: touch.clientY };
         setIsPanning(true);
-        setLastMousePos({ x: touch.clientX, y: touch.clientY });
+        lastMousePosRef.current = { x: touch.clientX, y: touch.clientY };
       } else if (e.touches.length === 2) {
         e.preventDefault();
         lastTouchDistance.current = getTouchDistance(e.touches);
@@ -226,10 +395,13 @@ export function JapanMap(props: JapanMapProps) {
 
           const point = getSvgPoint(newCenter.x, newCenter.y);
           if (point) {
+            const currentCenter = pendingViewCenter.current ?? viewCenterRef.current;
             const zoomFactor = newZoom / zoom;
-            const newCenterX = point.x + (viewCenter.x - point.x) / zoomFactor;
-            const newCenterY = point.y + (viewCenter.y - point.y) / zoomFactor;
-            setViewCenter({ x: newCenterX, y: newCenterY });
+            const newCenterX = point.x + (currentCenter.x - point.x) / zoomFactor;
+            const newCenterY = point.y + (currentCenter.y - point.y) / zoomFactor;
+            const updatedCenter = { x: newCenterX, y: newCenterY };
+            pendingViewCenter.current = updatedCenter;
+            viewCenterRef.current = updatedCenter;
           }
 
           setZoom(newZoom);
@@ -245,34 +417,60 @@ export function JapanMap(props: JapanMapProps) {
           const dx = (newCenter.x - lastTouchCenter.current.x) * scaleX;
           const dy = (newCenter.y - lastTouchCenter.current.y) * scaleY;
 
-          setViewCenter((prev) => ({
-            x: prev.x - dx,
-            y: prev.y - dy,
-          }));
+          const currentCenter = pendingViewCenter.current ?? viewCenterRef.current;
+          const updatedCenter = {
+            x: currentCenter.x - dx,
+            y: currentCenter.y - dy,
+          };
+          pendingViewCenter.current = updatedCenter;
+          viewCenterRef.current = updatedCenter;
           lastTouchCenter.current = newCenter;
+        }
+
+        if (rafId.current === null) {
+          rafId.current = requestAnimationFrame(() => {
+            if (pendingViewCenter.current) {
+              setViewCenter(pendingViewCenter.current);
+              pendingViewCenter.current = null;
+            }
+            rafId.current = null;
+          });
         }
       } else if (e.touches.length === 1 && isPanning && !isEditMode) {
         hasMoved.current = true;
         const touch = e.touches[0];
-        
+
         if (svgRef.current) {
           const svg = svgRef.current;
           const rect = svg.getBoundingClientRect();
           const scaleX = viewWidth / rect.width;
           const scaleY = viewHeight / rect.height;
 
-          const dx = (touch.clientX - lastMousePos.x) * scaleX;
-          const dy = (touch.clientY - lastMousePos.y) * scaleY;
+          const dx = (touch.clientX - lastMousePosRef.current.x) * scaleX;
+          const dy = (touch.clientY - lastMousePosRef.current.y) * scaleY;
 
-          setViewCenter((prev) => ({
-            x: prev.x - dx,
-            y: prev.y - dy,
-          }));
-          setLastMousePos({ x: touch.clientX, y: touch.clientY });
+          const currentCenter = pendingViewCenter.current ?? viewCenterRef.current;
+          const updatedCenter = {
+            x: currentCenter.x - dx,
+            y: currentCenter.y - dy,
+          };
+          pendingViewCenter.current = updatedCenter;
+          viewCenterRef.current = updatedCenter;
+          lastMousePosRef.current = { x: touch.clientX, y: touch.clientY };
+
+          if (rafId.current === null) {
+            rafId.current = requestAnimationFrame(() => {
+              if (pendingViewCenter.current) {
+                setViewCenter(pendingViewCenter.current);
+                pendingViewCenter.current = null;
+              }
+              rafId.current = null;
+            });
+          }
         }
       }
     },
-    [zoom, viewCenter, viewWidth, viewHeight, isPanning, isEditMode, getSvgPoint, lastMousePos]
+    [zoom, viewWidth, viewHeight, isPanning, isEditMode, getSvgPoint]
   );
 
   const handleTouchEnd = useCallback(
@@ -281,10 +479,13 @@ export function JapanMap(props: JapanMapProps) {
       const isTap = touchDuration < 200 && !hasMoved.current;
 
       if (isTap && touchStartPos.current && props.mode === "view") {
-        const point = getSvgPoint(touchStartPos.current.x, touchStartPos.current.y);
+        const point = getSvgPoint(
+          touchStartPos.current.x,
+          touchStartPos.current.y
+        );
         if (point) {
           const hitMarker = markers.find((marker) => {
-            const hitRadius = (MOBILE_MARKER_TAP_RADIUS / zoom);
+            const hitRadius = MOBILE_MARKER_TAP_RADIUS / zoom;
             const dx = Math.abs(marker.x - point.x);
             const dy = Math.abs(marker.y - point.y);
             return dx < hitRadius && dy < hitRadius;
@@ -306,10 +507,10 @@ export function JapanMap(props: JapanMapProps) {
       } else if (e.touches.length === 1) {
         lastTouchDistance.current = null;
         lastTouchCenter.current = null;
-        setLastMousePos({
+        lastMousePosRef.current = {
           x: e.touches[0].clientX,
           y: e.touches[0].clientY,
-        });
+        };
       }
     },
     [markers, zoom, props, getSvgPoint]
@@ -330,19 +531,54 @@ export function JapanMap(props: JapanMapProps) {
     return () => window.removeEventListener("mouseup", handleGlobalMouseUp);
   }, []);
 
-  const baseMarkerSize = 12 / zoom;
-  const hoverMarkerSize = 16 / zoom;
-  const activeMarkerSize = 18 / zoom;
-  const innerDotSize = 5 / zoom;
-  const strokeWidth = 2.5 / zoom;
-  const tooltipHeight = 28 / zoom;
-  const tooltipRadius = 4 / zoom;
-  const fontSize = 14 / zoom;
-  const tooltipOffset = 46 / zoom;
-  const touchTargetSize = MOBILE_MARKER_TAP_RADIUS / zoom;
+  const handleMarkerMouseEnter = useCallback((markerId: string) => {
+    setHoveredMarker(markerId);
+  }, []);
+
+  const handleMarkerMouseLeave = useCallback(() => {
+    setHoveredMarker(null);
+  }, []);
+
+  const handleMarkerClick = useCallback(
+    (e: React.MouseEvent, marker: PropertyMarker) => {
+      e.stopPropagation();
+      if (props.mode === "view" && props.onMarkerClick) {
+        props.onMarkerClick(marker);
+      }
+    },
+    [props]
+  );
+
+  const renderedMarkers = useMemo(
+    () =>
+      markers.map((marker) => (
+        <MapMarker
+          key={marker.id}
+          marker={marker}
+          isHovered={hoveredMarker === marker.id}
+          isActive={activeMarker === marker.id}
+          sizes={sizes}
+          onMouseEnter={() => handleMarkerMouseEnter(marker.id)}
+          onMouseLeave={handleMarkerMouseLeave}
+          onClick={(e) => handleMarkerClick(e, marker)}
+        />
+      )),
+    [
+      markers,
+      hoveredMarker,
+      activeMarker,
+      sizes,
+      handleMarkerMouseEnter,
+      handleMarkerMouseLeave,
+      handleMarkerClick,
+    ]
+  );
 
   return (
-    <div ref={containerRef} className="w-full h-full relative overflow-hidden touch-none">
+    <div
+      ref={containerRef}
+      className="w-full h-full relative overflow-hidden touch-none"
+    >
       <svg
         ref={svgRef}
         viewBox={`${viewX} ${viewY} ${viewWidth} ${viewHeight}`}
@@ -350,8 +586,8 @@ export function JapanMap(props: JapanMapProps) {
           isPanning
             ? "cursor-grabbing"
             : isEditMode
-            ? "cursor-crosshair"
-            : "cursor-grab"
+              ? "cursor-crosshair"
+              : "cursor-grab"
         }`}
         preserveAspectRatio="xMidYMid slice"
         onClick={handleSvgClick}
@@ -371,111 +607,22 @@ export function JapanMap(props: JapanMapProps) {
           height={BASE_HEIGHT}
         />
 
-        {markers.map((marker) => {
-          const isHovered = hoveredMarker === marker.id;
-          const isActive = activeMarker === marker.id;
-          const radius = isActive
-            ? activeMarkerSize
-            : isHovered
-            ? hoverMarkerSize
-            : baseMarkerSize;
-
-          return (
-            <g
-              key={marker.id}
-              className="cursor-pointer"
-              onMouseEnter={() => setHoveredMarker(marker.id)}
-              onMouseLeave={() => setHoveredMarker(null)}
-              onClick={(e) => {
-                e.stopPropagation();
-                if (props.mode === "view" && props.onMarkerClick) {
-                  props.onMarkerClick(marker);
-                }
-              }}
-            >
-              <circle
-                cx={marker.x}
-                cy={marker.y}
-                r={touchTargetSize}
-                fill="transparent"
-                className="pointer-events-auto"
-              />
-              
-              {isActive && (
-                <circle
-                  cx={marker.x}
-                  cy={marker.y}
-                  r={activeMarkerSize * 1.8}
-                  fill="hsl(var(--primary) / 0.2)"
-                  className="pointer-events-none"
-                />
-              )}
-              
-              <circle
-                cx={marker.x}
-                cy={marker.y}
-                r={radius}
-                fill={
-                  isActive
-                    ? "hsl(var(--primary))"
-                    : isHovered
-                    ? "hsl(var(--primary))"
-                    : "hsl(var(--destructive))"
-                }
-                stroke="hsl(var(--background))"
-                strokeWidth={strokeWidth}
-                className="transition-all duration-100"
-              />
-              <circle
-                cx={marker.x}
-                cy={marker.y}
-                r={innerDotSize}
-                fill="hsl(var(--background))"
-                className="pointer-events-none"
-              />
-
-              {(isHovered || isActive) && (
-                <g className="pointer-events-none">
-                  <rect
-                    x={marker.x - 65 / zoom}
-                    y={marker.y - tooltipOffset}
-                    width={130 / zoom}
-                    height={tooltipHeight}
-                    rx={tooltipRadius}
-                    fill="hsl(var(--popover))"
-                    stroke="hsl(var(--border))"
-                    strokeWidth={1 / zoom}
-                  />
-                  <text
-                    x={marker.x}
-                    y={marker.y - tooltipOffset + tooltipHeight * 0.65}
-                    textAnchor="middle"
-                    fill="hsl(var(--popover-foreground))"
-                    fontWeight="500"
-                    fontSize={fontSize}
-                  >
-                    {marker.name}
-                  </text>
-                </g>
-              )}
-            </g>
-          );
-        })}
+        {renderedMarkers}
 
         {selectedLocation && (
           <g className="pointer-events-none">
             <circle
               cx={selectedLocation.x}
               cy={selectedLocation.y}
-              r={hoverMarkerSize}
+              r={sizes.hoverMarkerSize}
               fill="hsl(var(--primary))"
               stroke="hsl(var(--background))"
-              strokeWidth={strokeWidth}
+              strokeWidth={sizes.strokeWidth}
             />
             <circle
               cx={selectedLocation.x}
               cy={selectedLocation.y}
-              r={innerDotSize}
+              r={sizes.innerDotSize}
               fill="hsl(var(--background))"
             />
           </g>

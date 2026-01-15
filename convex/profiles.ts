@@ -7,6 +7,32 @@ import {
 } from "./_generated/server";
 import type { UserJSON } from "@clerk/backend";
 
+export type ProfileRole = "admin" | "user";
+
+export async function isAdmin(ctx: QueryCtx): Promise<boolean> {
+  const user = await getCurrentUser(ctx);
+  return user?.role === "admin";
+}
+
+export async function isApproved(ctx: QueryCtx): Promise<boolean> {
+  const user = await getCurrentUser(ctx);
+  return user?.approved === true;
+}
+
+export async function requireAdmin(ctx: QueryCtx): Promise<void> {
+  const admin = await isAdmin(ctx);
+  if (!admin) {
+    throw new Error("Admin access required");
+  }
+}
+
+export async function requireApproved(ctx: QueryCtx): Promise<void> {
+  const approved = await isApproved(ctx);
+  if (!approved) {
+    throw new Error("Account must be approved to perform this action");
+  }
+}
+
 export const current = query({
   args: {},
   handler: async (ctx) => {
