@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { getConvexClient } from "@/lib/convex";
+import { getAuthenticatedConvexClient } from "@/lib/convex";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 
@@ -13,7 +13,7 @@ export async function POST(req: Request) {
 
   const { propertyId, type = "main" } = await req.json();
 
-  const convex = getConvexClient();
+  const convex = await getAuthenticatedConvexClient();
 
   try {
     const profile = await convex.query(api.profiles.getByClerkId, {

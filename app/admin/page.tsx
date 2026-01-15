@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
-import { getConvexClient } from "@/lib/convex";
+import { getAuthenticatedConvexClient } from "@/lib/convex";
 import { api } from "@/convex/_generated/api";
 import { AdminMembersClient } from "@/components/admin-members-client";
 
@@ -10,7 +10,7 @@ async function AdminContent() {
 
   if (!userId) redirect("/");
 
-  const convex = getConvexClient();
+  const convex = await getAuthenticatedConvexClient();
 
   const profile = await convex.query(api.profiles.getByClerkId, {
     clerkId: userId,

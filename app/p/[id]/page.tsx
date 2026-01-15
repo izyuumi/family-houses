@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
-import { getConvexClient } from "@/lib/convex";
+import { getAuthenticatedConvexClient } from "@/lib/convex";
 import { api } from "@/convex/_generated/api";
 import { PropertyClient } from "@/components/property-client";
 
@@ -14,7 +14,7 @@ async function PropertyContent({ slugOrId }: { slugOrId: string }) {
 
   if (!userId) redirect("/");
 
-  const convex = getConvexClient();
+  const convex = await getAuthenticatedConvexClient();
   const property = await convex.query(api.properties.getBySlugOrId, { slugOrId });
 
   if (!property) {

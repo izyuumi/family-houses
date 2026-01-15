@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { auth } from "@clerk/nextjs/server";
-import { getConvexClient } from "@/lib/convex";
+import { getAuthenticatedConvexClient } from "@/lib/convex";
 import { api } from "@/convex/_generated/api";
 import { HomeClient } from "@/components/home-client";
 import { PendingApprovalClient } from "@/components/pending-approval-client";
@@ -12,7 +12,7 @@ async function HomeContent() {
     return <HomeClient userId={null} properties={[]} />;
   }
 
-  const convex = getConvexClient();
+  const convex = await getAuthenticatedConvexClient();
 
   const profile = await convex.query(api.profiles.getByClerkId, {
     clerkId: userId,
