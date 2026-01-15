@@ -9,12 +9,12 @@
 - Root configs: `next.config.ts`, `tailwind.config.ts`, `eslint.config.mjs`, `tsconfig.json`, `proxy.ts` (Clerk middleware).
 
 ## Build, Test, and Development Commands
-- `npm install`: Install dependencies.
-- `npx convex dev`: Start the Convex dev server (run in its own terminal).
-- `npm run dev`: Start the Next.js dev server at `http://localhost:3000`.
-- `npm run build`: Production build.
-- `npm run start`: Run the production server after build.
-- `npm run lint`: Run ESLint (`next/core-web-vitals` + TypeScript rules).
+- `bun install`: Install dependencies.
+- `bunx convex dev`: Start the Convex dev server (run in its own terminal).
+- `bun run dev`: Start the Next.js dev server at `http://localhost:3000`.
+- `bun run build`: Production build.
+- `bun run start`: Run the production server after build.
+- `bun run lint`: Run ESLint (`next/core-web-vitals` + TypeScript rules).
 
 ## Coding Style & Naming Conventions
 - TypeScript + React; follow existing formatting (2-space indent, semicolons, double quotes).

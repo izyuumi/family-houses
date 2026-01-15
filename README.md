@@ -17,7 +17,7 @@ Manage properties & groceries with Next.js, Clerk authentication, and Convex dat
 ### 1. Clone and install dependencies
 
 ```bash
-npm install
+bun install
 ```
 
 ### 2. Set up Convex
@@ -25,7 +25,7 @@ npm install
 Create a Convex project at [dashboard.convex.dev](https://dashboard.convex.dev) and run:
 
 ```bash
-npx convex dev
+bunx convex dev
 ```
 
 This will prompt you to log in and create a project. It will also generate the Convex URL.
@@ -51,13 +51,13 @@ Get your Convex URL from the [Convex Dashboard](https://dashboard.convex.dev/).
 In one terminal, start the Convex dev server:
 
 ```bash
-npx convex dev
+bunx convex dev
 ```
 
 In another terminal, start the Next.js dev server:
 
 ```bash
-npm run dev
+bun run dev
 ```
 
 The app will be available at [http://localhost:3000](http://localhost:3000).
@@ -65,8 +65,8 @@ The app will be available at [http://localhost:3000](http://localhost:3000).
 ## Build
 
 ```bash
-npm run build
-npm run start
+bun run build
+bun run start
 ```
 
 ## Database Schema
