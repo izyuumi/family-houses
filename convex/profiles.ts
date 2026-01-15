@@ -5,13 +5,18 @@ import {
   internalMutation,
   QueryCtx,
 } from "./_generated/server";
+import type { Doc } from "./_generated/dataModel";
 import type { UserJSON } from "@clerk/backend";
 
 export type ProfileRole = "admin" | "user";
 
+export function isUserAdmin(user: Doc<"profiles"> | null): boolean {
+  return user?.role === "admin";
+}
+
 export async function isAdmin(ctx: QueryCtx): Promise<boolean> {
   const user = await getCurrentUser(ctx);
-  return user?.role === "admin";
+  return isUserAdmin(user);
 }
 
 export async function isApproved(ctx: QueryCtx): Promise<boolean> {

@@ -15,19 +15,13 @@ async function PropertyContent({ slugOrId }: { slugOrId: string }) {
   if (!userId) redirect("/");
 
   const convex = await getAuthenticatedConvexClient();
-  const property = await convex.query(api.properties.getBySlugOrId, { slugOrId });
+  const data = await convex.query(api.properties.propertyDetailData, { slugOrId });
 
-  if (!property) {
+  if (!data) {
     redirect("/");
   }
 
-  const [profile, groceries, propertyItems, propertyNotes] = await Promise.all([
-    convex.query(api.profiles.getByClerkId, { clerkId: userId }),
-    convex.query(api.groceryItems.listByProperty, { propertyId: property._id }),
-    convex.query(api.propertyItems.listByProperty, { propertyId: property._id }),
-    convex.query(api.propertyNotes.listByProperty, { propertyId: property._id }),
-  ]);
-
+  const { property, profile, groceries, propertyItems, propertyNotes } = data;
   const isAdmin = profile?.role === "admin";
 
   return (

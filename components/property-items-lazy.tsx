@@ -46,7 +46,6 @@ function PropertyItemsSkeleton() {
 const PropertyItems = dynamic(
   () => import("@/components/property-items").then((mod) => mod.PropertyItems),
   {
-    ssr: false,
     loading: PropertyItemsSkeleton,
   }
 );

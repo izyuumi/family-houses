@@ -52,7 +52,6 @@ function GroceriesSkeleton() {
 const Groceries = dynamic(
   () => import("@/components/groceries").then((mod) => mod.Groceries),
   {
-    ssr: false,
     loading: GroceriesSkeleton,
   }
 );

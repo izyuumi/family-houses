@@ -13,18 +13,13 @@ async function HomeContent() {
   }
 
   const convex = await getAuthenticatedConvexClient();
+  const homeData = await convex.query(api.properties.homeData);
 
-  const profile = await convex.query(api.profiles.getByClerkId, {
-    clerkId: userId,
-  });
-
-  if (profile && profile.approved !== true && profile.role !== "admin") {
+  if (homeData.needsApproval) {
     return <PendingApprovalClient />;
   }
 
-  const properties = await convex.query(api.properties.list);
-
-  return <HomeClient userId={userId} properties={properties} />;
+  return <HomeClient userId={userId} properties={homeData.properties} />;
 }
 
 function LoadingState() {

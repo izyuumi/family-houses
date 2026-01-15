@@ -1,21 +1,21 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
-import { getCurrentUser, isAdmin, requireAdmin } from "./profiles";
+import { getCurrentUser, isUserAdmin, requireAdmin } from "./profiles";
 import {
-  isApprovedOrAdmin,
-  canAccessProperty,
+  isUserApprovedOrAdmin,
+  canAccessPropertyWithUser,
   getMembershipForProperty,
 } from "./permissions";
+import { getProfileMap, extractClerkIds, enrichWithCreator } from "./utils";
 
 export const list = query({
   args: {},
   handler: async (ctx) => {
     const user = await getCurrentUser(ctx);
     if (!user) return [];
+    if (!isUserApprovedOrAdmin(user)) return [];
 
-    if (!(await isApprovedOrAdmin(ctx))) return [];
-
-    if (await isAdmin(ctx)) {
+    if (isUserAdmin(user)) {
       return await ctx.db.query("properties").order("asc").collect();
     }
 
@@ -32,18 +32,135 @@ export const list = query({
   },
 });
 
+export const homeData = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await getCurrentUser(ctx);
+    if (!user) {
+      return { profile: null, properties: [], needsApproval: false };
+    }
+
+    if (!isUserApprovedOrAdmin(user)) {
+      return { profile: user, properties: [], needsApproval: true };
+    }
+
+    let properties;
+    if (isUserAdmin(user)) {
+      properties = await ctx.db.query("properties").order("asc").collect();
+    } else {
+      const memberships = await ctx.db
+        .query("propertyMembers")
+        .withIndex("by_user", (q) => q.eq("userId", user.clerkId))
+        .collect();
+
+      const fetchedProperties = await Promise.all(
+        memberships.map((m) => ctx.db.get(m.propertyId))
+      );
+      properties = fetchedProperties.filter((p) => p !== null);
+    }
+
+    return { profile: user, properties, needsApproval: false };
+  },
+});
+
 export const getById = query({
   args: { id: v.id("properties") },
   handler: async (ctx, args) => {
-    if (!(await canAccessProperty(ctx, args.id))) return null;
+    const user = await getCurrentUser(ctx);
+    if (!(await canAccessPropertyWithUser(ctx, args.id, user))) return null;
     return await ctx.db.get(args.id);
+  },
+});
+
+export const propertyDetailData = query({
+  args: { slugOrId: v.string() },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+    if (!user) return null;
+    if (!isUserApprovedOrAdmin(user)) return null;
+
+    let property = await ctx.db
+      .query("properties")
+      .withIndex("by_slug", (q) => q.eq("slug", args.slugOrId))
+      .first();
+
+    if (!property) {
+      try {
+        const normalized = ctx.db.normalizeId("properties", args.slugOrId);
+        if (normalized) {
+          property = await ctx.db.get(normalized);
+        }
+      } catch {
+        return null;
+      }
+    }
+
+    if (!property) return null;
+    if (!(await canAccessPropertyWithUser(ctx, property._id, user))) return null;
+
+    const [groceryItems, propertyItems, propertyNotes] = await Promise.all([
+      ctx.db
+        .query("groceryItems")
+        .withIndex("by_property", (q) => q.eq("propertyId", property._id))
+        .collect(),
+      ctx.db
+        .query("propertyItems")
+        .withIndex("by_property", (q) => q.eq("propertyId", property._id))
+        .collect(),
+      ctx.db
+        .query("propertyNotes")
+        .withIndex("by_property", (q) => q.eq("propertyId", property._id))
+        .collect(),
+    ]);
+
+    const allClerkIds = [
+      ...extractClerkIds(groceryItems, "addedBy", "completedBy"),
+      ...extractClerkIds(propertyItems, "createdBy"),
+      ...extractClerkIds(propertyNotes, "createdBy"),
+    ];
+    const uniqueClerkIds = [...new Set(allClerkIds)];
+    const profileMap = await getProfileMap(ctx, uniqueClerkIds);
+
+    const groceriesWithProfiles = groceryItems
+      .map((item) => ({
+        ...item,
+        adder: item.addedBy ? profileMap.get(item.addedBy) ?? null : null,
+        completer: item.completedBy ? profileMap.get(item.completedBy) ?? null : null,
+      }))
+      .sort((a, b) => {
+        if (a.checked !== b.checked) return a.checked ? 1 : -1;
+        return (b._creationTime ?? 0) - (a._creationTime ?? 0);
+      });
+
+    const itemsWithProfiles = propertyItems
+      .map((item) => ({
+        ...item,
+        creator: item.createdBy ? profileMap.get(item.createdBy) ?? null : null,
+      }))
+      .sort((a, b) => (b._creationTime ?? 0) - (a._creationTime ?? 0));
+
+    const notesWithProfiles = propertyNotes
+      .map((note) => ({
+        ...note,
+        creator: note.createdBy ? profileMap.get(note.createdBy) ?? null : null,
+      }))
+      .sort((a, b) => (b._creationTime ?? 0) - (a._creationTime ?? 0));
+
+    return {
+      property,
+      profile: user,
+      groceries: groceriesWithProfiles,
+      propertyItems: itemsWithProfiles,
+      propertyNotes: notesWithProfiles,
+    };
   },
 });
 
 export const getBySlugOrId = query({
   args: { slugOrId: v.string() },
   handler: async (ctx, args) => {
-    if (!(await isApprovedOrAdmin(ctx))) return null;
+    const user = await getCurrentUser(ctx);
+    if (!isUserApprovedOrAdmin(user)) return null;
 
     const bySlug = await ctx.db
       .query("properties")
@@ -51,14 +168,14 @@ export const getBySlugOrId = query({
       .first();
 
     if (bySlug) {
-      if (!(await canAccessProperty(ctx, bySlug._id))) return null;
+      if (!(await canAccessPropertyWithUser(ctx, bySlug._id, user))) return null;
       return bySlug;
     }
 
     try {
       const normalized = ctx.db.normalizeId("properties", args.slugOrId);
       if (normalized) {
-        if (!(await canAccessProperty(ctx, normalized))) return null;
+        if (!(await canAccessPropertyWithUser(ctx, normalized, user))) return null;
         return await ctx.db.get(normalized);
       }
     } catch {
@@ -126,10 +243,9 @@ export const update = mutation({
 export const getWifiPassword = query({
   args: { id: v.id("properties"), type: v.string() },
   handler: async (ctx, args) => {
-    if (!(await canAccessProperty(ctx, args.id))) return null;
-
     const user = await getCurrentUser(ctx);
     if (!user) return null;
+    if (!(await canAccessPropertyWithUser(ctx, args.id, user))) return null;
 
     if (user.role !== "admin") {
       const membership = await getMembershipForProperty(

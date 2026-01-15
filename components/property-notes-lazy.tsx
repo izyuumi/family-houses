@@ -43,7 +43,6 @@ function PropertyNotesSkeleton() {
 const PropertyNotes = dynamic(
   () => import("@/components/property-notes").then((mod) => mod.PropertyNotes),
   {
-    ssr: false,
     loading: PropertyNotesSkeleton,
   }
 );

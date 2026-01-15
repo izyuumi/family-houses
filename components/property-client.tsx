@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { InfoCardLazy } from "@/components/info-card-lazy";
-import { GroceriesLazy } from "@/components/groceries-lazy";
-import { PropertyItemsLazy } from "@/components/property-items-lazy";
-import { PropertyNotesLazy } from "@/components/property-notes-lazy";
+import { InfoCard } from "@/components/info-card";
+import { Groceries } from "@/components/groceries";
+import { PropertyItems } from "@/components/property-items";
+import { PropertyNotes } from "@/components/property-notes";
 import { Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { buildFullAddress } from "@/components/address-display";
@@ -118,18 +118,18 @@ export function PropertyClient({
           <p className="text-sm text-muted-foreground mb-4">{fullAddress}</p>
         )}
         <div className="space-y-6">
-          <InfoCardLazy property={property} />
-          <GroceriesLazy
+          <InfoCard property={property} />
+          <Groceries
             propertyId={property.id}
             initialItems={initialGroceries}
             userId={userId}
           />
-          <PropertyNotesLazy
+          <PropertyNotes
             propertyId={property.id}
             initialNotes={initialPropertyNotes}
             userId={userId}
           />
-          <PropertyItemsLazy
+          <PropertyItems
             propertyId={property.id}
             initialItems={initialPropertyItems}
             userId={userId}

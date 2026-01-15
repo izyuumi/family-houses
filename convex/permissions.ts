@@ -1,8 +1,9 @@
 import { QueryCtx } from "./_generated/server";
-import type { Id } from "./_generated/dataModel";
-import { getCurrentUser, isAdmin } from "./profiles";
+import type { Id, Doc } from "./_generated/dataModel";
+import { getCurrentUser } from "./profiles";
 
 export type MemberRole = "owner" | "member" | "guest";
+export type UserProfile = Doc<"profiles"> | null;
 
 const ROLE_HIERARCHY: Record<MemberRole, number> = {
   owner: 3,
@@ -17,11 +18,19 @@ export function hasMinimumRole(
   return ROLE_HIERARCHY[userRole] >= ROLE_HIERARCHY[requiredRole];
 }
 
-export async function isApprovedOrAdmin(ctx: QueryCtx): Promise<boolean> {
-  const user = await getCurrentUser(ctx);
+export function isUserAdmin(user: UserProfile): boolean {
+  return user?.role === "admin";
+}
+
+export function isUserApprovedOrAdmin(user: UserProfile): boolean {
   if (!user) return false;
   if (user.role === "admin") return true;
   return user.approved === true;
+}
+
+export async function isApprovedOrAdmin(ctx: QueryCtx): Promise<boolean> {
+  const user = await getCurrentUser(ctx);
+  return isUserApprovedOrAdmin(user);
 }
 
 export async function getMembershipForProperty(
@@ -37,17 +46,45 @@ export async function getMembershipForProperty(
     .first();
 }
 
-export async function canAccessProperty(
+export function canUserAccessPropertyWithMembership(
+  user: UserProfile,
+  membership: Doc<"propertyMembers"> | null
+): boolean {
+  if (!user) return false;
+  if (!user.approved && user.role !== "admin") return false;
+  if (user.role === "admin") return true;
+  return membership !== null;
+}
+
+export async function canAccessPropertyWithUser(
   ctx: QueryCtx,
-  propertyId: Id<"properties">
+  propertyId: Id<"properties">,
+  user: UserProfile
 ): Promise<boolean> {
-  const user = await getCurrentUser(ctx);
   if (!user) return false;
   if (!user.approved && user.role !== "admin") return false;
   if (user.role === "admin") return true;
 
   const membership = await getMembershipForProperty(ctx, propertyId, user.clerkId);
   return membership !== null;
+}
+
+export async function canAccessProperty(
+  ctx: QueryCtx,
+  propertyId: Id<"properties">
+): Promise<boolean> {
+  const user = await getCurrentUser(ctx);
+  return canAccessPropertyWithUser(ctx, propertyId, user);
+}
+
+export async function requirePropertyAccessWithUser(
+  ctx: QueryCtx,
+  propertyId: Id<"properties">,
+  user: UserProfile
+): Promise<void> {
+  if (!(await canAccessPropertyWithUser(ctx, propertyId, user))) {
+    throw new Error("You do not have access to this property");
+  }
 }
 
 export async function requirePropertyAccess(
@@ -59,27 +96,33 @@ export async function requirePropertyAccess(
   }
 }
 
-export async function canViewProperty(
+export async function canViewPropertyWithUser(
   ctx: QueryCtx,
-  propertyId: Id<"properties">
+  propertyId: Id<"properties">,
+  user: UserProfile
 ): Promise<boolean> {
-  const user = await getCurrentUser(ctx);
   if (!user) return false;
-
-  if (await isAdmin(ctx)) return true;
+  if (user.role === "admin") return true;
 
   const membership = await getMembershipForProperty(ctx, propertyId, user.clerkId);
   return membership !== null;
 }
 
-export async function canEditProperty(
+export async function canViewProperty(
   ctx: QueryCtx,
   propertyId: Id<"properties">
 ): Promise<boolean> {
   const user = await getCurrentUser(ctx);
-  if (!user) return false;
+  return canViewPropertyWithUser(ctx, propertyId, user);
+}
 
-  if (await isAdmin(ctx)) return true;
+export async function canEditPropertyWithUser(
+  ctx: QueryCtx,
+  propertyId: Id<"properties">,
+  user: UserProfile
+): Promise<boolean> {
+  if (!user) return false;
+  if (user.role === "admin") return true;
 
   const membership = await getMembershipForProperty(ctx, propertyId, user.clerkId);
   if (!membership) return false;
@@ -87,14 +130,21 @@ export async function canEditProperty(
   return hasMinimumRole(membership.role, "owner");
 }
 
-export async function canManageMembers(
+export async function canEditProperty(
   ctx: QueryCtx,
   propertyId: Id<"properties">
 ): Promise<boolean> {
   const user = await getCurrentUser(ctx);
-  if (!user) return false;
+  return canEditPropertyWithUser(ctx, propertyId, user);
+}
 
-  if (await isAdmin(ctx)) return true;
+export async function canManageMembersWithUser(
+  ctx: QueryCtx,
+  propertyId: Id<"properties">,
+  user: UserProfile
+): Promise<boolean> {
+  if (!user) return false;
+  if (user.role === "admin") return true;
 
   const membership = await getMembershipForProperty(ctx, propertyId, user.clerkId);
   if (!membership) return false;
@@ -102,14 +152,43 @@ export async function canManageMembers(
   return membership.role === "owner";
 }
 
+export async function canManageMembers(
+  ctx: QueryCtx,
+  propertyId: Id<"properties">
+): Promise<boolean> {
+  const user = await getCurrentUser(ctx);
+  return canManageMembersWithUser(ctx, propertyId, user);
+}
+
+export async function canViewWifiWithUser(
+  ctx: QueryCtx,
+  propertyId: Id<"properties">,
+  user: UserProfile
+): Promise<boolean> {
+  if (!user) return false;
+  if (user.role === "admin") return true;
+
+  const membership = await getMembershipForProperty(ctx, propertyId, user.clerkId);
+  if (!membership) return false;
+
+  return hasMinimumRole(membership.role, "member");
+}
+
 export async function canViewWifi(
   ctx: QueryCtx,
   propertyId: Id<"properties">
 ): Promise<boolean> {
   const user = await getCurrentUser(ctx);
-  if (!user) return false;
+  return canViewWifiWithUser(ctx, propertyId, user);
+}
 
-  if (await isAdmin(ctx)) return true;
+export async function canAddItemsWithUser(
+  ctx: QueryCtx,
+  propertyId: Id<"properties">,
+  user: UserProfile
+): Promise<boolean> {
+  if (!user) return false;
+  if (user.role === "admin") return true;
 
   const membership = await getMembershipForProperty(ctx, propertyId, user.clerkId);
   if (!membership) return false;
@@ -122,14 +201,7 @@ export async function canAddItems(
   propertyId: Id<"properties">
 ): Promise<boolean> {
   const user = await getCurrentUser(ctx);
-  if (!user) return false;
-
-  if (await isAdmin(ctx)) return true;
-
-  const membership = await getMembershipForProperty(ctx, propertyId, user.clerkId);
-  if (!membership) return false;
-
-  return hasMinimumRole(membership.role, "member");
+  return canAddItemsWithUser(ctx, propertyId, user);
 }
 
 export async function requireViewAccess(

@@ -50,7 +50,6 @@ function InfoCardSkeleton() {
 const InfoCard = dynamic(
   () => import("@/components/info-card").then((mod) => mod.InfoCard),
   {
-    ssr: false,
     loading: InfoCardSkeleton,
   }
 );
