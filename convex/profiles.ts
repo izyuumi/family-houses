@@ -43,6 +43,18 @@ export const current = query({
 export const getByClerkId = query({
   args: { clerkId: v.string() },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Authentication required");
+    }
+
+    const isUserAdmin = await isAdmin(ctx);
+    const isOwnProfile = identity.subject === args.clerkId;
+
+    if (!isUserAdmin && !isOwnProfile) {
+      throw new Error("You can only view your own profile");
+    }
+
     return await ctx.db
       .query("profiles")
       .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
