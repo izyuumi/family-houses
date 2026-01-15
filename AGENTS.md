@@ -1,35 +1,36 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-- `app/`: Next.js App Router pages, route handlers, and layouts (`app/page.tsx`, `app/api/`, `app/auth/`).
-- `components/`: Reusable UI components (shadcn/ui + custom).
-- `lib/`: Shared utilities and data helpers.
-- `convex/`: Convex database schema, queries, and mutations.
-- `public/`: Static assets served as-is (images, icons).
-- Config files live at the repo root (`next.config.ts`, `tailwind.config.ts`, `eslint.config.mjs`, `tsconfig.json`).
+- `app/`: Next.js App Router routes, layouts, and server/client components.
+- `components/`: Feature components; shared UI primitives live in `components/ui/` (shadcn/ui style).
+- `convex/`: Convex schema, queries, and mutations for real-time data.
+- `lib/`: Shared utilities (e.g., i18n context, helpers).
+- `public/`: Static assets served at `/`.
+- Root configs: `next.config.ts`, `tailwind.config.ts`, `eslint.config.mjs`, `tsconfig.json`, `proxy.ts` (Clerk middleware).
 
 ## Build, Test, and Development Commands
-- `npm run dev`: Start the local Next.js dev server.
-- `npx convex dev`: Start the Convex dev server (run in parallel with Next.js).
-- `npm run build`: Create a production build.
-- `npm run start`: Run the production server after a build.
-- `npm run lint`: Run ESLint with Next.js rules.
+- `npm install`: Install dependencies.
+- `npx convex dev`: Start the Convex dev server (run in its own terminal).
+- `npm run dev`: Start the Next.js dev server at `http://localhost:3000`.
+- `npm run build`: Production build.
+- `npm run start`: Run the production server after build.
+- `npm run lint`: Run ESLint (`next/core-web-vitals` + TypeScript rules).
 
 ## Coding Style & Naming Conventions
-- TypeScript-first (see `tsconfig.json`); use `.tsx` for React components.
-- Follow Next.js and `next/core-web-vitals` ESLint rules (`eslint.config.mjs`).
-- Prefer Tailwind utility classes for styling; keep components small and focused.
-- Naming: React components in `PascalCase`, hooks in `useCamelCase`, files in `kebab-case` or `camelCase` matching existing patterns.
+- TypeScript + React; follow existing formatting (2-space indent, semicolons, double quotes).
+- File naming is kebab-case (`property-notes.tsx`); components are PascalCase (`PropertyNotes`).
+- Hooks use `useX` naming; shared imports use the `@/*` path alias.
+- Styling is Tailwind CSS; prefer utility classes over bespoke CSS.
 
 ## Testing Guidelines
-- No automated test framework is configured in this repo.
-- If you add tests, document the framework and add a script (e.g., `npm test`).
+- No automated test runner is configured yet (no `test` script).
+- If you add tests, prefer colocated files like `*.test.tsx` or a `__tests__/` folder and add a `test` script in `package.json`.
 
 ## Commit & Pull Request Guidelines
-- Commit messages follow a Conventional Commits style (`feat: ...`, `chore: ...`).
-- Keep commits focused and include brief context in the subject line.
-- PRs should include: a concise description, relevant screenshots for UI changes, and linked issues if applicable.
+- Commit messages follow Conventional Commits: `feat:`, `refactor:`, `chore:` (e.g., `feat: add property map filters`).
+- PRs should include a short summary, testing notes (commands run), and screenshots/GIFs for UI changes.
+- Call out any environment or schema changes (e.g., new `.env.local` keys or Convex schema updates).
 
-## Configuration & Environment
-- Clerk and Convex credentials are expected in `.env.local` (see `README.md` for keys).
-- Do not commit secrets; use environment variables for all external services.
+## Configuration & Secrets
+- Store Clerk and Convex keys in `.env.local` (see README). Never commit secrets.
+- When updating Convex schema or functions, keep `convex/` changes in the same PR as UI updates that depend on them.
