@@ -119,6 +119,11 @@ export function PropertyClient({
         )}
         <div className="space-y-6">
           <InfoCardLazy property={property} />
+          <GroceriesLazy
+            propertyId={property.id}
+            initialItems={initialGroceries}
+            userId={userId}
+          />
           <PropertyNotesLazy
             propertyId={property.id}
             initialNotes={initialPropertyNotes}
@@ -127,11 +132,6 @@ export function PropertyClient({
           <PropertyItemsLazy
             propertyId={property.id}
             initialItems={initialPropertyItems}
-            userId={userId}
-          />
-          <GroceriesLazy
-            propertyId={property.id}
-            initialItems={initialGroceries}
             userId={userId}
           />
         </div>
