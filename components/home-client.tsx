@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { SignInButton } from "@clerk/nextjs";
+import { SignIn } from "@clerk/nextjs";
 import { useI18n } from "@/lib/i18n/context";
 import { MapDashboardLazy } from "@/components/map-dashboard-lazy";
 import { Button } from "@/components/ui/button";
@@ -36,7 +36,7 @@ export function HomeClient({ userId, properties }: HomeClientProps) {
   if (!userId) {
     return (
       <main className="min-h-dvh flex flex-col items-center justify-center p-8">
-        <div className="flex flex-col items-center gap-16">
+        <div className="flex flex-col items-center gap-8">
           <div className="flex flex-col items-center gap-4">
             <Home className="h-14 w-14 text-primary" />
             <h1 className="text-4xl font-bold tracking-tight">
@@ -46,11 +46,7 @@ export function HomeClient({ userId, properties }: HomeClientProps) {
               {t.home.subtitle}
             </p>
           </div>
-          <SignInButton mode="modal">
-            <Button size="lg" className="px-8 py-6 text-lg">
-              {t.common.signIn}
-            </Button>
-          </SignInButton>
+          <SignIn />
         </div>
       </main>
     );
