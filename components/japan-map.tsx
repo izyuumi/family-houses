@@ -24,10 +24,11 @@ export interface PropertyMarker {
 
 const BASE_WIDTH = 1000;
 const BASE_HEIGHT = 846;
-const MIN_ZOOM = 1;
+const MIN_ZOOM = 0.5;
 const MAX_ZOOM = 5;
 const ZOOM_SENSITIVITY = 0.001;
 const MOBILE_MARKER_TAP_RADIUS = 25;
+const FIT_PADDING = 0.15;
 
 type JapanMapViewProps = {
   mode: "view";
@@ -189,6 +190,42 @@ export function JapanMap(props: JapanMapProps) {
   const propsMarkers = isEditMode ? undefined : props.markers;
   const markers = useMemo(() => propsMarkers ?? [], [propsMarkers]);
   const selectedLocation = isEditMode ? props.selectedLocation : null;
+  const hasFittedRef = useRef(false);
+
+  const fitToMarkers = useCallback(() => {
+    if (markers.length === 0) return;
+
+    const xs = markers.map((m) => m.x);
+    const ys = markers.map((m) => m.y);
+    const minX = Math.min(...xs);
+    const maxX = Math.max(...xs);
+    const minY = Math.min(...ys);
+    const maxY = Math.max(...ys);
+
+    const centerX = (minX + maxX) / 2;
+    const centerY = (minY + maxY) / 2;
+
+    const boundsWidth = maxX - minX;
+    const boundsHeight = maxY - minY;
+
+    const paddedWidth = boundsWidth * (1 + FIT_PADDING * 2) || BASE_WIDTH * 0.3;
+    const paddedHeight = boundsHeight * (1 + FIT_PADDING * 2) || BASE_HEIGHT * 0.3;
+
+    const zoomX = BASE_WIDTH / paddedWidth;
+    const zoomY = BASE_HEIGHT / paddedHeight;
+    const targetZoom = Math.min(zoomX, zoomY, MAX_ZOOM);
+    const clampedZoom = Math.max(MIN_ZOOM, targetZoom);
+
+    setZoom(clampedZoom);
+    setViewCenter({ x: centerX, y: centerY });
+  }, [markers]);
+
+  useEffect(() => {
+    if (!isEditMode && markers.length > 0 && !hasFittedRef.current) {
+      hasFittedRef.current = true;
+      fitToMarkers();
+    }
+  }, [isEditMode, markers, fitToMarkers]);
 
   const viewWidth = BASE_WIDTH / zoom;
   const viewHeight = BASE_HEIGHT / zoom;
@@ -329,9 +366,13 @@ export function JapanMap(props: JapanMapProps) {
   );
 
   const resetView = useCallback(() => {
-    setZoom(1);
-    setViewCenter({ x: BASE_WIDTH / 2, y: BASE_HEIGHT / 2 });
-  }, []);
+    if (!isEditMode && markers.length > 0) {
+      fitToMarkers();
+    } else {
+      setZoom(1);
+      setViewCenter({ x: BASE_WIDTH / 2, y: BASE_HEIGHT / 2 });
+    }
+  }, [isEditMode, markers.length, fitToMarkers]);
 
   const zoomIn = useCallback(() => {
     setZoom((prev) => Math.min(MAX_ZOOM, prev * 1.5));
