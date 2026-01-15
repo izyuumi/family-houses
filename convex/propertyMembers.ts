@@ -15,7 +15,7 @@ export const memberRoleValidator = v.union(
   v.literal("guest")
 );
 
-export { MemberRole };
+export type { MemberRole };
 
 const ROLE_HIERARCHY: Record<MemberRole, number> = {
   owner: 3,
