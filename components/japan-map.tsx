@@ -28,7 +28,7 @@ const MIN_ZOOM = 0.5;
 const MAX_ZOOM = 5;
 const ZOOM_SENSITIVITY = 0.001;
 const MOBILE_MARKER_TAP_RADIUS = 25;
-const FIT_PADDING = 0.15;
+const FIT_PADDING = 0.35;
 
 type JapanMapViewProps = {
   mode: "view";
@@ -193,7 +193,24 @@ export function JapanMap(props: JapanMapProps) {
   const hasFittedRef = useRef(false);
 
   const fitToMarkers = useCallback(() => {
-    if (markers.length === 0) return;
+    if (markers.length === 0 || !containerRef.current) return;
+
+    const container = containerRef.current;
+    const containerWidth = container.clientWidth;
+    const containerHeight = container.clientHeight;
+    if (containerWidth === 0 || containerHeight === 0) return;
+
+    const containerAspect = containerWidth / containerHeight;
+    const baseAspect = BASE_WIDTH / BASE_HEIGHT;
+
+    let visibleWidth = BASE_WIDTH;
+    let visibleHeight = BASE_HEIGHT;
+
+    if (containerAspect < baseAspect) {
+      visibleWidth = BASE_HEIGHT * containerAspect;
+    } else {
+      visibleHeight = BASE_WIDTH / containerAspect;
+    }
 
     const xs = markers.map((m) => m.x);
     const ys = markers.map((m) => m.y);
@@ -208,11 +225,11 @@ export function JapanMap(props: JapanMapProps) {
     const boundsWidth = maxX - minX;
     const boundsHeight = maxY - minY;
 
-    const paddedWidth = boundsWidth * (1 + FIT_PADDING * 2) || BASE_WIDTH * 0.3;
-    const paddedHeight = boundsHeight * (1 + FIT_PADDING * 2) || BASE_HEIGHT * 0.3;
+    const paddedWidth = boundsWidth * (1 + FIT_PADDING * 2) || visibleWidth * 0.3;
+    const paddedHeight = boundsHeight * (1 + FIT_PADDING * 2) || visibleHeight * 0.3;
 
-    const zoomX = BASE_WIDTH / paddedWidth;
-    const zoomY = BASE_HEIGHT / paddedHeight;
+    const zoomX = visibleWidth / paddedWidth;
+    const zoomY = visibleHeight / paddedHeight;
     const targetZoom = Math.min(zoomX, zoomY, MAX_ZOOM);
     const clampedZoom = Math.max(MIN_ZOOM, targetZoom);
 
