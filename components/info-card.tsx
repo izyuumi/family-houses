@@ -42,10 +42,8 @@ export function InfoCard({ property }: InfoCardProps) {
   const [loadingMailboxLock, setLoadingMailboxLock] = useState(false);
   const [copiedWifi, setCopiedWifi] = useState(false);
   const [copiedGuestWifi, setCopiedGuestWifi] = useState(false);
-  const [copiedMailboxLock, setCopiedMailboxLock] = useState(false);
   const [mailboxLockCombination, setMailboxLockCombination] = useState<string | null>(null);
   const [loadingAutoLock, setLoadingAutoLock] = useState(false);
-  const [copiedAutoLock, setCopiedAutoLock] = useState(false);
   const [autoLockCode, setAutoLockCode] = useState<string | null>(null);
 
   const revealAndCopyWifi = async (type: "main" | "guest") => {
@@ -97,7 +95,7 @@ export function InfoCard({ property }: InfoCardProps) {
     }
   };
 
-  const revealAndCopyMailboxLock = async () => {
+  const revealMailboxLock = async () => {
     setLoadingMailboxLock(true);
 
     const res = await fetch("/api/lock/reveal", {
@@ -110,29 +108,10 @@ export function InfoCard({ property }: InfoCardProps) {
     setLoadingMailboxLock(false);
     if (json.combination !== undefined) {
       setMailboxLockCombination(json.combination);
-      if (json.combination) {
-        await copyCombinationToClipboard(json.combination);
-      }
     }
   };
 
-  const copyCombinationToClipboard = async (combination: string) => {
-    try {
-      const formatted = formatMailboxLockForDisplayLocalized(
-        combination,
-        t.form.mailboxLockRight,
-        t.form.mailboxLockLeft
-      );
-      await navigator.clipboard.writeText(formatted || combination);
-      setCopiedMailboxLock(true);
-      setTimeout(() => setCopiedMailboxLock(false), 2000);
-      toast.success(t.toast.combinationCopied);
-    } catch {
-      toast.error(t.toast.copyFailed);
-    }
-  };
-
-  const revealAndCopyAutoLock = async () => {
+  const revealAutoLock = async () => {
     setLoadingAutoLock(true);
 
     const res = await fetch("/api/autolock/reveal", {
@@ -145,21 +124,6 @@ export function InfoCard({ property }: InfoCardProps) {
     setLoadingAutoLock(false);
     if (json.code !== undefined) {
       setAutoLockCode(json.code);
-      if (json.code) {
-        await copyAutoLockToClipboard(json.code);
-      }
-    }
-  };
-
-  const copyAutoLockToClipboard = async (code: string) => {
-    try {
-      const formatted = formatAutoLockForDisplay(code);
-      await navigator.clipboard.writeText(formatted || code);
-      setCopiedAutoLock(true);
-      setTimeout(() => setCopiedAutoLock(false), 2000);
-      toast.success(t.toast.autoLockCopied);
-    } catch {
-      toast.error(t.toast.copyFailed);
     }
   };
 
@@ -319,38 +283,20 @@ export function InfoCard({ property }: InfoCardProps) {
                       ) || "—"}
                 </div>
               </div>
-              <div className="flex gap-2">
-                {mailboxLockCombination === null ? (
-                  <Button
-                    variant="default"
-                    size="sm"
-                    disabled={loadingMailboxLock}
-                    onClick={revealAndCopyMailboxLock}
-                  >
-                    {loadingMailboxLock ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <>
-                        <Eye className="h-4 w-4" />
-                        <Copy className="h-4 w-4" />
-                      </>
-                    )}
-                  </Button>
-                ) : (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={!mailboxLockCombination}
-                    onClick={() => mailboxLockCombination && copyCombinationToClipboard(mailboxLockCombination)}
-                  >
-                    {copiedMailboxLock ? (
-                      <Check className="h-4 w-4" />
-                    ) : (
-                      <Copy className="h-4 w-4" />
-                    )}
-                  </Button>
-                )}
-              </div>
+              {mailboxLockCombination === null && (
+                <Button
+                  variant="default"
+                  size="sm"
+                  disabled={loadingMailboxLock}
+                  onClick={revealMailboxLock}
+                >
+                  {loadingMailboxLock ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </Button>
+              )}
             </div>
           </div>
         )}
@@ -375,38 +321,20 @@ export function InfoCard({ property }: InfoCardProps) {
                     : formatAutoLockForDisplay(autoLockCode) || "—"}
                 </div>
               </div>
-              <div className="flex gap-2">
-                {autoLockCode === null ? (
-                  <Button
-                    variant="default"
-                    size="sm"
-                    disabled={loadingAutoLock}
-                    onClick={revealAndCopyAutoLock}
-                  >
-                    {loadingAutoLock ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <>
-                        <Eye className="h-4 w-4" />
-                        <Copy className="h-4 w-4" />
-                      </>
-                    )}
-                  </Button>
-                ) : (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={!autoLockCode}
-                    onClick={() => autoLockCode && copyAutoLockToClipboard(autoLockCode)}
-                  >
-                    {copiedAutoLock ? (
-                      <Check className="h-4 w-4" />
-                    ) : (
-                      <Copy className="h-4 w-4" />
-                    )}
-                  </Button>
-                )}
-              </div>
+              {autoLockCode === null && (
+                <Button
+                  variant="default"
+                  size="sm"
+                  disabled={loadingAutoLock}
+                  onClick={revealAutoLock}
+                >
+                  {loadingAutoLock ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </Button>
+              )}
             </div>
           </div>
         )}
