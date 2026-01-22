@@ -3,7 +3,14 @@
 import { useState, useCallback } from "react";
 import { useI18n } from "@/lib/i18n/context";
 import { Button } from "@/components/ui/button";
-import { Copy, Check, MapPin, ExternalLink } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Copy, Check, MapPin, ExternalLink, Info } from "lucide-react";
 
 export interface StructuredAddress {
   postal_code: string | null;
@@ -333,7 +340,7 @@ export function AddressDisplay({
             {t.form.address}
           </div>
 
-          <div className="mb-3">
+          <div className="flex gap-2 mb-3">
             <Button
               onClick={async () => {
                 await navigator.clipboard.writeText(fullAddress);
@@ -343,24 +350,40 @@ export function AddressDisplay({
               }}
               variant="outline"
               size="sm"
-              className="w-full justify-start"
+              className="flex-1 justify-start min-w-0"
             >
               <Copy className="h-4 w-4 mr-2 shrink-0" />
               <span className="truncate">{fullAddress}</span>
             </Button>
+
+            {lines.length > 0 && (
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="shrink-0">
+                    <Info className="h-4 w-4" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-sm">
+                  <DialogHeader>
+                    <DialogTitle>
+                      {language === "ja" ? "住所詳細" : "Address Details"}
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-0.5">
+                    {lines.map((line) => (
+                      <AddressLineRow
+                        key={line.key}
+                        line={line}
+                        onCopy={handleLineCopy}
+                      />
+                    ))}
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
           </div>
 
-          <div className="space-y-0.5">
-            {lines.map((line) => (
-              <AddressLineRow
-                key={line.key}
-                line={line}
-                onCopy={handleLineCopy}
-              />
-            ))}
-          </div>
-
-          <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t">
+          <div className="grid grid-cols-2 gap-2 pt-3 border-t">
             <Button asChild variant="ghost" size="sm">
               <a href={finalAppleMapsUrl} target="_blank" rel="noopener noreferrer">
                 <ExternalLink className="h-4 w-4 mr-1.5" />
