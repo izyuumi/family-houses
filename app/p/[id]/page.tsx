@@ -42,6 +42,7 @@ async function PropertyContent({ slugOrId }: { slugOrId: string }) {
         wifi_ssid: property.wifiSsid ?? null,
         guest_wifi_ssid: property.guestWifiSsid ?? null,
         has_mailbox_lock: !!property.mailboxLockCombination,
+        has_auto_lock: !!property.autoLockCode,
       }}
       isAdmin={isAdmin}
       userId={userId}

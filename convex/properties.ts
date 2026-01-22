@@ -206,6 +206,7 @@ export const create = mutation({
     guestWifiSsid: v.optional(v.string()),
     guestWifiPassword: v.optional(v.string()),
     mailboxLockCombination: v.optional(v.string()),
+    autoLockCode: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await requireAdmin(ctx);
@@ -234,6 +235,7 @@ export const update = mutation({
     guestWifiSsid: v.optional(v.string()),
     guestWifiPassword: v.optional(v.string()),
     mailboxLockCombination: v.optional(v.string()),
+    autoLockCode: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await requireAdmin(ctx);
@@ -285,5 +287,27 @@ export const getMailboxLockCombination = query({
     const property = await ctx.db.get(args.id);
     if (!property) return null;
     return property.mailboxLockCombination;
+  },
+});
+
+export const getAutoLockCode = query({
+  args: { id: v.id("properties") },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+    if (!user) return null;
+    if (!(await canAccessPropertyWithUser(ctx, args.id, user))) return null;
+
+    if (user.role !== "admin") {
+      const membership = await getMembershipForProperty(
+        ctx,
+        args.id,
+        user.clerkId
+      );
+      if (membership?.role === "guest") return null;
+    }
+
+    const property = await ctx.db.get(args.id);
+    if (!property) return null;
+    return property.autoLockCode;
   },
 });

@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Plus, Loader2, MapPin, Pencil, X, Save } from "lucide-react";
 import { MailboxLockInput } from "@/components/mailbox-lock-input";
+import { AutoLockInput } from "@/components/auto-lock-input";
 
 interface Property {
   id: string;
@@ -31,6 +32,7 @@ interface Property {
   guest_wifi_ssid: string | null;
   guest_wifi_password: string | null;
   mailbox_lock_combination: string | null;
+  auto_lock_code: string | null;
   location_x: number | null;
   location_y: number | null;
   apple_maps_url: string | null;
@@ -70,6 +72,7 @@ export function AdminForm({ property }: AdminFormProps) {
     guest_wifi_ssid: property?.guest_wifi_ssid ?? "",
     guest_wifi_password: property?.guest_wifi_password ?? "",
     mailbox_lock_combination: property?.mailbox_lock_combination ?? "",
+    auto_lock_code: property?.auto_lock_code ?? "",
   });
 
   const [location, setLocation] = useState<MapLocation | null>(
@@ -103,6 +106,7 @@ export function AdminForm({ property }: AdminFormProps) {
       guestWifiSsid: formData.guest_wifi_ssid || undefined,
       guestWifiPassword: formData.guest_wifi_password || undefined,
       mailboxLockCombination: formData.mailbox_lock_combination || undefined,
+      autoLockCode: formData.auto_lock_code || undefined,
     };
 
     try {
@@ -139,6 +143,7 @@ export function AdminForm({ property }: AdminFormProps) {
           guest_wifi_ssid: "",
           guest_wifi_password: "",
           mailbox_lock_combination: "",
+          auto_lock_code: "",
         });
         setLocation(null);
         setTimeout(() => {
@@ -515,6 +520,16 @@ export function AdminForm({ property }: AdminFormProps) {
             value={formData.mailbox_lock_combination}
             onChange={(value) =>
               setFormData((prev) => ({ ...prev, mailbox_lock_combination: value }))
+            }
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label>{t.form.autoLockCode}</Label>
+          <AutoLockInput
+            value={formData.auto_lock_code}
+            onChange={(value) =>
+              setFormData((prev) => ({ ...prev, auto_lock_code: value }))
             }
           />
         </div>

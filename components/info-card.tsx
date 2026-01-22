@@ -5,10 +5,11 @@ import { useI18n } from "@/lib/i18n/context";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Eye, Copy, Check, Info, Wifi, Lock, Loader2 } from "lucide-react";
+import { Eye, Copy, Check, Info, Wifi, Lock, Loader2, KeyRound } from "lucide-react";
 import { WifiQRCodeLazy } from "@/components/wifi-qrcode-lazy";
 import { AddressDisplay } from "@/components/address-display";
 import { formatMailboxLockForDisplayLocalized } from "@/components/mailbox-lock-input";
+import { formatAutoLockForDisplay, getAutoLockType } from "@/components/auto-lock-input";
 
 interface Property {
   id: string;
@@ -25,6 +26,7 @@ interface Property {
   wifi_ssid: string | null;
   guest_wifi_ssid: string | null;
   has_mailbox_lock: boolean;
+  has_auto_lock: boolean;
 }
 
 interface InfoCardProps {
@@ -42,6 +44,9 @@ export function InfoCard({ property }: InfoCardProps) {
   const [copiedGuestWifi, setCopiedGuestWifi] = useState(false);
   const [copiedMailboxLock, setCopiedMailboxLock] = useState(false);
   const [mailboxLockCombination, setMailboxLockCombination] = useState<string | null>(null);
+  const [loadingAutoLock, setLoadingAutoLock] = useState(false);
+  const [copiedAutoLock, setCopiedAutoLock] = useState(false);
+  const [autoLockCode, setAutoLockCode] = useState<string | null>(null);
 
   const revealAndCopyWifi = async (type: "main" | "guest") => {
     if (type === "main") {
@@ -122,6 +127,37 @@ export function InfoCard({ property }: InfoCardProps) {
       setCopiedMailboxLock(true);
       setTimeout(() => setCopiedMailboxLock(false), 2000);
       toast.success(t.toast.combinationCopied);
+    } catch {
+      toast.error(t.toast.copyFailed);
+    }
+  };
+
+  const revealAndCopyAutoLock = async () => {
+    setLoadingAutoLock(true);
+
+    const res = await fetch("/api/autolock/reveal", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ propertyId: property.id }),
+    });
+    const json = await res.json();
+
+    setLoadingAutoLock(false);
+    if (json.code !== undefined) {
+      setAutoLockCode(json.code);
+      if (json.code) {
+        await copyAutoLockToClipboard(json.code);
+      }
+    }
+  };
+
+  const copyAutoLockToClipboard = async (code: string) => {
+    try {
+      const formatted = formatAutoLockForDisplay(code);
+      await navigator.clipboard.writeText(formatted || code);
+      setCopiedAutoLock(true);
+      setTimeout(() => setCopiedAutoLock(false), 2000);
+      toast.success(t.toast.autoLockCopied);
     } catch {
       toast.error(t.toast.copyFailed);
     }
@@ -308,6 +344,62 @@ export function InfoCard({ property }: InfoCardProps) {
                     onClick={() => mailboxLockCombination && copyCombinationToClipboard(mailboxLockCombination)}
                   >
                     {copiedMailboxLock ? (
+                      <Check className="h-4 w-4" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {property.has_auto_lock && (
+          <div className="pt-3 border-t">
+            <div className="flex items-start gap-2">
+              <KeyRound className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
+              <div className="flex-1">
+                <div className="text-muted-foreground text-xs">{t.info.autoLock}</div>
+                <div className="text-sm">
+                  <span className="font-medium">
+                    {autoLockCode === null
+                      ? t.info.code
+                      : getAutoLockType(autoLockCode) === "switchbot"
+                        ? t.info.autoLockSwitchbot
+                        : t.info.code}
+                    :
+                  </span>{" "}
+                  {autoLockCode === null
+                    ? "••••••••"
+                    : formatAutoLockForDisplay(autoLockCode) || "—"}
+                </div>
+              </div>
+              <div className="flex gap-2">
+                {autoLockCode === null ? (
+                  <Button
+                    variant="default"
+                    size="sm"
+                    disabled={loadingAutoLock}
+                    onClick={revealAndCopyAutoLock}
+                  >
+                    {loadingAutoLock ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>
+                        <Eye className="h-4 w-4" />
+                        <Copy className="h-4 w-4" />
+                      </>
+                    )}
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={!autoLockCode}
+                    onClick={() => autoLockCode && copyAutoLockToClipboard(autoLockCode)}
+                  >
+                    {copiedAutoLock ? (
                       <Check className="h-4 w-4" />
                     ) : (
                       <Copy className="h-4 w-4" />

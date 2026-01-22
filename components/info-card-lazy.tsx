@@ -19,6 +19,7 @@ interface Property {
   wifi_ssid: string | null;
   guest_wifi_ssid: string | null;
   has_mailbox_lock: boolean;
+  has_auto_lock: boolean;
 }
 
 interface InfoCardLazyProps {

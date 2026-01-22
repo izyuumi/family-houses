@@ -54,6 +54,7 @@ async function EditContent({ slugOrId }: { slugOrId: string }) {
         guest_wifi_ssid: property.guestWifiSsid ?? null,
         guest_wifi_password: property.guestWifiPassword ?? null,
         mailbox_lock_combination: property.mailboxLockCombination ?? null,
+        auto_lock_code: property.autoLockCode ?? null,
         location_x: property.locationX ?? null,
         location_y: property.locationY ?? null,
       }}
