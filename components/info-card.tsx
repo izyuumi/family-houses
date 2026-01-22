@@ -5,9 +5,10 @@ import { useI18n } from "@/lib/i18n/context";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Eye, Copy, Check, Info, Wifi, Loader2 } from "lucide-react";
+import { Eye, Copy, Check, Info, Wifi, Lock, Loader2 } from "lucide-react";
 import { WifiQRCodeLazy } from "@/components/wifi-qrcode-lazy";
 import { AddressDisplay } from "@/components/address-display";
+import { formatMailboxLockForDisplayLocalized } from "@/components/mailbox-lock-input";
 
 interface Property {
   id: string;
@@ -23,6 +24,7 @@ interface Property {
   apple_maps_url?: string | null;
   wifi_ssid: string | null;
   guest_wifi_ssid: string | null;
+  has_mailbox_lock: boolean;
 }
 
 interface InfoCardProps {
@@ -35,8 +37,11 @@ export function InfoCard({ property }: InfoCardProps) {
   const [guestWifiPassword, setGuestWifiPassword] = useState<string | null>(null);
   const [loadingWifi, setLoadingWifi] = useState(false);
   const [loadingGuestWifi, setLoadingGuestWifi] = useState(false);
+  const [loadingMailboxLock, setLoadingMailboxLock] = useState(false);
   const [copiedWifi, setCopiedWifi] = useState(false);
   const [copiedGuestWifi, setCopiedGuestWifi] = useState(false);
+  const [copiedMailboxLock, setCopiedMailboxLock] = useState(false);
+  const [mailboxLockCombination, setMailboxLockCombination] = useState<string | null>(null);
 
   const revealAndCopyWifi = async (type: "main" | "guest") => {
     if (type === "main") {
@@ -82,6 +87,41 @@ export function InfoCard({ property }: InfoCardProps) {
         setTimeout(() => setCopiedGuestWifi(false), 2000);
       }
       toast.success(t.toast.passwordCopied);
+    } catch {
+      toast.error(t.toast.copyFailed);
+    }
+  };
+
+  const revealAndCopyMailboxLock = async () => {
+    setLoadingMailboxLock(true);
+
+    const res = await fetch("/api/lock/reveal", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ propertyId: property.id }),
+    });
+    const json = await res.json();
+
+    setLoadingMailboxLock(false);
+    if (json.combination !== undefined) {
+      setMailboxLockCombination(json.combination);
+      if (json.combination) {
+        await copyCombinationToClipboard(json.combination);
+      }
+    }
+  };
+
+  const copyCombinationToClipboard = async (combination: string) => {
+    try {
+      const formatted = formatMailboxLockForDisplayLocalized(
+        combination,
+        t.form.mailboxLockRight,
+        t.form.mailboxLockLeft
+      );
+      await navigator.clipboard.writeText(formatted || combination);
+      setCopiedMailboxLock(true);
+      setTimeout(() => setCopiedMailboxLock(false), 2000);
+      toast.success(t.toast.combinationCopied);
     } catch {
       toast.error(t.toast.copyFailed);
     }
@@ -223,6 +263,59 @@ export function InfoCard({ property }: InfoCardProps) {
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {property.has_mailbox_lock && (
+          <div className="pt-3 border-t">
+            <div className="flex items-start gap-2">
+              <Lock className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
+              <div className="flex-1">
+                <div className="text-muted-foreground text-xs">{t.info.mailboxLock}</div>
+                <div className="text-sm">
+                  <span className="font-medium">{t.info.combination}:</span>{" "}
+                  {mailboxLockCombination === null
+                    ? "••••••••"
+                    : formatMailboxLockForDisplayLocalized(
+                        mailboxLockCombination,
+                        t.form.mailboxLockRight,
+                        t.form.mailboxLockLeft
+                      ) || "—"}
+                </div>
+              </div>
+              <div className="flex gap-2">
+                {mailboxLockCombination === null ? (
+                  <Button
+                    variant="default"
+                    size="sm"
+                    disabled={loadingMailboxLock}
+                    onClick={revealAndCopyMailboxLock}
+                  >
+                    {loadingMailboxLock ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>
+                        <Eye className="h-4 w-4" />
+                        <Copy className="h-4 w-4" />
+                      </>
+                    )}
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={!mailboxLockCombination}
+                    onClick={() => mailboxLockCombination && copyCombinationToClipboard(mailboxLockCombination)}
+                  >
+                    {copiedMailboxLock ? (
+                      <Check className="h-4 w-4" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </Button>
+                )}
+              </div>
+            </div>
           </div>
         )}
       </CardContent>

@@ -41,6 +41,7 @@ async function PropertyContent({ slugOrId }: { slugOrId: string }) {
         apple_maps_url: property.appleMapsUrl ?? null,
         wifi_ssid: property.wifiSsid ?? null,
         guest_wifi_ssid: property.guestWifiSsid ?? null,
+        has_mailbox_lock: !!property.mailboxLockCombination,
       }}
       isAdmin={isAdmin}
       userId={userId}

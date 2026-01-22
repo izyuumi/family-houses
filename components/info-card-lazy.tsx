@@ -18,6 +18,7 @@ interface Property {
   apple_maps_url?: string | null;
   wifi_ssid: string | null;
   guest_wifi_ssid: string | null;
+  has_mailbox_lock: boolean;
 }
 
 interface InfoCardLazyProps {

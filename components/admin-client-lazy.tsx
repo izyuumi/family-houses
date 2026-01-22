@@ -19,6 +19,7 @@ interface Property {
   wifi_password: string | null;
   guest_wifi_ssid: string | null;
   guest_wifi_password: string | null;
+  mailbox_lock_combination: string | null;
   location_x: number | null;
   location_y: number | null;
 }

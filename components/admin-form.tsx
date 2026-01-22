@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Plus, Loader2, MapPin, Pencil, X, Save } from "lucide-react";
+import { MailboxLockInput } from "@/components/mailbox-lock-input";
 
 interface Property {
   id: string;
@@ -29,6 +30,7 @@ interface Property {
   wifi_password: string | null;
   guest_wifi_ssid: string | null;
   guest_wifi_password: string | null;
+  mailbox_lock_combination: string | null;
   location_x: number | null;
   location_y: number | null;
   apple_maps_url: string | null;
@@ -67,6 +69,7 @@ export function AdminForm({ property }: AdminFormProps) {
     wifi_password: property?.wifi_password ?? "",
     guest_wifi_ssid: property?.guest_wifi_ssid ?? "",
     guest_wifi_password: property?.guest_wifi_password ?? "",
+    mailbox_lock_combination: property?.mailbox_lock_combination ?? "",
   });
 
   const [location, setLocation] = useState<MapLocation | null>(
@@ -99,6 +102,7 @@ export function AdminForm({ property }: AdminFormProps) {
       wifiPassword: formData.wifi_password || undefined,
       guestWifiSsid: formData.guest_wifi_ssid || undefined,
       guestWifiPassword: formData.guest_wifi_password || undefined,
+      mailboxLockCombination: formData.mailbox_lock_combination || undefined,
     };
 
     try {
@@ -134,6 +138,7 @@ export function AdminForm({ property }: AdminFormProps) {
           wifi_password: "",
           guest_wifi_ssid: "",
           guest_wifi_password: "",
+          mailbox_lock_combination: "",
         });
         setLocation(null);
         setTimeout(() => {
@@ -501,6 +506,16 @@ export function AdminForm({ property }: AdminFormProps) {
             value={formData.guest_wifi_password}
             onChange={handleChange}
             placeholder="••••••••"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label>{t.form.mailboxLockCombination}</Label>
+          <MailboxLockInput
+            value={formData.mailbox_lock_combination}
+            onChange={(value) =>
+              setFormData((prev) => ({ ...prev, mailbox_lock_combination: value }))
+            }
           />
         </div>
 

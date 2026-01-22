@@ -29,6 +29,7 @@ export default defineSchema({
     wifiPassword: v.optional(v.string()),
     guestWifiSsid: v.optional(v.string()),
     guestWifiPassword: v.optional(v.string()),
+    mailboxLockCombination: v.optional(v.string()),
   }).index("by_slug", ["slug"]),
 
   groceryItems: defineTable({
