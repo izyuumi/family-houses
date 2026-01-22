@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useI18n } from "@/lib/i18n/context";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -45,6 +45,45 @@ export function InfoCard({ property }: InfoCardProps) {
   const [mailboxLockCombination, setMailboxLockCombination] = useState<string | null>(null);
   const [loadingAutoLock, setLoadingAutoLock] = useState(false);
   const [autoLockCode, setAutoLockCode] = useState<string | null>(null);
+
+  // Auto-reveal mailbox lock and auto-lock codes on mount
+  useEffect(() => {
+    if (property.has_mailbox_lock && mailboxLockCombination === null && !loadingMailboxLock) {
+      revealMailboxLockOnMount();
+    }
+    if (property.has_auto_lock && autoLockCode === null && !loadingAutoLock) {
+      revealAutoLockOnMount();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const revealMailboxLockOnMount = async () => {
+    setLoadingMailboxLock(true);
+    const res = await fetch("/api/lock/reveal", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ propertyId: property.id }),
+    });
+    const json = await res.json();
+    setLoadingMailboxLock(false);
+    if (json.combination !== undefined) {
+      setMailboxLockCombination(json.combination);
+    }
+  };
+
+  const revealAutoLockOnMount = async () => {
+    setLoadingAutoLock(true);
+    const res = await fetch("/api/autolock/reveal", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ propertyId: property.id }),
+    });
+    const json = await res.json();
+    setLoadingAutoLock(false);
+    if (json.code !== undefined) {
+      setAutoLockCode(json.code);
+    }
+  };
 
   const revealAndCopyWifi = async (type: "main" | "guest") => {
     if (type === "main") {
@@ -92,38 +131,6 @@ export function InfoCard({ property }: InfoCardProps) {
       toast.success(t.toast.passwordCopied);
     } catch {
       toast.error(t.toast.copyFailed);
-    }
-  };
-
-  const revealMailboxLock = async () => {
-    setLoadingMailboxLock(true);
-
-    const res = await fetch("/api/lock/reveal", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ propertyId: property.id }),
-    });
-    const json = await res.json();
-
-    setLoadingMailboxLock(false);
-    if (json.combination !== undefined) {
-      setMailboxLockCombination(json.combination);
-    }
-  };
-
-  const revealAutoLock = async () => {
-    setLoadingAutoLock(true);
-
-    const res = await fetch("/api/autolock/reveal", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ propertyId: property.id }),
-    });
-    const json = await res.json();
-
-    setLoadingAutoLock(false);
-    if (json.code !== undefined) {
-      setAutoLockCode(json.code);
     }
   };
 
@@ -274,29 +281,19 @@ export function InfoCard({ property }: InfoCardProps) {
                 <div className="text-muted-foreground text-xs">{t.info.mailboxLock}</div>
                 <div className="text-sm">
                   <span className="font-medium">{t.info.combination}:</span>{" "}
-                  {mailboxLockCombination === null
-                    ? "••••••••"
-                    : formatMailboxLockForDisplayLocalized(
-                        mailboxLockCombination,
-                        t.form.mailboxLockRight,
-                        t.form.mailboxLockLeft
-                      ) || "—"}
+                  {loadingMailboxLock ? (
+                    <Loader2 className="h-4 w-4 inline animate-spin" />
+                  ) : mailboxLockCombination ? (
+                    formatMailboxLockForDisplayLocalized(
+                      mailboxLockCombination,
+                      t.form.mailboxLockRight,
+                      t.form.mailboxLockLeft
+                    ) || "—"
+                  ) : (
+                    "—"
+                  )}
                 </div>
               </div>
-              {mailboxLockCombination === null && (
-                <Button
-                  variant="default"
-                  size="sm"
-                  disabled={loadingMailboxLock}
-                  onClick={revealMailboxLock}
-                >
-                  {loadingMailboxLock ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </Button>
-              )}
             </div>
           </div>
         )}
@@ -308,33 +305,20 @@ export function InfoCard({ property }: InfoCardProps) {
               <div className="flex-1">
                 <div className="text-muted-foreground text-xs">{t.info.autoLock}</div>
                 <div className="text-sm">
-                  <span className="font-medium">
-                    {autoLockCode === null
-                      ? t.info.code
-                      : getAutoLockType(autoLockCode) === "switchbot"
-                        ? t.info.autoLockSwitchbot
-                        : t.info.code}
-                    :
-                  </span>{" "}
-                  {autoLockCode === null
-                    ? "••••••••"
-                    : formatAutoLockForDisplay(autoLockCode) || "—"}
+                  {loadingAutoLock ? (
+                    <Loader2 className="h-4 w-4 inline animate-spin" />
+                  ) : !autoLockCode ? (
+                    "—"
+                  ) : getAutoLockType(autoLockCode) === "switchbot" ? (
+                    t.info.autoLockSwitchbot
+                  ) : (
+                    <>
+                      <span className="font-medium">{t.info.code}:</span>{" "}
+                      {formatAutoLockForDisplay(autoLockCode) || "—"}
+                    </>
+                  )}
                 </div>
               </div>
-              {autoLockCode === null && (
-                <Button
-                  variant="default"
-                  size="sm"
-                  disabled={loadingAutoLock}
-                  onClick={revealAutoLock}
-                >
-                  {loadingAutoLock ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </Button>
-              )}
             </div>
           </div>
         )}
