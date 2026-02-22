@@ -4,6 +4,7 @@ import { getAuthenticatedConvexClient } from "@/lib/convex";
 import { api } from "@/convex/_generated/api";
 import { HomeClient } from "@/components/home-client";
 import { PendingApprovalClient } from "@/components/pending-approval-client";
+import { PropertyListSkeleton } from "@/components/property-skeleton";
 
 async function HomeContent() {
   const { userId } = await auth();
@@ -22,17 +23,15 @@ async function HomeContent() {
   return <HomeClient userId={userId} properties={homeData.properties} />;
 }
 
-function LoadingState() {
-  return (
-    <div className="h-dvh flex items-center justify-center">
-      <div className="animate-pulse text-muted-foreground">...</div>
-    </div>
-  );
-}
-
 export default function HomePage() {
   return (
-    <Suspense fallback={<LoadingState />}>
+    <Suspense
+      fallback={
+        <main className="min-h-screen p-4 md:p-8 max-w-4xl mx-auto">
+          <PropertyListSkeleton />
+        </main>
+      }
+    >
       <HomeContent />
     </Suspense>
   );

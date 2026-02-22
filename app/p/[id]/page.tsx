@@ -4,6 +4,7 @@ import { auth } from "@clerk/nextjs/server";
 import { getAuthenticatedConvexClient } from "@/lib/convex";
 import { api } from "@/convex/_generated/api";
 import { PropertyClient } from "@/components/property-client";
+import { PropertyDetailSkeleton } from "@/components/property-skeleton";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -97,17 +98,9 @@ async function PropertyData({
   return <PropertyContent slugOrId={id} />;
 }
 
-function LoadingState() {
-  return (
-    <div className="h-dvh flex items-center justify-center">
-      <div className="animate-pulse text-muted-foreground">...</div>
-    </div>
-  );
-}
-
 export default function PropertyDetail({ params }: PageProps) {
   return (
-    <Suspense fallback={<LoadingState />}>
+    <Suspense fallback={<PropertyDetailSkeleton />}>
       <PropertyData paramsPromise={params} />
     </Suspense>
   );
