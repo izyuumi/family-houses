@@ -57,3 +57,14 @@ export const remove = mutation({
     await ctx.db.delete(args.id);
   },
 });
+
+export const togglePin = mutation({
+  args: { id: v.id("propertyNotes") },
+  handler: async (ctx, args) => {
+    const note = await ctx.db.get(args.id);
+    if (!note) throw new Error("Note not found");
+    await requirePropertyAccess(ctx, note.propertyId);
+
+    await ctx.db.patch(args.id, { pinned: !note.pinned });
+  },
+});

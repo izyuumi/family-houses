@@ -56,6 +56,7 @@ export default defineSchema({
     propertyId: v.id("properties"),
     content: v.string(),
     createdBy: v.optional(v.string()),
+    pinned: v.optional(v.boolean()),
   }).index("by_property", ["propertyId"]),
 
   propertyMembers: defineTable({

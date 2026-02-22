@@ -20,7 +20,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { StickyNote, Plus, Trash2, Loader2, Pencil, X, Check } from "lucide-react";
+import { StickyNote, Plus, Trash2, Loader2, Pencil, X, Check, Pin } from "lucide-react";
 
 interface PropertyNote {
   id: string;
@@ -29,6 +29,7 @@ interface PropertyNote {
   created_by: string | null;
   created_at: string | null;
   updated_at: string | null;
+  pinned?: boolean;
   creator?: { display_name: string | null } | null;
 }
 
@@ -51,6 +52,7 @@ export function PropertyNotes({ propertyId, initialNotes, userId }: PropertyNote
   const addMutation = useMutation(api.propertyNotes.add);
   const updateMutation = useMutation(api.propertyNotes.update);
   const removeMutation = useMutation(api.propertyNotes.remove);
+  const togglePinMutation = useMutation(api.propertyNotes.togglePin);
 
   const notes: PropertyNote[] = liveNotes
     ? liveNotes.map((note) => ({
@@ -60,9 +62,17 @@ export function PropertyNotes({ propertyId, initialNotes, userId }: PropertyNote
         created_by: note.createdBy ?? null,
         created_at: note._creationTime ? new Date(note._creationTime).toISOString() : null,
         updated_at: null,
+        pinned: note.pinned ?? false,
         creator: note.creator ? { display_name: note.creator.displayName ?? null } : null,
       }))
     : (initialNotes ?? []);
+
+  // Sort pinned notes first
+  const sortedNotes = [...notes].sort((a, b) => {
+    if (a.pinned && !b.pinned) return -1;
+    if (!a.pinned && b.pinned) return 1;
+    return 0;
+  });
 
   const addNote = async () => {
     const content = newContent.trim();
@@ -205,10 +215,10 @@ export function PropertyNotes({ propertyId, initialNotes, userId }: PropertyNote
             </p>
           )}
 
-          {notes.map((note) => (
+          {sortedNotes.map((note) => (
             <div
               key={note.id}
-              className="py-2 px-3 rounded-lg border bg-card"
+              className={`py-2 px-3 rounded-lg border bg-card ${note.pinned ? "border-primary/30" : ""}`}
             >
               {editingId === note.id ? (
                 <div className="flex gap-2">
@@ -256,6 +266,14 @@ export function PropertyNotes({ propertyId, initialNotes, userId }: PropertyNote
                       {formatDate(note.created_at)}
                     </div>
                     <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className={`h-7 w-7 ${note.pinned ? "text-primary" : ""}`}
+                        onClick={() => togglePinMutation({ id: note.id as Id<"propertyNotes"> })}
+                      >
+                        <Pin className="h-3 w-3" />
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"
