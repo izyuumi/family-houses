@@ -5,6 +5,7 @@ import { InfoCard } from "@/components/info-card";
 import { Groceries } from "@/components/groceries";
 import { PropertyItems } from "@/components/property-items";
 import { PropertyNotes } from "@/components/property-notes";
+import { ErrorBoundary } from "@/components/error-boundary";
 import { ChevronLeft, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { buildFullAddress } from "@/components/address-display";
@@ -121,21 +122,27 @@ export function PropertyClient({
         )}
         <div className="space-y-6">
           <InfoCard property={property} />
-          <Groceries
-            propertyId={property.id}
-            initialItems={initialGroceries}
-            userId={userId}
-          />
-          <PropertyNotes
-            propertyId={property.id}
-            initialNotes={initialPropertyNotes}
-            userId={userId}
-          />
-          <PropertyItems
-            propertyId={property.id}
-            initialItems={initialPropertyItems}
-            userId={userId}
-          />
+          <ErrorBoundary section="Groceries">
+            <Groceries
+              propertyId={property.id}
+              initialItems={initialGroceries}
+              userId={userId}
+            />
+          </ErrorBoundary>
+          <ErrorBoundary section="Notes">
+            <PropertyNotes
+              propertyId={property.id}
+              initialNotes={initialPropertyNotes}
+              userId={userId}
+            />
+          </ErrorBoundary>
+          <ErrorBoundary section="Items">
+            <PropertyItems
+              propertyId={property.id}
+              initialItems={initialPropertyItems}
+              userId={userId}
+            />
+          </ErrorBoundary>
         </div>
       </div>
     </main>
