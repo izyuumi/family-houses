@@ -51,6 +51,7 @@ export function Groceries({
 }: GroceriesProps) {
   const { t } = useI18n();
   const [text, setText] = useState("");
+  const [quantity, setQuantity] = useState("");
   const [loading, setLoading] = useState(false);
   const [clearDialogOpen, setClearDialogOpen] = useState(false);
 
@@ -84,11 +85,14 @@ export function Groceries({
 
     setLoading(true);
     setText("");
+    const qty = quantity.trim() || undefined;
+    setQuantity("");
 
     try {
       await addMutation({
         propertyId: convexPropertyId,
         itemName,
+        quantity: qty,
         addedBy: userId,
       });
       toast.success(t.groceries.itemAdded);
@@ -207,6 +211,12 @@ export function Groceries({
             value={text}
             onChange={(e) => setText(e.target.value)}
             className="flex-1"
+          />
+          <Input
+            placeholder="Qty"
+            value={quantity}
+            onChange={(e) => setQuantity(e.target.value)}
+            className="w-16"
           />
           <Button type="submit" disabled={!text.trim() || loading}>
             {loading ? (
