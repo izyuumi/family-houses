@@ -28,6 +28,7 @@ interface GroceryItem {
   property_id: string;
   item_name: string;
   quantity: string | null;
+  category: string | null;
   checked: boolean | null;
   added_by: string | null;
   completed_by: string | null;
@@ -51,8 +52,11 @@ export function Groceries({
 }: GroceriesProps) {
   const { t } = useI18n();
   const [text, setText] = useState("");
+  const [category, setCategory] = useState("");
   const [loading, setLoading] = useState(false);
   const [clearDialogOpen, setClearDialogOpen] = useState(false);
+
+  const CATEGORIES = ["🥬 Produce", "🥛 Dairy", "🥩 Meat", "🍞 Bakery", "🥫 Pantry", "🧊 Frozen", "🧹 Household", "Other"];
 
   const convexPropertyId = propertyId as Id<"properties">;
   const liveItems = useQuery(api.groceryItems.listByProperty, { propertyId: convexPropertyId });
@@ -67,6 +71,7 @@ export function Groceries({
         property_id: item.propertyId,
         item_name: item.itemName,
         quantity: item.quantity ?? null,
+        category: item.category ?? null,
         checked: item.checked,
         added_by: item.addedBy ?? null,
         completed_by: item.completedBy ?? null,
@@ -84,11 +89,14 @@ export function Groceries({
 
     setLoading(true);
     setText("");
+    const cat = category || undefined;
+    setCategory("");
 
     try {
       await addMutation({
         propertyId: convexPropertyId,
         itemName,
+        category: cat,
         addedBy: userId,
       });
       toast.success(t.groceries.itemAdded);
@@ -208,6 +216,16 @@ export function Groceries({
             onChange={(e) => setText(e.target.value)}
             className="flex-1"
           />
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="h-10 rounded-md border border-input bg-background px-2 text-xs"
+          >
+            <option value="">Category</option>
+            {CATEGORIES.map((cat) => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
           <Button type="submit" disabled={!text.trim() || loading}>
             {loading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -240,6 +258,11 @@ export function Groceries({
                   {item.quantity && (
                     <span className="text-muted-foreground ml-1">
                       ({item.quantity})
+                    </span>
+                  )}
+                  {item.category && (
+                    <span className="text-xs text-muted-foreground ml-2 px-1.5 py-0.5 bg-muted rounded">
+                      {item.category}
                     </span>
                   )}
                 </span>

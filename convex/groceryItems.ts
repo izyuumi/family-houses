@@ -35,6 +35,7 @@ export const add = mutation({
   args: {
     propertyId: v.id("properties"),
     itemName: v.string(),
+    category: v.optional(v.string()),
     addedBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
@@ -42,6 +43,7 @@ export const add = mutation({
     return await ctx.db.insert("groceryItems", {
       propertyId: args.propertyId,
       itemName: args.itemName,
+      category: args.category,
       checked: false,
       addedBy: args.addedBy,
     });

@@ -37,6 +37,7 @@ export default defineSchema({
     propertyId: v.id("properties"),
     itemName: v.string(),
     quantity: v.optional(v.string()),
+    category: v.optional(v.string()),
     checked: v.boolean(),
     addedBy: v.optional(v.string()),
     completedBy: v.optional(v.string()),
