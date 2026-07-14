@@ -16,10 +16,12 @@ interface Property {
   room: string | null;
   location_x: number | null;
   location_y: number | null;
+  todo_count: number;
 }
 
 interface MapDashboardLazyProps {
   properties: Property[];
+  userInitial: string | null;
 }
 
 function MapSkeleton() {
@@ -40,6 +42,6 @@ const MapDashboard = dynamic(
   }
 );
 
-export function MapDashboardLazy({ properties }: MapDashboardLazyProps) {
-  return <MapDashboard properties={properties} />;
+export function MapDashboardLazy({ properties, userInitial }: MapDashboardLazyProps) {
+  return <MapDashboard properties={properties} userInitial={userInitial} />;
 }

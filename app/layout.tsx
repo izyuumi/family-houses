@@ -1,16 +1,14 @@
 import type { Metadata, Viewport } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { Plus_Jakarta_Sans, Noto_Sans_JP } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
 import { ConvexClientProvider } from "@/components/convex-provider";
 import { I18nProvider } from "@/lib/i18n/context";
 import "./globals.css";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 
-const defaultUrl = process.env.VERCEL_URL
-  ? `https://${process.env.VERCEL_URL}`
-  : "http://localhost:3000";
+const defaultUrl =
+  process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
 export const metadata: Metadata = {
   metadataBase: new URL(defaultUrl),
@@ -30,6 +28,13 @@ const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
 });
 
+const notoSansJP = Noto_Sans_JP({
+  variable: "--font-noto-sans-jp",
+  display: "swap",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -38,7 +43,9 @@ export default function RootLayout({
   return (
     <ClerkProvider telemetry={false}>
       <html lang="en" suppressHydrationWarning>
-        <body className={`${plusJakarta.className} antialiased`}>
+        <body
+          className={`${plusJakarta.variable} ${notoSansJP.variable} antialiased`}
+        >
           <ConvexClientProvider>
             <ThemeProvider
               attribute="class"
@@ -52,7 +59,6 @@ export default function RootLayout({
               </I18nProvider>
             </ThemeProvider>
           </ConvexClientProvider>
-          <SpeedInsights />
         </body>
       </html>
     </ClerkProvider>

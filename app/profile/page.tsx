@@ -18,8 +18,11 @@ async function ProfileContent() {
   });
   const isAdmin = profile?.role === "admin";
   const email = user?.primaryEmailAddress?.emailAddress;
+  const displayName = profile?.displayName ?? user?.fullName ?? undefined;
 
-  return <ProfileClient email={email} isAdmin={isAdmin} />;
+  return (
+    <ProfileClient email={email} displayName={displayName} isAdmin={isAdmin} />
+  );
 }
 
 function LoadingState() {

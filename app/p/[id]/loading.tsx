@@ -1,38 +1,27 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Info, ListTodo, StickyNote, Package } from "lucide-react";
-
-function CardSkeleton({ icon: Icon, width }: { icon: typeof Info; width: string }) {
-  return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-base">
-          <Icon className="h-4 w-4" />
-          <div className={`h-4 ${width} bg-muted animate-pulse rounded`} />
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="h-4 w-full bg-muted animate-pulse rounded" />
-        <div className="h-4 w-3/4 bg-muted animate-pulse rounded" />
-      </CardContent>
-    </Card>
-  );
-}
-
 export default function Loading() {
   return (
     <main className="min-h-dvh flex flex-col">
-      <nav className="w-full flex justify-center border-b border-b-foreground/10 shrink-0 pt-[env(safe-area-inset-top)]">
-        <div className="w-full max-w-5xl h-14 flex justify-between items-center px-4">
-          <div className="h-8 w-32 bg-muted animate-pulse rounded" />
+      <div className="mx-auto w-full max-w-xl shrink-0">
+        <div className="flex items-center justify-between px-4 pb-1 pt-[calc(0.5rem+env(safe-area-inset-top))]">
+          <div className="h-11 w-11 bg-muted animate-pulse rounded-xl" />
+          <div className="h-11 w-11 bg-muted animate-pulse rounded-xl" />
         </div>
-      </nav>
-      <div className="flex-1 overflow-auto p-4 max-w-xl mx-auto w-full pb-20">
-        <div className="h-4 w-48 bg-muted animate-pulse rounded mb-4" />
-        <div className="space-y-6">
-          <CardSkeleton icon={Info} width="w-24" />
-          <CardSkeleton icon={ListTodo} width="w-20" />
-          <CardSkeleton icon={StickyNote} width="w-16" />
-          <CardSkeleton icon={Package} width="w-20" />
+        <div className="px-5 pb-4 pt-2 space-y-2">
+          <div className="h-7 w-40 bg-muted animate-pulse rounded" />
+          <div className="h-4 w-56 bg-muted animate-pulse rounded" />
+        </div>
+        <div className="flex gap-2 px-5 pb-4">
+          <div className="h-[38px] w-16 bg-muted animate-pulse rounded-full" />
+          <div className="h-[38px] w-24 bg-muted animate-pulse rounded-full" />
+          <div className="h-[38px] w-16 bg-muted animate-pulse rounded-full" />
+          <div className="h-[38px] w-16 bg-muted animate-pulse rounded-full" />
+        </div>
+      </div>
+      <div className="flex-1 px-4 pb-12">
+        <div className="mx-auto flex w-full max-w-xl flex-col gap-4">
+          <div className="h-56 bg-muted animate-pulse rounded-2xl" />
+          <div className="h-40 bg-muted animate-pulse rounded-2xl" />
+          <div className="h-32 bg-muted animate-pulse rounded-2xl" />
         </div>
       </div>
     </main>

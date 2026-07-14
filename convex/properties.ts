@@ -59,7 +59,21 @@ export const homeData = query({
       properties = fetchedProperties.filter((p) => p !== null);
     }
 
-    return { profile: user, properties, needsApproval: false };
+    const todoCounts = await Promise.all(
+      properties.map(async (p) => {
+        const items = await ctx.db
+          .query("groceryItems")
+          .withIndex("by_property", (q) => q.eq("propertyId", p._id))
+          .collect();
+        return items.filter((i) => !i.checked).length;
+      })
+    );
+    const propertiesWithTodos = properties.map((p, i) => ({
+      ...p,
+      todoCount: todoCounts[i],
+    }));
+
+    return { profile: user, properties: propertiesWithTodos, needsApproval: false };
   },
 });
 

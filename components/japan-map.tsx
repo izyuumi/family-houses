@@ -35,6 +35,8 @@ type JapanMapViewProps = {
   mode: "view";
   markers: PropertyMarker[];
   onMarkerClick?: (marker: PropertyMarker) => void;
+  /** Positioning classes for the floating zoom controls. */
+  controlsClass?: string;
 };
 
 type JapanMapEditProps = {
@@ -143,13 +145,7 @@ const MapMarker = memo(function MapMarker({
         cx={marker.x}
         cy={marker.y}
         r={radius}
-        fill={
-          isActive
-            ? "hsl(var(--primary))"
-            : isHovered
-              ? "hsl(var(--primary))"
-              : "hsl(var(--destructive))"
-        }
+        fill="hsl(var(--primary))"
         stroke="hsl(var(--background))"
         strokeWidth={sizes.strokeWidth}
         className="transition-all duration-100"
@@ -291,11 +287,11 @@ export function JapanMap(props: JapanMapProps) {
 
   const sizes = useMemo<MarkerSizes>(
     () => ({
-      baseMarkerSize: 12 / zoom,
-      hoverMarkerSize: 16 / zoom,
-      activeMarkerSize: 18 / zoom,
-      innerDotSize: 5 / zoom,
-      strokeWidth: 2.5 / zoom,
+      baseMarkerSize: 8 / zoom,
+      hoverMarkerSize: 11 / zoom,
+      activeMarkerSize: 12 / zoom,
+      innerDotSize: 3 / zoom,
+      strokeWidth: 1.5 / zoom,
       tooltipHeight: 28 / zoom,
       tooltipRadius: 4 / zoom,
       fontSize: 14 / zoom,
@@ -703,6 +699,7 @@ export function JapanMap(props: JapanMapProps) {
           y="0"
           width={BASE_WIDTH}
           height={BASE_HEIGHT}
+          className="jp-map-image"
         />
 
         {renderedMarkers}
@@ -727,39 +724,38 @@ export function JapanMap(props: JapanMapProps) {
         )}
       </svg>
 
-      <div className="absolute bottom-[max(1rem,env(safe-area-inset-bottom))] left-[max(1rem,env(safe-area-inset-left))] flex flex-col gap-2 z-10">
-        <div className="flex gap-1">
-          <button
-            onClick={zoomIn}
-            disabled={zoom >= MAX_ZOOM}
-            className="touch-target w-10 h-10 flex items-center justify-center bg-background/95 backdrop-blur-sm border border-border rounded-lg hover:bg-muted active:scale-95 transition-all disabled:opacity-40 disabled:pointer-events-none shadow-sm"
-            aria-label={t.a11y.zoomIn}
-          >
-            <Plus className="h-5 w-5" />
-          </button>
-          <button
-            onClick={zoomOut}
-            disabled={zoom <= MIN_ZOOM}
-            className="touch-target w-10 h-10 flex items-center justify-center bg-background/95 backdrop-blur-sm border border-border rounded-lg hover:bg-muted active:scale-95 transition-all disabled:opacity-40 disabled:pointer-events-none shadow-sm"
-            aria-label={t.a11y.zoomOut}
-          >
-            <Minus className="h-5 w-5" />
-          </button>
-        </div>
-        <div className="bg-background/95 backdrop-blur-sm border border-border rounded-lg px-3 py-1.5 text-xs text-muted-foreground text-center shadow-sm">
-          {Math.round(zoom * 100)}%
-        </div>
-      </div>
-
-      {zoom > 1.05 && (
+      <div
+        className={`absolute flex flex-col items-end gap-2 z-10 ${
+          (props.mode === "view" && props.controlsClass) ||
+          "bottom-[max(1rem,env(safe-area-inset-bottom))] left-[max(1rem,env(safe-area-inset-left))]"
+        }`}
+      >
         <button
-          onClick={resetView}
-          aria-label={t.a11y.resetView}
-          className="touch-target absolute bottom-[max(1rem,env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))] h-10 bg-background/95 backdrop-blur-sm border border-border rounded-lg px-4 text-sm font-medium hover:bg-muted active:scale-95 transition-all z-10 shadow-sm"
+          onClick={zoomIn}
+          disabled={zoom >= MAX_ZOOM}
+          className="touch-target w-11 h-11 flex items-center justify-center bg-card border border-border rounded-xl hover:bg-muted active:scale-95 transition-all disabled:opacity-40 disabled:pointer-events-none shadow-float"
+          aria-label={t.a11y.zoomIn}
         >
-          {t.common.reset}
+          <Plus className="h-[18px] w-[18px]" />
         </button>
-      )}
+        <button
+          onClick={zoomOut}
+          disabled={zoom <= MIN_ZOOM}
+          className="touch-target w-11 h-11 flex items-center justify-center bg-card border border-border rounded-xl hover:bg-muted active:scale-95 transition-all disabled:opacity-40 disabled:pointer-events-none shadow-float"
+          aria-label={t.a11y.zoomOut}
+        >
+          <Minus className="h-[18px] w-[18px]" />
+        </button>
+        {zoom > 1.05 && (
+          <button
+            onClick={resetView}
+            aria-label={t.a11y.resetView}
+            className="touch-target h-11 min-w-11 px-2.5 flex items-center justify-center bg-card border border-border rounded-xl text-[11px] font-semibold hover:bg-muted active:scale-95 transition-all shadow-float"
+          >
+            {t.common.reset}
+          </button>
+        )}
+      </div>
     </div>
   );
 }

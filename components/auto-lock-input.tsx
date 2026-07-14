@@ -57,7 +57,7 @@ export function AutoLockInput({ value, onChange }: AutoLockInputProps) {
           className={cn(
             "flex-1 px-3 py-2 text-sm font-medium rounded-md transition-all",
             lockType === "digits"
-              ? "bg-background text-foreground shadow-sm"
+              ? "bg-card text-foreground shadow-[0_1px_3px_rgba(16,40,43,.1)] dark:bg-border"
               : "text-muted-foreground hover:text-foreground"
           )}
         >
@@ -69,7 +69,7 @@ export function AutoLockInput({ value, onChange }: AutoLockInputProps) {
           className={cn(
             "flex-1 px-3 py-2 text-sm font-medium rounded-md transition-all",
             lockType === "switchbot"
-              ? "bg-background text-foreground shadow-sm"
+              ? "bg-card text-foreground shadow-[0_1px_3px_rgba(16,40,43,.1)] dark:bg-border"
               : "text-muted-foreground hover:text-foreground"
           )}
         >
@@ -87,7 +87,7 @@ export function AutoLockInput({ value, onChange }: AutoLockInputProps) {
             value={data.value}
             onChange={(e) => handleDigitsChange(e.target.value)}
             placeholder={t.form.autoLockDigitsPlaceholder}
-            className="text-center text-lg tracking-widest font-mono"
+            className="text-center text-lg tracking-[0.3em] font-mono"
           />
         </div>
       )}

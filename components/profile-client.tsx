@@ -4,117 +4,160 @@ import { useI18n } from "@/lib/i18n/context";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { SignOutButton, UserButton } from "@clerk/nextjs";
-import { Navbar } from "@/components/navbar";
-import { Card } from "@/components/ui/card";
+import { SignOutButton } from "@clerk/nextjs";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { TabBar } from "@/components/tab-bar";
 import { Button } from "@/components/ui/button";
-import { Globe, Moon, Sun, Laptop, LogOut, Check, Users } from "lucide-react";
+import { Segmented } from "@/components/ui/segmented";
+import {
+  Globe,
+  Moon,
+  Sun,
+  Laptop,
+  LogOut,
+  Users,
+  ChevronRight,
+} from "lucide-react";
 
 interface ProfileClientProps {
   email?: string;
+  displayName?: string;
   isAdmin?: boolean;
 }
 
-export function ProfileClient({ email, isAdmin }: ProfileClientProps) {
+export function ProfileClient({ email, displayName, isAdmin }: ProfileClientProps) {
   const { t, language, setLanguage } = useI18n();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const pendingProfiles = useQuery(
+    api.profiles.listPending,
+    isAdmin ? {} : "skip"
+  );
+  const pendingCount = pendingProfiles?.length ?? 0;
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  const initial =
+    (displayName ?? email ?? "").trim().charAt(0).toUpperCase() || "?";
+
   return (
     <main className="h-dvh flex flex-col">
-      <Navbar showBack backHref="/" title={t.profile.title} showProfile={false} />
-      <div className="flex-1 overflow-auto p-4 max-w-xl mx-auto w-full pb-[calc(1rem+env(safe-area-inset-bottom))]">
-        <div className="flex items-center gap-3 mb-6">
-          <UserButton afterSignOutUrl="/" />
-          {email && (
-            <p className="text-sm text-muted-foreground">{email}</p>
-          )}
+      <div className="mx-auto w-full max-w-xl flex-1 overflow-y-auto">
+        <div className="px-5 pb-4 pt-[calc(0.75rem+env(safe-area-inset-top))]">
+          <h1 className="text-2xl font-bold tracking-[-0.01em]">
+            {t.profile.title}
+          </h1>
         </div>
+        <div className="flex flex-col gap-4 px-4 pb-6">
+          <div className="flex items-center gap-3.5 rounded-2xl border bg-card p-4 shadow-card dark:shadow-none">
+            <div className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full bg-primary text-xl font-semibold text-primary-foreground">
+              {initial}
+            </div>
+            <div className="min-w-0 flex-1">
+              {displayName && (
+                <div className="truncate text-base font-semibold">
+                  {displayName}
+                </div>
+              )}
+              {email && (
+                <div className="mt-0.5 truncate text-[13px] text-muted-foreground">
+                  {email}
+                </div>
+              )}
+            </div>
+          </div>
 
-        <div className="space-y-6">
           {isAdmin && (
-            <Button asChild className="w-full">
-              <Link href="/admin">
-                <Users className="h-4 w-4 mr-2" />
-                {t.memberManagement.title}
-              </Link>
-            </Button>
+            <Link
+              href="/admin"
+              className="flex items-center gap-3.5 rounded-2xl border bg-card px-4 py-3.5 shadow-card transition-all active:scale-[0.98] dark:shadow-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            >
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[11px] bg-secondary text-primary">
+                <Users className="h-[18px] w-[18px]" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-sm font-semibold">
+                  {t.memberManagement.title}
+                </div>
+                {pendingCount > 0 && (
+                  <div className="mt-px text-xs text-muted-foreground">
+                    {t.memberManagement.pendingApproval} · {pendingCount}
+                  </div>
+                )}
+              </div>
+              <ChevronRight className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
+            </Link>
           )}
-          <Card className="p-4">
-            <div className="flex items-center gap-2 mb-4">
-              <Globe className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium">{t.profile.language}</span>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant={language === "en" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setLanguage("en")}
-                className="flex-1"
-              >
-                English
-                {language === "en" && <Check className="h-4 w-4 ml-2" />}
-              </Button>
-              <Button
-                variant={language === "ja" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setLanguage("ja")}
-                className="flex-1"
-              >
-                日本語
-                {language === "ja" && <Check className="h-4 w-4 ml-2" />}
-              </Button>
-            </div>
-          </Card>
 
-          <Card className="p-4">
-            <div className="flex items-center gap-2 mb-4">
+          <div className="flex flex-col gap-3 rounded-2xl border bg-card p-4 shadow-card dark:shadow-none">
+            <div className="flex items-center gap-2 text-sm font-semibold">
+              <Globe className="h-4 w-4 text-muted-foreground" />
+              {t.profile.language}
+            </div>
+            <Segmented
+              aria-label={t.profile.language}
+              value={language}
+              onValueChange={(v) => setLanguage(v as "en" | "ja")}
+              options={[
+                { value: "en", label: "English" },
+                { value: "ja", label: "日本語" },
+              ]}
+            />
+          </div>
+
+          <div className="flex flex-col gap-3 rounded-2xl border bg-card p-4 shadow-card dark:shadow-none">
+            <div className="flex items-center gap-2 text-sm font-semibold">
               <Sun className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium">{t.profile.theme}</span>
+              {t.profile.theme}
             </div>
-            <div className="flex gap-2">
-              <Button
-                variant={mounted && theme === "light" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setTheme("light")}
-                className="flex-1"
-              >
-                <Sun className="h-4 w-4 mr-1" />
-                {t.profile.light}
-              </Button>
-              <Button
-                variant={mounted && theme === "dark" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setTheme("dark")}
-                className="flex-1"
-              >
-                <Moon className="h-4 w-4 mr-1" />
-                {t.profile.dark}
-              </Button>
-              <Button
-                variant={mounted && theme === "system" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setTheme("system")}
-                className="flex-1"
-              >
-                <Laptop className="h-4 w-4 mr-1" />
-                {t.profile.system}
-              </Button>
-            </div>
-          </Card>
+            <Segmented
+              aria-label={t.profile.theme}
+              value={mounted ? (theme ?? "system") : "system"}
+              onValueChange={setTheme}
+              options={[
+                {
+                  value: "light",
+                  label: (
+                    <>
+                      <Sun /> {t.profile.light}
+                    </>
+                  ),
+                },
+                {
+                  value: "dark",
+                  label: (
+                    <>
+                      <Moon /> {t.profile.dark}
+                    </>
+                  ),
+                },
+                {
+                  value: "system",
+                  label: (
+                    <>
+                      <Laptop /> {t.profile.system}
+                    </>
+                  ),
+                },
+              ]}
+            />
+          </div>
 
           <SignOutButton>
-            <Button variant="outline" className="w-full">
-              <LogOut className="h-4 w-4 mr-2" />
+            <Button
+              variant="outline"
+              className="h-12 w-full rounded-[14px] text-destructive"
+            >
+              <LogOut className="h-4 w-4" />
               {t.common.signOut}
             </Button>
           </SignOutButton>
         </div>
       </div>
+      <TabBar className="mx-auto w-full max-w-xl shrink-0" />
     </main>
   );
 }

@@ -6,8 +6,6 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n/context";
-import { Navbar } from "@/components/navbar";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -22,6 +20,7 @@ import {
   Check,
   X,
   ChevronDown,
+  ChevronLeft,
   Loader2,
   Shield,
   Trash2,
@@ -31,6 +30,7 @@ import {
 } from "lucide-react";
 import type { Id } from "@/convex/_generated/dataModel";
 import type { MemberRole } from "@/convex/propertyMembers";
+import { cn } from "@/lib/utils";
 
 interface Profile {
   _id: Id<"profiles">;
@@ -39,16 +39,6 @@ interface Profile {
   displayName?: string;
   role: string;
   approved?: boolean;
-}
-
-interface PropertyMembership {
-  _id: Id<"propertyMembers">;
-  propertyId: Id<"properties">;
-  role: MemberRole;
-  property: {
-    _id: Id<"properties">;
-    name: string;
-  } | null;
 }
 
 export function AdminMembersClient() {
@@ -136,36 +126,56 @@ export function AdminMembersClient() {
 
   return (
     <main className="h-dvh flex flex-col">
-      <Navbar showBack backHref="/profile" title={t.memberManagement.title} />
-      <div className="flex-1 overflow-auto p-4 max-w-2xl mx-auto w-full space-y-6 pb-[calc(1rem+env(safe-area-inset-bottom))]">
-        <Card className="p-4">
-          <div className="flex items-center gap-2 mb-4">
-            <Home className="h-4 w-4 text-muted-foreground" />
-            <span className="font-medium">{t.properties.title}</span>
-          </div>
-          <div className="space-y-2">
-            <Button asChild className="w-full">
-              <Link href="/add">
-                <Plus className="h-4 w-4 mr-2" />
-                {t.admin.addProperty}
-              </Link>
-            </Button>
+      <div className="mx-auto flex w-full max-w-2xl shrink-0 items-center gap-3 px-4 pb-1 pt-[calc(0.5rem+env(safe-area-inset-top))]">
+        <Button
+          asChild
+          variant="outline"
+          size="icon"
+          className="rounded-xl shadow-none"
+          aria-label={t.common.back}
+        >
+          <Link href="/profile">
+            <ChevronLeft className="h-[18px] w-[18px]" />
+          </Link>
+        </Button>
+        <h1 className="text-xl font-bold tracking-[-0.01em]">
+          {t.memberManagement.title}
+        </h1>
+      </div>
+      <div className="flex-1 overflow-auto px-4 pb-[calc(3rem+env(safe-area-inset-bottom))] pt-3">
+        <div className="mx-auto flex w-full max-w-2xl flex-col gap-4">
+          <div className="flex flex-col gap-3 rounded-2xl border bg-card p-4 shadow-card dark:shadow-none">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-[15px] font-bold">
+                <Home className="h-[17px] w-[17px] text-primary" />
+                {t.memberManagement.properties}
+              </div>
+              <Button asChild size="sm" className="h-[38px] rounded-full px-3.5 text-xs">
+                <Link href="/add">
+                  <Plus className="h-3.5 w-3.5" />
+                  {t.common.add}
+                </Link>
+              </Button>
+            </div>
             {allProperties && allProperties.length > 0 && (
-              <div className="pt-2 space-y-1">
+              <div className="flex flex-col">
                 {allProperties.map((property) => (
                   <div
                     key={property._id}
-                    className="flex items-center justify-between p-2 bg-muted/30 rounded"
+                    className="flex items-center gap-3 border-b border-hairline px-0.5 py-2 last:border-b-0"
                   >
-                    <span className="text-sm">{property.name}</span>
+                    <span className="flex-1 truncate text-sm font-medium">
+                      {property.name}
+                    </span>
                     <Button
                       asChild
-                      size="sm"
-                      variant="ghost"
+                      size="icon"
+                      variant="outline"
+                      className="h-10 w-10 rounded-[11px] text-muted-foreground shadow-none"
                       aria-label={`${t.a11y.editProperty}: ${property.name}`}
                     >
                       <Link href={`/add/p/${property._id}/edit`}>
-                        <Pencil className="h-4 w-4" />
+                        <Pencil className="h-[15px] w-[15px]" />
                       </Link>
                     </Button>
                   </div>
@@ -173,115 +183,111 @@ export function AdminMembersClient() {
               </div>
             )}
           </div>
-        </Card>
 
-        <Card className="p-4">
-          <div className="flex items-center gap-2 mb-4">
-            <UserCheck className="h-4 w-4 text-muted-foreground" />
-            <span className="font-medium">
+          <div className="flex flex-col gap-3 rounded-2xl border bg-card p-4 shadow-card dark:shadow-none">
+            <div className="flex items-center gap-2 text-[15px] font-bold">
+              <UserCheck className="h-[17px] w-[17px] text-primary" />
               {t.memberManagement.pendingApproval}
-            </span>
-            {pendingProfiles && pendingProfiles.length > 0 && (
-              <span className="bg-destructive text-destructive-foreground text-xs px-2 py-0.5 rounded-full">
-                {pendingProfiles.length}
-              </span>
-            )}
-          </div>
-          {!pendingProfiles ? (
-            <div className="text-sm text-muted-foreground animate-pulse">
-              {t.common.loading}
+              {pendingProfiles && pendingProfiles.length > 0 && (
+                <span className="rounded-full bg-destructive/10 px-[9px] py-0.5 text-xs font-semibold text-destructive">
+                  {pendingProfiles.length}
+                </span>
+              )}
             </div>
-          ) : pendingProfiles.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              {t.memberManagement.noPending}
-            </p>
-          ) : (
-            <div className="space-y-2">
-              {pendingProfiles.map((profile) => (
-                <div
-                  key={profile._id}
-                  className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
-                >
-                  <div>
-                    <p className="font-medium">
-                      {profile.displayName || profile.email}
-                    </p>
-                    {profile.displayName && (
-                      <p className="text-sm text-muted-foreground">
-                        {profile.email}
+            {!pendingProfiles ? (
+              <div className="animate-pulse text-sm text-muted-foreground">
+                {t.common.loading}
+              </div>
+            ) : pendingProfiles.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                {t.memberManagement.noPending}
+              </p>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {pendingProfiles.map((profile) => (
+                  <div
+                    key={profile._id}
+                    className="flex items-center gap-3 rounded-xl bg-background p-3"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold">
+                        {profile.displayName || profile.email}
                       </p>
-                    )}
-                  </div>
-                  <div className="flex gap-2">
+                      {profile.displayName && (
+                        <p className="truncate text-xs text-muted-foreground">
+                          {profile.email}
+                        </p>
+                      )}
+                    </div>
                     <Button
-                      size="sm"
+                      size="icon"
+                      className="rounded-xl"
                       onClick={() => handleApprove(profile.clerkId)}
                       disabled={loadingActions.has(`approve-${profile.clerkId}`)}
                       aria-label={t.memberManagement.approve}
                     >
                       {loadingActions.has(`approve-${profile.clerkId}`) ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <Loader2 className="h-[17px] w-[17px] animate-spin" />
                       ) : (
-                        <Check className="h-4 w-4" />
+                        <Check className="h-[17px] w-[17px]" />
                       )}
                     </Button>
                     <Button
-                      size="sm"
-                      variant="destructive"
+                      size="icon"
+                      variant="outline"
+                      className="rounded-xl text-destructive"
                       onClick={() => handleReject(profile.clerkId)}
                       disabled={loadingActions.has(`reject-${profile.clerkId}`)}
                       aria-label={t.memberManagement.reject}
                     >
                       {loadingActions.has(`reject-${profile.clerkId}`) ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <Loader2 className="h-[17px] w-[17px] animate-spin" />
                       ) : (
-                        <X className="h-4 w-4" />
+                        <X className="h-[17px] w-[17px]" />
                       )}
                     </Button>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center gap-2 mb-4">
-            <Users className="h-4 w-4 text-muted-foreground" />
-            <span className="font-medium">
-              {t.memberManagement.approvedMembers}
-            </span>
+                ))}
+              </div>
+            )}
           </div>
-          {!approvedProfiles ? (
-            <div className="text-sm text-muted-foreground animate-pulse">
-              {t.common.loading}
+
+          <div className="flex flex-col gap-3 rounded-2xl border bg-card p-4 shadow-card dark:shadow-none">
+            <div className="flex items-center gap-2 text-[15px] font-bold">
+              <Users className="h-[17px] w-[17px] text-primary" />
+              {t.memberManagement.approvedMembers}
             </div>
-          ) : approvedProfiles.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              {t.memberManagement.noMembers}
-            </p>
-          ) : (
-            <div className="space-y-2">
-              {approvedProfiles.map((profile) => (
-                <UserCard
-                  key={profile._id}
-                  profile={profile}
-                  expanded={expandedUser === profile.clerkId}
-                  onToggle={() =>
-                    setExpandedUser(
-                      expandedUser === profile.clerkId ? null : profile.clerkId
-                    )
-                  }
-                  properties={allProperties ?? []}
-                  onAssign={handleAssign}
-                  onRemove={handleRemove}
-                  loadingActions={loadingActions}
-                  t={t}
-                />
-              ))}
-            </div>
-          )}
-        </Card>
+            {!approvedProfiles ? (
+              <div className="animate-pulse text-sm text-muted-foreground">
+                {t.common.loading}
+              </div>
+            ) : approvedProfiles.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                {t.memberManagement.noMembers}
+              </p>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {approvedProfiles.map((profile) => (
+                  <UserCard
+                    key={profile._id}
+                    profile={profile}
+                    expanded={expandedUser === profile.clerkId}
+                    onToggle={() =>
+                      setExpandedUser(
+                        expandedUser === profile.clerkId ? null : profile.clerkId
+                      )
+                    }
+                    properties={allProperties ?? []}
+                    onAssign={handleAssign}
+                    onRemove={handleRemove}
+                    loadingActions={loadingActions}
+                    t={t}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </main>
   );
@@ -334,44 +340,54 @@ function UserCard({
     }
   };
 
+  const roleLabel = (role: string) =>
+    role === "owner"
+      ? t.memberManagement.roleOwner
+      : role === "member"
+        ? t.memberManagement.roleMember
+        : t.memberManagement.roleGuest;
+
   return (
-    <div className="border rounded-lg overflow-hidden">
+    <div className="overflow-hidden rounded-[14px] border">
       <button
         onClick={onToggle}
         aria-expanded={expanded}
-        className="w-full flex items-center justify-between p-3 hover:bg-muted/50 transition-colors"
+        className="flex w-full items-center justify-between gap-2.5 p-3.5 transition-colors hover:bg-muted/50"
       >
-        <div className="flex items-center gap-2 text-left">
-          <div>
-            <p className="font-medium">
+        <div className="min-w-0 flex-1 text-left">
+          <div className="flex items-center gap-2">
+            <span className="truncate text-sm font-semibold">
               {profile.displayName || profile.email}
-            </p>
-            {profile.displayName && (
-              <p className="text-sm text-muted-foreground">{profile.email}</p>
+            </span>
+            {profile.role === "admin" && (
+              <span className="flex shrink-0 items-center gap-1 rounded-full bg-secondary px-2 py-[3px] text-[10px] font-semibold text-secondary-foreground">
+                <Shield className="h-[11px] w-[11px]" />
+                {t.memberManagement.systemAdmin}
+              </span>
             )}
           </div>
-          {profile.role === "admin" && (
-            <span className="flex items-center gap-1 text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
-              <Shield className="h-3 w-3" />
-              {t.memberManagement.systemAdmin}
-            </span>
+          {profile.displayName && (
+            <p className="mt-0.5 truncate text-xs text-muted-foreground">
+              {profile.email}
+            </p>
           )}
         </div>
         <ChevronDown
-          className={`h-4 w-4 text-muted-foreground transition-transform ${
-            expanded ? "rotate-180" : ""
-          }`}
+          className={cn(
+            "h-4 w-4 shrink-0 text-muted-foreground transition-transform",
+            expanded && "rotate-180"
+          )}
         />
       </button>
 
       {expanded && (
-        <div className="border-t p-3 space-y-3">
+        <div className="flex flex-col gap-3 border-t border-hairline bg-nested p-3.5">
           <div>
-            <p className="text-sm font-medium mb-2">
+            <p className="mb-2 text-xs font-semibold text-muted-foreground">
               {t.memberManagement.properties}
             </p>
             {!memberships ? (
-              <p className="text-sm text-muted-foreground animate-pulse">
+              <p className="animate-pulse text-sm text-muted-foreground">
                 {t.common.loading}
               </p>
             ) : memberships.length === 0 ? (
@@ -379,25 +395,22 @@ function UserCard({
                 {t.memberManagement.noPropertyAccess}
               </p>
             ) : (
-              <div className="space-y-1">
+              <div className="flex flex-col gap-1.5">
                 {memberships.map((m) => (
                   <div
                     key={m._id}
-                    className="flex items-center justify-between p-2 bg-muted/30 rounded"
+                    className="flex items-center gap-2.5 rounded-[10px] border border-hairline bg-card px-3 py-2"
                   >
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm">{m.property?.name}</span>
-                      <span className="text-xs bg-secondary px-2 py-0.5 rounded">
-                        {m.role === "owner"
-                          ? t.memberManagement.roleOwner
-                          : m.role === "member"
-                            ? t.memberManagement.roleMember
-                            : t.memberManagement.roleGuest}
-                      </span>
-                    </div>
+                    <span className="flex-1 truncate text-[13px] font-medium">
+                      {m.property?.name}
+                    </span>
+                    <span className="shrink-0 rounded-full bg-muted px-[9px] py-0.5 text-[11px] font-medium text-muted-foreground">
+                      {roleLabel(m.role)}
+                    </span>
                     <Button
-                      size="sm"
+                      size="icon"
                       variant="ghost"
+                      className="h-8 w-8 rounded-lg text-muted-foreground hover:text-destructive"
                       onClick={() => onRemove(profile.clerkId, m.propertyId)}
                       disabled={loadingActions.has(
                         `remove-${profile.clerkId}-${m.propertyId}`
@@ -407,9 +420,9 @@ function UserCard({
                       {loadingActions.has(
                         `remove-${profile.clerkId}-${m.propertyId}`
                       ) ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <Loader2 className="h-[15px] w-[15px] animate-spin" />
                       ) : (
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-[15px] w-[15px]" />
                       )}
                     </Button>
                   </div>
@@ -419,8 +432,8 @@ function UserCard({
           </div>
 
           {availableProperties.length > 0 && (
-            <div className="pt-2 border-t">
-              <p className="text-sm font-medium mb-2">
+            <div>
+              <p className="mb-2 text-xs font-semibold text-muted-foreground">
                 {t.memberManagement.assignToProperty}
               </p>
               <div className="flex flex-wrap gap-2">
@@ -432,7 +445,7 @@ function UserCard({
                     )
                   }
                 >
-                  <SelectTrigger className="flex-1 min-w-[120px]">
+                  <SelectTrigger className="h-11 min-w-[120px] flex-1 rounded-xl bg-card">
                     <SelectValue placeholder={t.memberManagement.selectProperty} />
                   </SelectTrigger>
                   <SelectContent>
@@ -447,7 +460,7 @@ function UserCard({
                   value={selectedRole}
                   onValueChange={(value: string) => setSelectedRole(value as MemberRole)}
                 >
-                  <SelectTrigger className="w-[100px]">
+                  <SelectTrigger className="h-11 w-[110px] rounded-xl bg-card">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -457,7 +470,7 @@ function UserCard({
                   </SelectContent>
                 </Select>
                 <Button
-                  size="sm"
+                  className="h-11 rounded-xl"
                   onClick={handleAssign}
                   disabled={
                     !selectedProperty ||

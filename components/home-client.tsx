@@ -1,9 +1,10 @@
 "use client";
 
 import { SignIn } from "@clerk/nextjs";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 import { useI18n } from "@/lib/i18n/context";
 import { MapDashboardLazy } from "@/components/map-dashboard-lazy";
-import { Navbar } from "@/components/navbar";
 import { Home } from "lucide-react";
 import type { Id } from "@/convex/_generated/dataModel";
 
@@ -22,31 +23,58 @@ interface Property {
   room?: string;
   locationX?: number;
   locationY?: number;
+  todoCount?: number;
 }
 
 interface HomeClientProps {
   userId: string | null;
+  userInitial: string | null;
   properties: Property[];
 }
 
-export function HomeClient({ userId, properties }: HomeClientProps) {
+export function HomeClient({ userId, userInitial, properties }: HomeClientProps) {
   const { t } = useI18n();
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   if (!userId) {
+    const dark = mounted && resolvedTheme === "dark";
     return (
-      <main className="min-h-dvh flex flex-col items-center justify-center p-8">
-        <div className="flex flex-col items-center gap-8">
-          <div className="flex flex-col items-center gap-4">
-            <Home className="h-14 w-14 text-primary" />
-            <h1 className="text-4xl font-bold tracking-tight">
-              {t.home.title}
-            </h1>
-            <p className="text-muted-foreground text-center text-lg">
-              {t.home.subtitle}
-            </p>
+      <main className="flex min-h-dvh flex-col items-center justify-center gap-8 px-7 py-10">
+        <div className="flex flex-col items-center gap-4">
+          <div className="flex h-[72px] w-[72px] items-center justify-center rounded-[22px] bg-secondary text-primary">
+            <Home className="h-[34px] w-[34px]" strokeWidth={1.8} />
           </div>
-          <SignIn />
+          <h1 className="text-[28px] font-bold tracking-[-0.02em]">
+            {t.home.title}
+          </h1>
+          <p className="text-center text-[15px] text-muted-foreground">
+            {t.home.subtitle}
+          </p>
         </div>
+        <SignIn
+          appearance={{
+            variables: {
+              colorPrimary: dark ? "#2fb39b" : "#17806d",
+              colorBackground: dark ? "#141f20" : "#ffffff",
+              colorText: dark ? "#e8f0ef" : "#10282b",
+              colorTextSecondary: dark ? "#93a8a9" : "#5b7276",
+              colorInputBackground: dark ? "#0d1516" : "#f6f8f7",
+              colorInputText: dark ? "#e8f0ef" : "#10282b",
+              borderRadius: "14px",
+              fontFamily:
+                "var(--font-plus-jakarta), var(--font-noto-sans-jp), sans-serif",
+            },
+            elements: {
+              cardBox: "rounded-[20px] shadow-card border border-border",
+              formButtonPrimary: "shadow-primary-btn",
+            },
+          }}
+        />
       </main>
     );
   }
@@ -65,14 +93,15 @@ export function HomeClient({ userId, properties }: HomeClientProps) {
     room: p.room ?? null,
     location_x: p.locationX ?? null,
     location_y: p.locationY ?? null,
+    todo_count: p.todoCount ?? 0,
   }));
 
   return (
-    <main className="h-dvh flex flex-col">
-      <Navbar />
-      <div className="flex-1 overflow-hidden">
-        <MapDashboardLazy properties={mappedProperties} />
-      </div>
+    <main className="h-dvh">
+      <MapDashboardLazy
+        properties={mappedProperties}
+        userInitial={userInitial}
+      />
     </main>
   );
 }

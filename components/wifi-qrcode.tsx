@@ -128,12 +128,13 @@ export function WifiQRCode({
     <>
       <Button
         variant="outline"
-        size="sm"
+        size="icon"
+        className="rounded-xl"
         onClick={handleOpen}
         disabled={loading || (autoOpen && !showQR)}
         aria-label={t.a11y.showQrCode}
       >
-        <QrCode className="h-4 w-4" />
+        <QrCode className="h-[17px] w-[17px]" />
       </Button>
       <Dialog
         open={showQR}

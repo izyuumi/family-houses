@@ -136,13 +136,13 @@ export function PropertyNotes({ propertyId, initialNotes, userId }: PropertyNote
 
   return (
     <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center justify-between text-base">
+      <CardHeader className="p-4 pb-0">
+        <CardTitle className="flex items-center justify-between text-[15px]">
           <span className="flex items-center gap-2">
-            <StickyNote className="h-4 w-4" />
+            <StickyNote className="h-[17px] w-[17px] text-primary" />
             {t.propertyNotes.title}
             {notes.length > 0 && (
-              <span className="text-xs bg-primary text-primary-foreground rounded-full px-2 py-0.5">
+              <span className="rounded-full bg-secondary px-[9px] py-0.5 text-xs font-semibold text-secondary-foreground">
                 {notes.length}
               </span>
             )}
@@ -162,14 +162,14 @@ export function PropertyNotes({ propertyId, initialNotes, userId }: PropertyNote
           )}
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 p-4">
         {isAdding && (
           <div className="flex gap-2">
             <Input
               placeholder={t.propertyNotes.addNotePlaceholder}
               value={newContent}
               onChange={(e) => setNewContent(e.target.value)}
-              className="flex-1"
+              className="flex-1 bg-background"
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
@@ -203,7 +203,7 @@ export function PropertyNotes({ propertyId, initialNotes, userId }: PropertyNote
           </div>
         )}
 
-        <div className="space-y-2">
+        <div className="flex flex-col">
           {notes.length === 0 && !isAdding && (
             <p className="text-center text-muted-foreground text-sm py-4">
               {t.propertyNotes.noNotes}
@@ -213,7 +213,7 @@ export function PropertyNotes({ propertyId, initialNotes, userId }: PropertyNote
           {notes.map((note) => (
             <div
               key={note.id}
-              className="py-2 px-3 rounded-lg border bg-card"
+              className="border-b border-hairline px-0.5 py-3 last:border-b-0"
             >
               {editingId === note.id ? (
                 <div className="flex gap-2">

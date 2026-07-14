@@ -106,7 +106,7 @@ export function MailboxLockInput({ value, onChange }: MailboxLockInputProps) {
           className={cn(
             "flex-1 px-3 py-2 text-sm font-medium rounded-md transition-all",
             lockType === "digits"
-              ? "bg-background text-foreground shadow-sm"
+              ? "bg-card text-foreground shadow-[0_1px_3px_rgba(16,40,43,.1)] dark:bg-border"
               : "text-muted-foreground hover:text-foreground"
           )}
         >
@@ -118,7 +118,7 @@ export function MailboxLockInput({ value, onChange }: MailboxLockInputProps) {
           className={cn(
             "flex-1 px-3 py-2 text-sm font-medium rounded-md transition-all",
             lockType === "dial"
-              ? "bg-background text-foreground shadow-sm"
+              ? "bg-card text-foreground shadow-[0_1px_3px_rgba(16,40,43,.1)] dark:bg-border"
               : "text-muted-foreground hover:text-foreground"
           )}
         >
@@ -153,7 +153,7 @@ export function MailboxLockInput({ value, onChange }: MailboxLockInputProps) {
                 )}
 
                 {/* Step Card */}
-                <div className="flex items-center gap-1.5 bg-muted/50 rounded-lg px-2 py-1.5 border">
+                <div className="flex items-center gap-1.5 rounded-xl border bg-background px-2 py-1.5">
                   {/* Direction Toggle Button */}
                   <Button
                     type="button"
@@ -163,8 +163,8 @@ export function MailboxLockInput({ value, onChange }: MailboxLockInputProps) {
                     className={cn(
                       "h-8 px-2 gap-1 font-medium",
                       step.direction === "right"
-                        ? "text-blue-600 dark:text-blue-400"
-                        : "text-orange-600 dark:text-orange-400"
+                        ? "text-primary"
+                        : "text-dial-left"
                     )}
                   >
                     {step.direction === "right" ? (

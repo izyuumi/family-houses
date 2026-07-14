@@ -10,7 +10,6 @@ import { JapanMap, type MapLocation } from "@/components/japan-map";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/card";
 import { Plus, Loader2, MapPin, Pencil, X, Save } from "lucide-react";
 import { MailboxLockInput } from "@/components/mailbox-lock-input";
 import { AutoLockInput } from "@/components/auto-lock-input";
@@ -185,11 +184,18 @@ export function AdminForm({ property }: AdminFormProps) {
     setIsEditingLocation(false);
   };
 
+  const sectionClass =
+    "flex flex-col gap-3.5 rounded-2xl border bg-card p-4 shadow-card dark:shadow-none";
+  const fieldLabelClass = "text-xs font-semibold text-muted-foreground";
+
   return (
-    <Card className="mt-6 p-6">
-      <form onSubmit={handleSubmit} className="space-y-5">
-        <div className="space-y-2">
-          <Label htmlFor="name">{t.form.name} *</Label>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <div className={sectionClass}>
+        <div className="text-sm font-bold">{t.form.basicInfo}</div>
+        <div className="space-y-1.5">
+          <Label htmlFor="name" className={fieldLabelClass}>
+            {t.form.name} *
+          </Label>
           <Input
             id="name"
             name="name"
@@ -199,9 +205,10 @@ export function AdminForm({ property }: AdminFormProps) {
             required
           />
         </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="slug">{t.form.slug}</Label>
+        <div className="space-y-1.5">
+          <Label htmlFor="slug" className={fieldLabelClass}>
+            {t.form.slug}
+          </Label>
           <Input
             id="slug"
             name="slug"
@@ -210,11 +217,12 @@ export function AdminForm({ property }: AdminFormProps) {
             placeholder="my-house"
             pattern="^[a-z0-9-]+$"
           />
-          <p className="text-xs text-muted-foreground">{t.form.slugHint}</p>
+          <p className="text-[11px] text-muted-foreground">{t.form.slugHint}</p>
         </div>
+      </div>
 
-        <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
-          <Label className="text-base font-medium">{t.form.address}</Label>
+      <div className={sectionClass}>
+        <div className="text-sm font-bold">{t.form.address}</div>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
@@ -355,120 +363,107 @@ export function AdminForm({ property }: AdminFormProps) {
           </div>
         </div>
 
-        <div className="space-y-2">
-          <Label>{t.form.locationOnMap}</Label>
-          <div
-            className={`border rounded-md overflow-hidden transition-colors ${
-              isEditingLocation
-                ? "border-primary ring-2 ring-primary/20"
-                : "border-input"
-            }`}
-          >
-            <div className="h-[300px] bg-muted/30 relative">
-              {isEditingLocation ? (
-                <JapanMap
-                  mode="edit"
-                  selectedLocation={location}
-                  onLocationClick={handleLocationSelect}
-                />
-              ) : (
-                <JapanMap
-                  mode="view"
-                  markers={
-                    location
-                      ? [
-                          {
-                            id: "selected",
-                            name: "Selected Location",
-                            x: location.x,
-                            y: location.y,
-                          },
-                        ]
-                      : []
-                  }
-                />
-              )}
-              {isEditingLocation && (
-                <div className="absolute inset-0 pointer-events-none flex items-start justify-center pt-4">
-                  <div className="bg-primary text-primary-foreground px-3 py-1.5 rounded-full text-sm font-medium animate-pulse">
-                    {t.form.clickToSetLocation}
-                  </div>
-                </div>
-              )}
+      <div className={sectionClass}>
+        <div className="flex items-center justify-between">
+          <div className="text-sm font-bold">{t.form.locationOnMap}</div>
+          {location && !isEditingLocation && (
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-primary">
+              <MapPin className="h-3.5 w-3.5" />
+              {t.form.locationSet}
             </div>
-            <div className="flex items-center justify-between px-3 py-2 border-t border-input bg-muted/30">
+          )}
+        </div>
+        <div
+          className={`relative overflow-hidden rounded-xl border transition-colors ${
+            isEditingLocation
+              ? "h-[300px] border-primary ring-2 ring-primary/20"
+              : "h-[180px] border-hairline"
+          } bg-muted/30`}
+        >
+          {isEditingLocation ? (
+            <JapanMap
+              mode="edit"
+              selectedLocation={location}
+              onLocationClick={handleLocationSelect}
+            />
+          ) : (
+            <JapanMap
+              mode="view"
+              markers={
+                location
+                  ? [
+                      {
+                        id: "selected",
+                        name: "Selected Location",
+                        x: location.x,
+                        y: location.y,
+                      },
+                    ]
+                  : []
+              }
+            />
+          )}
+          {isEditingLocation && (
+            <div className="pointer-events-none absolute inset-0 flex items-start justify-center pt-4">
+              <div className="animate-pulse rounded-full bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground">
+                {t.form.clickToSetLocation}
+              </div>
+            </div>
+          )}
+        </div>
+        <div className="flex gap-2">
+          {isEditingLocation ? (
+            <Button
+              type="button"
+              variant="outline"
+              className="h-10 flex-1 rounded-xl text-xs shadow-none"
+              onClick={cancelEditingLocation}
+            >
+              {t.common.cancel}
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              variant="outline"
+              className="h-10 flex-1 rounded-xl text-xs shadow-none"
+              onClick={startEditingLocation}
+            >
               {location ? (
                 <>
-                  <div className="flex items-center gap-2 text-sm">
-                    <MapPin className="h-4 w-4 text-primary" />
-                    <span className="font-medium">{t.form.locationSet}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    {isEditingLocation ? (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={cancelEditingLocation}
-                      >
-                        {t.common.cancel}
-                      </Button>
-                    ) : (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={startEditingLocation}
-                      >
-                        <Pencil className="h-3.5 w-3.5 mr-1" />
-                        {t.common.edit}
-                      </Button>
-                    )}
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={clearLocation}
-                      className="text-muted-foreground hover:text-destructive"
-                      aria-label={t.a11y.clearLocation}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  <Pencil className="h-[13px] w-[13px]" />
+                  {t.common.edit}
                 </>
               ) : (
                 <>
-                  <span className="text-sm text-muted-foreground">
-                    {t.form.noLocationSet}
-                  </span>
-                  {isEditingLocation ? (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={cancelEditingLocation}
-                    >
-                      {t.common.cancel}
-                    </Button>
-                  ) : (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={startEditingLocation}
-                    >
-                      <MapPin className="h-3.5 w-3.5 mr-1" />
-                      {t.form.setLocation}
-                    </Button>
-                  )}
+                  <MapPin className="h-[13px] w-[13px]" />
+                  {t.form.setLocation}
                 </>
               )}
-            </div>
-          </div>
+            </Button>
+          )}
+          {location && (
+            <Button
+              type="button"
+              variant="outline"
+              className="h-10 w-11 rounded-xl px-0 text-destructive shadow-none"
+              onClick={clearLocation}
+              aria-label={t.a11y.clearLocation}
+            >
+              <X className="h-[15px] w-[15px]" />
+            </Button>
+          )}
         </div>
+        {!location && !isEditingLocation && (
+          <p className="text-xs text-muted-foreground">{t.form.noLocationSet}</p>
+        )}
+      </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="wifi_ssid">{t.form.wifiSSID}</Label>
+      <div className={sectionClass}>
+        <div className="text-sm font-bold">{t.info.wifi}</div>
+        <div className="space-y-1.5">
+          <Label htmlFor="wifi_ssid" className={fieldLabelClass}>
+            {t.form.wifiSSID}
+          </Label>
           <Input
             id="wifi_ssid"
             name="wifi_ssid"
@@ -477,9 +472,10 @@ export function AdminForm({ property }: AdminFormProps) {
             placeholder={t.form.wifiSSIDPlaceholder}
           />
         </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="wifi_password">{t.form.wifiPassword}</Label>
+        <div className="space-y-1.5">
+          <Label htmlFor="wifi_password" className={fieldLabelClass}>
+            {t.form.wifiPassword}
+          </Label>
           <Input
             id="wifi_password"
             name="wifi_password"
@@ -489,9 +485,10 @@ export function AdminForm({ property }: AdminFormProps) {
             placeholder="••••••••"
           />
         </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="guest_wifi_ssid">{t.form.guestWifiSSID}</Label>
+        <div className="space-y-1.5">
+          <Label htmlFor="guest_wifi_ssid" className={fieldLabelClass}>
+            {t.form.guestWifiSSID}
+          </Label>
           <Input
             id="guest_wifi_ssid"
             name="guest_wifi_ssid"
@@ -500,9 +497,8 @@ export function AdminForm({ property }: AdminFormProps) {
             placeholder={t.form.guestWifiSSIDPlaceholder}
           />
         </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="guest_wifi_password">
+        <div className="space-y-1.5">
+          <Label htmlFor="guest_wifi_password" className={fieldLabelClass}>
             {t.form.guestWifiPassword}
           </Label>
           <Input
@@ -514,55 +510,55 @@ export function AdminForm({ property }: AdminFormProps) {
             placeholder="••••••••"
           />
         </div>
+      </div>
 
-        <div className="space-y-2">
-          <Label>{t.form.mailboxLockCombination}</Label>
-          <MailboxLockInput
-            value={formData.mailbox_lock_combination}
-            onChange={(value) =>
-              setFormData((prev) => ({ ...prev, mailbox_lock_combination: value }))
-            }
-          />
+      <div className={sectionClass}>
+        <div className="text-sm font-bold">{t.form.mailboxLockCombination}</div>
+        <MailboxLockInput
+          value={formData.mailbox_lock_combination}
+          onChange={(value) =>
+            setFormData((prev) => ({ ...prev, mailbox_lock_combination: value }))
+          }
+        />
+      </div>
+
+      <div className={sectionClass}>
+        <div className="text-sm font-bold">{t.form.autoLockCode}</div>
+        <AutoLockInput
+          value={formData.auto_lock_code}
+          onChange={(value) =>
+            setFormData((prev) => ({ ...prev, auto_lock_code: value }))
+          }
+        />
+      </div>
+
+      {error && (
+        <div className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive">
+          {error}
         </div>
+      )}
 
-        <div className="space-y-2">
-          <Label>{t.form.autoLockCode}</Label>
-          <AutoLockInput
-            value={formData.auto_lock_code}
-            onChange={(value) =>
-              setFormData((prev) => ({ ...prev, auto_lock_code: value }))
-            }
-          />
+      {success && (
+        <div className="rounded-xl bg-secondary p-3 text-sm text-secondary-foreground">
+          {isEditMode ? t.admin.propertyUpdated : t.admin.propertyAdded}
         </div>
+      )}
 
-        {error && (
-          <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">
-            {error}
-          </div>
+      <Button type="submit" size="lg" className="w-full" disabled={loading}>
+        {loading ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : isEditMode ? (
+          <>
+            <Save className="h-[17px] w-[17px]" />
+            {t.admin.saveChanges}
+          </>
+        ) : (
+          <>
+            <Plus className="h-[17px] w-[17px]" />
+            {t.admin.addProperty}
+          </>
         )}
-
-        {success && (
-          <div className="text-sm text-green-600 bg-green-50 dark:bg-green-950 dark:text-green-400 p-3 rounded-md">
-            {isEditMode ? t.admin.propertyUpdated : t.admin.propertyAdded}
-          </div>
-        )}
-
-        <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : isEditMode ? (
-            <>
-              <Save className="h-4 w-4 mr-2" />
-              {t.admin.saveChanges}
-            </>
-          ) : (
-            <>
-              <Plus className="h-4 w-4 mr-2" />
-              {t.admin.addProperty}
-            </>
-          )}
-        </Button>
-      </form>
-    </Card>
+      </Button>
+    </form>
   );
 }

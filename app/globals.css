@@ -4,57 +4,65 @@
 
 @layer base {
   :root {
-    --background: 45 30% 98%;
-    --foreground: 195 37% 15%;
+    --background: 150 12% 97%;
+    --foreground: 187 46% 12%;
     --card: 0 0% 100%;
-    --card-foreground: 195 37% 15%;
+    --card-foreground: 187 46% 12%;
     --popover: 0 0% 100%;
-    --popover-foreground: 195 37% 15%;
-    --primary: 168 60% 31%;
+    --popover-foreground: 187 46% 12%;
+    --primary: 169 70% 30%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 45 50% 95%;
-    --secondary-foreground: 195 37% 20%;
-    --muted: 195 15% 94%;
-    --muted-foreground: 195 20% 40%;
-    --accent: 168 60% 31%;
+    --secondary: 162 30% 92%;
+    --secondary-foreground: 169 70% 30%;
+    --muted: 165 13% 94%;
+    --muted-foreground: 189 13% 41%;
+    --accent: 169 70% 30%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 12 72% 45%;
+    --destructive: 10 51% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 195 15% 88%;
-    --input: 195 15% 88%;
-    --ring: 168 60% 31%;
-    --chart-1: 168 60% 31%;
+    --border: 173 14% 89%;
+    --input: 173 14% 89%;
+    --ring: 169 70% 30%;
+    --hairline: 165 13% 94%;
+    --check-ring: 164 19% 77%;
+    --nested: 160 33% 99%;
+    --dial-left: 28 55% 45%;
+    --chart-1: 169 70% 30%;
     --chart-2: 45 74% 66%;
     --chart-3: 27 87% 67%;
-    --chart-4: 12 76% 61%;
-    --chart-5: 195 37% 24%;
-    --radius: 0.5rem;
+    --chart-4: 10 51% 51%;
+    --chart-5: 187 46% 24%;
+    --radius: 0.75rem;
   }
   .dark {
-    --background: 195 30% 8%;
-    --foreground: 45 30% 95%;
-    --card: 195 25% 10%;
-    --card-foreground: 45 30% 95%;
-    --popover: 195 25% 10%;
-    --popover-foreground: 45 30% 95%;
-    --primary: 168 57% 45%;
-    --primary-foreground: 195 37% 10%;
-    --secondary: 195 20% 15%;
-    --secondary-foreground: 45 30% 95%;
-    --muted: 195 15% 18%;
-    --muted-foreground: 195 15% 60%;
-    --accent: 168 57% 45%;
-    --accent-foreground: 195 37% 10%;
-    --destructive: 12 62% 50%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 195 15% 22%;
-    --input: 195 15% 22%;
-    --ring: 168 57% 45%;
-    --chart-1: 168 57% 45%;
+    --background: 187 26% 7%;
+    --foreground: 173 21% 93%;
+    --card: 185 23% 10%;
+    --card-foreground: 173 21% 93%;
+    --popover: 185 23% 10%;
+    --popover-foreground: 173 21% 93%;
+    --primary: 169 58% 44%;
+    --primary-foreground: 187 26% 7%;
+    --secondary: 175 35% 15%;
+    --secondary-foreground: 169 58% 44%;
+    --muted: 184 22% 15%;
+    --muted-foreground: 183 11% 62%;
+    --accent: 169 58% 44%;
+    --accent-foreground: 187 26% 7%;
+    --destructive: 11 63% 67%;
+    --destructive-foreground: 187 26% 7%;
+    --border: 183 23% 18%;
+    --input: 183 23% 18%;
+    --ring: 169 58% 44%;
+    --hairline: 184 22% 15%;
+    --check-ring: 183 23% 26%;
+    --nested: 185 26% 8%;
+    --dial-left: 33 62% 60%;
+    --chart-1: 169 58% 44%;
     --chart-2: 45 74% 60%;
     --chart-3: 27 87% 60%;
-    --chart-4: 12 70% 55%;
-    --chart-5: 195 37% 35%;
+    --chart-4: 11 63% 67%;
+    --chart-5: 187 26% 35%;
   }
 }
 
@@ -64,6 +72,7 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-plus-jakarta), var(--font-noto-sans-jp), sans-serif;
     -webkit-tap-highlight-color: transparent;
   }
 }
@@ -80,6 +89,14 @@
   .overscroll-contain {
     overscroll-behavior: contain;
   }
+}
+
+/* Theme-aware desaturation of the Japan map artwork. */
+.jp-map-image {
+  filter: saturate(0.75);
+}
+.dark .jp-map-image {
+  filter: saturate(0.55) brightness(0.5);
 }
 
 /* Extends the effective hit area of small controls to >=44x44px on

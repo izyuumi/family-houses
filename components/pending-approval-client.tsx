@@ -9,36 +9,37 @@ export function PendingApprovalClient() {
   const { t, language, setLanguage } = useI18n();
 
   return (
-    <main className="min-h-dvh flex flex-col items-center justify-center p-8">
-      <div className="flex flex-col items-center gap-8 max-w-md text-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="relative">
-            <Home className="h-14 w-14 text-primary" />
-            <Clock className="h-6 w-6 text-muted-foreground absolute -bottom-1 -right-1 bg-background rounded-full p-0.5" />
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {language === "ja" ? "承認待ち" : "Pending Approval"}
-          </h1>
-          <p className="text-muted-foreground">
-            {language === "ja"
-              ? "アカウントは管理者による承認待ちです。承認されるまでしばらくお待ちください。"
-              : "Your account is pending approval from an administrator. Please wait until your account is approved."}
-          </p>
+    <main className="flex min-h-dvh flex-col items-center justify-center gap-7 p-7 text-center">
+      <div className="relative">
+        <div className="flex h-[72px] w-[72px] items-center justify-center rounded-[22px] bg-secondary text-primary">
+          <Home className="h-[34px] w-[34px]" strokeWidth={1.8} />
         </div>
-
-        <div className="flex gap-2">
+        <div className="absolute -bottom-1.5 -right-1.5 flex rounded-full border bg-card p-[5px] text-muted-foreground">
+          <Clock className="h-4 w-4" />
+        </div>
+      </div>
+      <div className="flex flex-col gap-2.5">
+        <h1 className="text-[22px] font-bold tracking-[-0.01em]">
+          {t.pendingApproval.title}
+        </h1>
+        <p className="max-w-[280px] text-sm leading-[1.8] text-muted-foreground">
+          {t.pendingApproval.body}
+        </p>
+      </div>
+      <div className="flex gap-2.5">
+        <Button
+          variant="outline"
+          className="rounded-[14px] px-[18px] text-[13px]"
+          onClick={() => setLanguage(language === "en" ? "ja" : "en")}
+        >
+          {language === "en" ? "日本語" : "English"}
+        </Button>
+        <SignOutButton>
           <Button
             variant="outline"
-            size="sm"
-            onClick={() => setLanguage(language === "en" ? "ja" : "en")}
+            className="rounded-[14px] px-[18px] text-[13px] text-muted-foreground"
           >
-            {language === "en" ? "日本語" : "English"}
-          </Button>
-        </div>
-
-        <SignOutButton>
-          <Button variant="outline">
-            <LogOut className="h-4 w-4 mr-2" />
+            <LogOut className="h-[15px] w-[15px]" />
             {t.common.signOut}
           </Button>
         </SignOutButton>

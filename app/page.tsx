@@ -9,7 +9,7 @@ async function HomeContent() {
   const { userId } = await auth();
 
   if (!userId) {
-    return <HomeClient userId={null} properties={[]} />;
+    return <HomeClient userId={null} userInitial={null} properties={[]} />;
   }
 
   const convex = await getAuthenticatedConvexClient();
@@ -19,21 +19,29 @@ async function HomeContent() {
     return <PendingApprovalClient />;
   }
 
-  return <HomeClient userId={userId} properties={homeData.properties} />;
+  const profile = homeData.profile;
+  const userInitial =
+    (profile?.displayName ?? profile?.email)?.trim().charAt(0).toUpperCase() ||
+    null;
+
+  return (
+    <HomeClient
+      userId={userId}
+      userInitial={userInitial}
+      properties={homeData.properties}
+    />
+  );
 }
 
 function LoadingState() {
   return (
-    <main className="h-dvh flex flex-col">
-      <nav className="w-full flex justify-center border-b border-b-foreground/10 shrink-0 pt-[env(safe-area-inset-top)]">
-        <div className="w-full max-w-5xl h-14 flex items-center px-4">
-          <div className="h-5 w-32 bg-muted animate-pulse rounded" />
-        </div>
-      </nav>
-      <div className="flex-1 relative overflow-hidden">
-        <div className="absolute top-4 left-4 h-10 w-28 bg-muted animate-pulse rounded-md" />
-        <div className="absolute inset-0 bg-muted/30 animate-pulse" />
+    <main className="h-dvh relative overflow-hidden">
+      <div className="absolute inset-0 bg-muted/30 animate-pulse" />
+      <div className="absolute inset-x-0 top-0 flex items-center gap-2.5 px-4 pt-[calc(0.5rem+env(safe-area-inset-top))]">
+        <div className="h-12 flex-1 bg-muted animate-pulse rounded-full" />
+        <div className="h-12 w-12 bg-muted animate-pulse rounded-full" />
       </div>
+      <div className="absolute inset-x-0 bottom-0 h-52 bg-card rounded-t-[20px] border-t border-hairline" />
     </main>
   );
 }

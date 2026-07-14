@@ -33,18 +33,15 @@ interface AdminClientLazyProps {
 function AdminSkeleton() {
   return (
     <main className="min-h-dvh flex flex-col">
-      <nav className="w-full flex justify-center border-b border-b-foreground/10 shrink-0 pt-[env(safe-area-inset-top)]">
-        <div className="w-full max-w-5xl h-14 flex justify-between items-center px-4">
-          <div className="h-6 w-32 bg-muted animate-pulse rounded" />
-        </div>
-      </nav>
-      <div className="flex-1 p-4 max-w-xl mx-auto w-full pb-20">
-        <div className="h-4 w-48 bg-muted animate-pulse rounded mb-4" />
-        <div className="space-y-4">
-          <div className="h-10 bg-muted animate-pulse rounded-md" />
-          <div className="h-10 bg-muted animate-pulse rounded-md" />
-          <div className="h-10 bg-muted animate-pulse rounded-md" />
-          <div className="h-32 bg-muted animate-pulse rounded-md" />
+      <div className="mx-auto flex w-full max-w-xl shrink-0 items-center gap-3 px-4 pb-1 pt-[calc(0.5rem+env(safe-area-inset-top))]">
+        <div className="h-11 w-11 bg-muted animate-pulse rounded-xl" />
+        <div className="h-6 w-32 bg-muted animate-pulse rounded" />
+      </div>
+      <div className="mx-auto w-full max-w-xl flex-1 px-4 pb-6 pt-3">
+        <div className="flex flex-col gap-4">
+          <div className="h-40 bg-muted animate-pulse rounded-2xl" />
+          <div className="h-64 bg-muted animate-pulse rounded-2xl" />
+          <div className="h-40 bg-muted animate-pulse rounded-2xl" />
         </div>
       </div>
     </main>

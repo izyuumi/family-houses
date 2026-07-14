@@ -155,13 +155,13 @@ export function Groceries({
 
   return (
     <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center justify-between text-base">
+      <CardHeader className="p-4 pb-0">
+        <CardTitle className="flex items-center justify-between text-[15px]">
           <span className="flex items-center gap-2">
-            <ListTodo className="h-4 w-4" />
+            <ListTodo className="h-[17px] w-[17px] text-primary" />
             {t.groceries.title}
             {uncheckedCount > 0 && (
-              <span className="text-xs bg-primary text-primary-foreground rounded-full px-2 py-0.5">
+              <span className="rounded-full bg-secondary px-[9px] py-0.5 text-xs font-semibold text-secondary-foreground">
                 {uncheckedCount}
               </span>
             )}
@@ -172,7 +172,11 @@ export function Groceries({
               onOpenChange={setClearDialogOpen}
             >
               <AlertDialogTrigger asChild>
-                <Button variant="ghost" size="sm">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 px-2 text-xs font-medium text-muted-foreground"
+                >
                   {t.groceries.clearDone}
                 </Button>
               </AlertDialogTrigger>
@@ -196,7 +200,7 @@ export function Groceries({
           )}
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 p-4">
         <form
           className="flex gap-2"
           onSubmit={(e) => {
@@ -208,22 +212,24 @@ export function Groceries({
             placeholder={t.groceries.addItem}
             value={text}
             onChange={(e) => setText(e.target.value)}
-            className="flex-1"
+            className="flex-1 bg-background"
           />
           <Button
             type="submit"
+            size="icon"
+            className="shrink-0 rounded-xl"
             disabled={!text.trim() || loading}
             aria-label={t.common.add}
           >
             {loading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-[18px] w-[18px] animate-spin" />
             ) : (
-              <Plus className="h-4 w-4" />
+              <Plus className="h-[18px] w-[18px]" />
             )}
           </Button>
         </form>
 
-        <div className="space-y-2">
+        <div className="flex flex-col">
           {items.length === 0 && (
             <p className="text-center text-muted-foreground text-sm py-4">
               {t.groceries.noItems}
@@ -233,24 +239,24 @@ export function Groceries({
           {uncheckedItems.map((item) => (
             <div
               key={item.id}
-              className="flex items-start gap-3 py-2 px-3 rounded-lg border bg-card"
+              className="flex items-center gap-3 border-b border-hairline px-0.5 py-3 last:border-b-0"
             >
               <Checkbox
                 checked={false}
                 onCheckedChange={() => toggleItem(item.id, item.checked)}
-                className="h-5 w-5 mt-0.5"
+                className="h-6 w-6 shrink-0 rounded-full border-2 border-check-ring shadow-none"
                 aria-label={item.item_name}
               />
               <div className="flex-1 min-w-0">
-                <span className="text-sm break-words">
+                <span className="text-sm font-medium break-words">
                   {item.item_name}
                   {item.quantity && (
-                    <span className="text-muted-foreground ml-1">
+                    <span className="text-muted-foreground ml-1 font-normal">
                       ({item.quantity})
                     </span>
                   )}
                 </span>
-                <div className="text-xs text-muted-foreground mt-0.5">
+                <div className="text-[11px] text-muted-foreground mt-px">
                   {item.adder?.display_name && (
                     <span>{item.adder.display_name} · </span>
                   )}
@@ -260,7 +266,7 @@ export function Groceries({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 text-muted-foreground hover:text-destructive shrink-0"
+                className="h-8 w-8 rounded-lg text-muted-foreground hover:text-destructive shrink-0"
                 onClick={() => deleteItem(item.id)}
                 aria-label={`${t.a11y.deleteItem}: ${item.item_name}`}
               >
@@ -269,29 +275,25 @@ export function Groceries({
             </div>
           ))}
 
-          {checkedItems.length > 0 && uncheckedItems.length > 0 && (
-            <div className="border-t my-3" />
-          )}
-
           {checkedItems.map((item) => (
             <div
               key={item.id}
-              className="flex items-start gap-3 py-2 px-3 rounded-lg border bg-card opacity-60"
+              className="flex items-center gap-3 border-b border-hairline px-0.5 py-3 opacity-55 last:border-b-0"
             >
               <Checkbox
                 checked={true}
                 onCheckedChange={() => toggleItem(item.id, item.checked)}
-                className="h-5 w-5 mt-0.5"
+                className="h-6 w-6 shrink-0 rounded-full border-2 border-primary shadow-none data-[state=checked]:border-primary"
                 aria-label={item.item_name}
               />
               <div className="flex-1 min-w-0">
-                <span className="text-sm line-through text-muted-foreground break-words">
+                <span className="text-sm font-medium line-through break-words">
                   {item.item_name}
                   {item.quantity && (
-                    <span className="ml-1">({item.quantity})</span>
+                    <span className="ml-1 font-normal">({item.quantity})</span>
                   )}
                 </span>
-                <div className="text-xs text-muted-foreground mt-0.5">
+                <div className="text-[11px] text-muted-foreground mt-px">
                   {item.completer?.display_name && (
                     <span>
                       {t.groceries.completedBy} {item.completer.display_name} ·{" "}
@@ -303,7 +305,7 @@ export function Groceries({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 text-muted-foreground hover:text-destructive shrink-0"
+                className="h-8 w-8 rounded-lg text-muted-foreground hover:text-destructive shrink-0"
                 onClick={() => deleteItem(item.id)}
                 aria-label={`${t.a11y.deleteItem}: ${item.item_name}`}
               >

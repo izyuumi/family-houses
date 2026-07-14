@@ -16,8 +16,14 @@ export const translations = {
     },
     home: {
       title: "Family Houses",
-      subtitle: "Manage properties & groceries",
+      subtitle: "Your family's homes & lists in one place",
       signInWithApple: "Sign in with Apple",
+      searchPlaceholder: "Search properties",
+    },
+    tabs: {
+      map: "Map",
+      properties: "Houses",
+      profile: "Profile",
     },
     properties: {
       title: "Houses",
@@ -25,6 +31,10 @@ export const translations = {
       adminNote: "Admins can add and edit houses.",
       viewProperties: "View Properties",
       allProperties: "All Properties",
+      open: "Open",
+      searchPlaceholder: "Search by name or address",
+      todoBefore: "",
+      todoAfter: " to-dos",
     },
     property: {
       backToList: "Back",
@@ -41,6 +51,7 @@ export const translations = {
       propertyUpdated: "Property updated successfully!",
     },
     form: {
+      basicInfo: "Basic Info",
       name: "Name",
       namePlaceholder: "Kanazawa House",
       address: "Address",
@@ -102,6 +113,7 @@ export const translations = {
       code: "Code",
       autoLockSwitchbot: "SwitchBot",
       loadFailed: "Couldn't load",
+      chip: "Info",
     },
     groceries: {
       title: "To-Do",
@@ -170,6 +182,7 @@ export const translations = {
       copyFailed: "Failed to copy password",
       combinationCopied: "Combination copied to clipboard",
       autoLockCopied: "Code copied to clipboard",
+      addressCopied: "Address copied to clipboard",
     },
     error: {
       title: "Sorry, something went wrong.",
@@ -182,7 +195,11 @@ export const translations = {
       theme: "Appearance",
       light: "Light",
       dark: "Dark",
-      system: "System",
+      system: "Auto",
+    },
+    pendingApproval: {
+      title: "Waiting for approval",
+      body: "Your account is awaiting admin approval. You'll get access automatically once approved.",
     },
     memberManagement: {
       title: "Member Management",
@@ -223,6 +240,8 @@ export const translations = {
       clearLocation: "Clear location",
       addStep: "Add step",
       removeStep: "Remove step",
+      copy: "Copy",
+      closeList: "Close list",
     },
   },
   ja: {
@@ -242,8 +261,14 @@ export const translations = {
     },
     home: {
       title: "Family Houses",
-      subtitle: "物件と買い物リストを管理",
+      subtitle: "家族の物件と買い物リストをひとつに",
       signInWithApple: "Appleでサインイン",
+      searchPlaceholder: "物件をさがす",
+    },
+    tabs: {
+      map: "マップ",
+      properties: "物件",
+      profile: "プロフィール",
     },
     properties: {
       title: "物件一覧",
@@ -251,6 +276,10 @@ export const translations = {
       adminNote: "管理者は物件の追加・編集ができます",
       viewProperties: "物件を見る",
       allProperties: "すべての物件",
+      open: "開く",
+      searchPlaceholder: "名前・住所でさがす",
+      todoBefore: "やること",
+      todoAfter: "件",
     },
     property: {
       backToList: "戻る",
@@ -267,6 +296,7 @@ export const translations = {
       propertyUpdated: "物件を更新しました！",
     },
     form: {
+      basicInfo: "基本情報",
       name: "物件名",
       namePlaceholder: "金沢の家",
       address: "住所",
@@ -328,6 +358,7 @@ export const translations = {
       code: "コード",
       autoLockSwitchbot: "SwitchBot",
       loadFailed: "読み込みに失敗しました",
+      chip: "情報",
     },
     groceries: {
       title: "やること",
@@ -395,6 +426,7 @@ export const translations = {
       copyFailed: "パスワードのコピーに失敗しました",
       combinationCopied: "番号をコピーしました",
       autoLockCopied: "コードをコピーしました",
+      addressCopied: "住所をコピーしました",
     },
     error: {
       title: "エラーが発生しました",
@@ -407,7 +439,11 @@ export const translations = {
       theme: "外観",
       light: "ライト",
       dark: "ダーク",
-      system: "システム",
+      system: "自動",
+    },
+    pendingApproval: {
+      title: "承認をお待ちください",
+      body: "アカウントは管理者の承認待ちです。承認されると自動的に利用できるようになります。",
     },
     memberManagement: {
       title: "メンバー管理",
@@ -448,6 +484,8 @@ export const translations = {
       clearLocation: "位置をクリア",
       addStep: "手順を追加",
       removeStep: "手順を削除",
+      copy: "コピー",
+      closeList: "一覧を閉じる",
     },
   },
 } as const;

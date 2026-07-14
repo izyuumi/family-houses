@@ -45,6 +45,10 @@ export default {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
+        hairline: "hsl(var(--hairline))",
+        "check-ring": "hsl(var(--check-ring))",
+        nested: "hsl(var(--nested))",
+        "dial-left": "hsl(var(--dial-left))",
         chart: {
           "1": "hsl(var(--chart-1))",
           "2": "hsl(var(--chart-2))",
@@ -57,6 +61,12 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      boxShadow: {
+        card: "0 8px 24px rgba(16,40,43,.06)",
+        "primary-btn": "0 2px 10px rgba(23,128,109,.3)",
+        sheet: "0 -8px 24px rgba(16,40,43,.10)",
+        float: "0 4px 14px rgba(16,40,43,.08)",
       },
     },
   },

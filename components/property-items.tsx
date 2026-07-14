@@ -181,13 +181,13 @@ export function PropertyItems({
 
   return (
     <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center justify-between text-base">
+      <CardHeader className="p-4 pb-0">
+        <CardTitle className="flex items-center justify-between text-[15px]">
           <span className="flex items-center gap-2">
-            <Package className="h-4 w-4" />
+            <Package className="h-[17px] w-[17px] text-primary" />
             {t.propertyItems.title}
             {items.length > 0 && (
-              <span className="text-xs bg-primary text-primary-foreground rounded-full px-2 py-0.5">
+              <span className="rounded-full bg-secondary px-[9px] py-0.5 text-xs font-semibold text-secondary-foreground">
                 {items.length}
               </span>
             )}
@@ -207,9 +207,9 @@ export function PropertyItems({
           )}
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 p-4">
         {(isAdding || editingId) && (
-          <div className="space-y-3 p-3 border rounded-lg bg-muted/50">
+          <div className="space-y-3 rounded-xl border bg-background p-3">
             <div className="space-y-2">
               <Label htmlFor="item-title">{t.propertyItems.itemTitle}</Label>
               <Input
@@ -291,7 +291,7 @@ export function PropertyItems({
           </div>
         )}
 
-        <div className="space-y-2">
+        <div className="flex flex-col">
           {items.length === 0 && !isAdding && (
             <p className="text-center text-muted-foreground text-sm py-4">
               {t.propertyItems.noItems}
@@ -299,7 +299,7 @@ export function PropertyItems({
           )}
 
           {items.map((item) => (
-            <div key={item.id} className="py-2 px-3 rounded-lg border bg-card">
+            <div key={item.id} className="border-b border-hairline px-0.5 py-1.5 last:border-b-0">
               <button
                 className="w-full flex items-center gap-3 text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded"
                 aria-expanded={expandedId === item.id}
