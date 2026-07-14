@@ -430,6 +430,7 @@ export function AdminForm({ property }: AdminFormProps) {
                       size="sm"
                       onClick={clearLocation}
                       className="text-muted-foreground hover:text-destructive"
+                      aria-label={t.a11y.clearLocation}
                     >
                       <X className="h-4 w-4" />
                     </Button>

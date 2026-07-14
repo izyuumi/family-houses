@@ -77,8 +77,8 @@ async function EditData({
 function LoadingState() {
   return (
     <main className="min-h-dvh flex flex-col">
-      <nav className="w-full flex justify-center border-b border-b-foreground/10 h-14 shrink-0">
-        <div className="w-full max-w-5xl flex justify-between items-center px-4">
+      <nav className="w-full flex justify-center border-b border-b-foreground/10 shrink-0 pt-[env(safe-area-inset-top)]">
+        <div className="w-full max-w-5xl h-14 flex justify-between items-center px-4">
           <div className="h-6 w-32 bg-muted animate-pulse rounded" />
         </div>
       </nav>

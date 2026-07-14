@@ -43,78 +43,83 @@ export function InfoCard({ property }: InfoCardProps) {
   const [copiedWifi, setCopiedWifi] = useState(false);
   const [copiedGuestWifi, setCopiedGuestWifi] = useState(false);
   const [mailboxLockCombination, setMailboxLockCombination] = useState<string | null>(null);
+  const [mailboxLockError, setMailboxLockError] = useState(false);
   const [loadingAutoLock, setLoadingAutoLock] = useState(false);
   const [autoLockCode, setAutoLockCode] = useState<string | null>(null);
+  const [autoLockError, setAutoLockError] = useState(false);
 
   // Auto-reveal mailbox lock and auto-lock codes on mount
   useEffect(() => {
     if (property.has_mailbox_lock && mailboxLockCombination === null && !loadingMailboxLock) {
-      revealMailboxLockOnMount();
+      revealMailboxLock();
     }
     if (property.has_auto_lock && autoLockCode === null && !loadingAutoLock) {
-      revealAutoLockOnMount();
+      revealAutoLock();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const revealMailboxLockOnMount = async () => {
+  const revealMailboxLock = async () => {
     setLoadingMailboxLock(true);
-    const res = await fetch("/api/lock/reveal", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ propertyId: property.id }),
-    });
-    const json = await res.json();
-    setLoadingMailboxLock(false);
-    if (json.combination !== undefined) {
+    setMailboxLockError(false);
+    try {
+      const res = await fetch("/api/lock/reveal", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ propertyId: property.id }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      if (json.combination === undefined) throw new Error("Missing combination");
       setMailboxLockCombination(json.combination);
+    } catch {
+      setMailboxLockError(true);
+    } finally {
+      setLoadingMailboxLock(false);
     }
   };
 
-  const revealAutoLockOnMount = async () => {
+  const revealAutoLock = async () => {
     setLoadingAutoLock(true);
-    const res = await fetch("/api/autolock/reveal", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ propertyId: property.id }),
-    });
-    const json = await res.json();
-    setLoadingAutoLock(false);
-    if (json.code !== undefined) {
+    setAutoLockError(false);
+    try {
+      const res = await fetch("/api/autolock/reveal", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ propertyId: property.id }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      if (json.code === undefined) throw new Error("Missing code");
       setAutoLockCode(json.code);
+    } catch {
+      setAutoLockError(true);
+    } finally {
+      setLoadingAutoLock(false);
     }
   };
 
   const revealAndCopyWifi = async (type: "main" | "guest") => {
-    if (type === "main") {
-      setLoadingWifi(true);
-    } else {
-      setLoadingGuestWifi(true);
-    }
-
-    const res = await fetch("/api/wifi/reveal", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ propertyId: property.id, type }),
-    });
-    const json = await res.json();
-
-    if (type === "main") {
-      setLoadingWifi(false);
-      if (json.password !== undefined) {
-        setWifiPassword(json.password);
-        if (json.password) {
-          await copyToClipboard(json.password, "main");
-        }
+    const setLoading = type === "main" ? setLoadingWifi : setLoadingGuestWifi;
+    const setPassword = type === "main" ? setWifiPassword : setGuestWifiPassword;
+    setLoading(true);
+    try {
+      const res = await fetch("/api/wifi/reveal", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ propertyId: property.id, type }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      if (json.password === undefined) throw new Error("Missing password");
+      setPassword(json.password);
+      if (json.password) {
+        await copyToClipboard(json.password, type);
       }
-    } else {
-      setLoadingGuestWifi(false);
-      if (json.password !== undefined) {
-        setGuestWifiPassword(json.password);
-        if (json.password) {
-          await copyToClipboard(json.password, "guest");
-        }
-      }
+    } catch {
+      toast.error(t.common.errorGeneric);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -180,6 +185,7 @@ export function InfoCard({ property }: InfoCardProps) {
                       size="sm"
                       disabled={loadingWifi}
                       onClick={() => revealAndCopyWifi("main")}
+                      aria-label={t.a11y.revealAndCopyPassword}
                     >
                       {loadingWifi ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -196,6 +202,7 @@ export function InfoCard({ property }: InfoCardProps) {
                       size="sm"
                       disabled={!wifiPassword}
                       onClick={() => wifiPassword && copyToClipboard(wifiPassword, "main")}
+                      aria-label={t.a11y.copyPassword}
                     >
                       {copiedWifi ? (
                         <Check className="h-4 w-4" />
@@ -236,6 +243,7 @@ export function InfoCard({ property }: InfoCardProps) {
                       size="sm"
                       disabled={loadingGuestWifi}
                       onClick={() => revealAndCopyWifi("guest")}
+                      aria-label={t.a11y.revealAndCopyPassword}
                     >
                       {loadingGuestWifi ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -252,6 +260,7 @@ export function InfoCard({ property }: InfoCardProps) {
                       size="sm"
                       disabled={!guestWifiPassword}
                       onClick={() => guestWifiPassword && copyToClipboard(guestWifiPassword, "guest")}
+                      aria-label={t.a11y.copyPassword}
                     >
                       {copiedGuestWifi ? (
                         <Check className="h-4 w-4" />
@@ -283,6 +292,20 @@ export function InfoCard({ property }: InfoCardProps) {
                   <span className="font-medium">{t.info.combination}:</span>{" "}
                   {loadingMailboxLock ? (
                     <Loader2 className="h-4 w-4 inline animate-spin" />
+                  ) : mailboxLockError ? (
+                    <span className="inline-flex items-center gap-2">
+                      <span className="text-muted-foreground">
+                        {t.info.loadFailed}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 px-2 text-xs"
+                        onClick={revealMailboxLock}
+                      >
+                        {t.common.retry}
+                      </Button>
+                    </span>
                   ) : mailboxLockCombination ? (
                     formatMailboxLockForDisplayLocalized(
                       mailboxLockCombination,
@@ -307,6 +330,20 @@ export function InfoCard({ property }: InfoCardProps) {
                 <div className="text-sm">
                   {loadingAutoLock ? (
                     <Loader2 className="h-4 w-4 inline animate-spin" />
+                  ) : autoLockError ? (
+                    <span className="inline-flex items-center gap-2">
+                      <span className="text-muted-foreground">
+                        {t.info.loadFailed}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 px-2 text-xs"
+                        onClick={revealAutoLock}
+                      >
+                        {t.common.retry}
+                      </Button>
+                    </span>
                   ) : !autoLockCode ? (
                     "—"
                   ) : getAutoLockType(autoLockCode) === "switchbot" ? (

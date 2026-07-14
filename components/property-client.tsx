@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { useI18n } from "@/lib/i18n/context";
 import { InfoCard } from "@/components/info-card";
 import { Groceries } from "@/components/groceries";
 import { PropertyItems } from "@/components/property-items";
 import { PropertyNotes } from "@/components/property-notes";
-import { ChevronLeft, Pencil } from "lucide-react";
+import { Navbar } from "@/components/navbar";
+import { Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { buildFullAddress } from "@/components/address-display";
 
@@ -83,6 +85,7 @@ export function PropertyClient({
   initialPropertyItems,
   initialPropertyNotes,
 }: PropertyClientProps) {
+  const { t } = useI18n();
   const fullAddress = buildFullAddress({
     postal_code: property.postal_code ?? null,
     prefecture: property.prefecture ?? null,
@@ -96,26 +99,26 @@ export function PropertyClient({
 
   return (
     <main className="min-h-dvh flex flex-col">
-      <nav className="w-full flex justify-center border-b border-b-foreground/10 h-14 shrink-0">
-        <div className="w-full max-w-5xl flex justify-between items-center px-4">
-          <div className="flex items-center gap-2">
-            <Link href="/">
-              <Button variant="ghost" size="sm" className="-ml-2">
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-            </Link>
-            <span className="font-semibold">{property.name}</span>
-          </div>
-          {isAdmin && (
-            <Link href={`/add/p/${property.slug || property.id}/edit`}>
-              <Button variant="ghost" size="sm">
+      <Navbar
+        showBack
+        title={property.name}
+        showProfile={false}
+        action={
+          isAdmin ? (
+            <Button
+              asChild
+              variant="ghost"
+              size="sm"
+              aria-label={t.a11y.editProperty}
+            >
+              <Link href={`/add/p/${property.slug || property.id}/edit`}>
                 <Pencil className="h-4 w-4" />
-              </Button>
-            </Link>
-          )}
-        </div>
-      </nav>
-      <div className="flex-1 overflow-auto p-4 max-w-xl mx-auto w-full pb-20">
+              </Link>
+            </Button>
+          ) : undefined
+        }
+      />
+      <div className="flex-1 overflow-auto p-4 max-w-xl mx-auto w-full pb-[calc(5rem+env(safe-area-inset-bottom))]">
         {fullAddress && (
           <p className="text-sm text-muted-foreground mb-4">{fullAddress}</p>
         )}

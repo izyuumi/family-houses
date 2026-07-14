@@ -49,7 +49,7 @@ export function Groceries({
   initialItems,
   userId,
 }: GroceriesProps) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
   const [clearDialogOpen, setClearDialogOpen] = useState(false);
@@ -93,10 +93,12 @@ export function Groceries({
       });
       toast.success(t.groceries.itemAdded);
     } catch {
+      // Restore the input so the user doesn't retype it
+      setText(itemName);
       toast.error(t.groceries.errorAdding);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   const toggleItem = async (id: string, checked: boolean | null) => {
@@ -143,7 +145,7 @@ export function Groceries({
     if (diffMins < 60) return `${diffMins}${t.groceries.minutesAgo}`;
     if (diffHours < 24) return `${diffHours}${t.groceries.hoursAgo}`;
     if (diffDays < 7) return `${diffDays}${t.groceries.daysAgo}`;
-    return date.toLocaleDateString();
+    return date.toLocaleDateString(language === "ja" ? "ja-JP" : "en-US");
   };
 
   const uncheckedItems = items.filter((i) => !i.checked);
@@ -208,7 +210,11 @@ export function Groceries({
             onChange={(e) => setText(e.target.value)}
             className="flex-1"
           />
-          <Button type="submit" disabled={!text.trim() || loading}>
+          <Button
+            type="submit"
+            disabled={!text.trim() || loading}
+            aria-label={t.common.add}
+          >
             {loading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
@@ -233,9 +239,10 @@ export function Groceries({
                 checked={false}
                 onCheckedChange={() => toggleItem(item.id, item.checked)}
                 className="h-5 w-5 mt-0.5"
+                aria-label={item.item_name}
               />
               <div className="flex-1 min-w-0">
-                <span className="text-sm">
+                <span className="text-sm break-words">
                   {item.item_name}
                   {item.quantity && (
                     <span className="text-muted-foreground ml-1">
@@ -255,6 +262,7 @@ export function Groceries({
                 size="icon"
                 className="h-8 w-8 text-muted-foreground hover:text-destructive shrink-0"
                 onClick={() => deleteItem(item.id)}
+                aria-label={`${t.a11y.deleteItem}: ${item.item_name}`}
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
@@ -274,9 +282,10 @@ export function Groceries({
                 checked={true}
                 onCheckedChange={() => toggleItem(item.id, item.checked)}
                 className="h-5 w-5 mt-0.5"
+                aria-label={item.item_name}
               />
               <div className="flex-1 min-w-0">
-                <span className="text-sm line-through text-muted-foreground">
+                <span className="text-sm line-through text-muted-foreground break-words">
                   {item.item_name}
                   {item.quantity && (
                     <span className="ml-1">({item.quantity})</span>
@@ -296,6 +305,7 @@ export function Groceries({
                 size="icon"
                 className="h-8 w-8 text-muted-foreground hover:text-destructive shrink-0"
                 onClick={() => deleteItem(item.id)}
+                aria-label={`${t.a11y.deleteItem}: ${item.item_name}`}
               >
                 <Trash2 className="h-4 w-4" />
               </Button>

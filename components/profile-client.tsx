@@ -27,7 +27,7 @@ export function ProfileClient({ email, isAdmin }: ProfileClientProps) {
   return (
     <main className="h-dvh flex flex-col">
       <Navbar showBack backHref="/" title={t.profile.title} showProfile={false} />
-      <div className="flex-1 overflow-auto p-4 max-w-xl mx-auto w-full">
+      <div className="flex-1 overflow-auto p-4 max-w-xl mx-auto w-full pb-[calc(1rem+env(safe-area-inset-bottom))]">
         <div className="flex items-center gap-3 mb-6">
           <UserButton afterSignOutUrl="/" />
           {email && (
@@ -71,43 +71,41 @@ export function ProfileClient({ email, isAdmin }: ProfileClientProps) {
             </div>
           </Card>
 
-          {mounted && (
-            <Card className="p-4">
-              <div className="flex items-center gap-2 mb-4">
-                <Sun className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">{t.profile.theme}</span>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant={theme === "light" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setTheme("light")}
-                  className="flex-1"
-                >
-                  <Sun className="h-4 w-4 mr-1" />
-                  {t.profile.light}
-                </Button>
-                <Button
-                  variant={theme === "dark" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setTheme("dark")}
-                  className="flex-1"
-                >
-                  <Moon className="h-4 w-4 mr-1" />
-                  {t.profile.dark}
-                </Button>
-                <Button
-                  variant={theme === "system" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setTheme("system")}
-                  className="flex-1"
-                >
-                  <Laptop className="h-4 w-4 mr-1" />
-                  {t.profile.system}
-                </Button>
-              </div>
-            </Card>
-          )}
+          <Card className="p-4">
+            <div className="flex items-center gap-2 mb-4">
+              <Sun className="h-4 w-4 text-muted-foreground" />
+              <span className="font-medium">{t.profile.theme}</span>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant={mounted && theme === "light" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setTheme("light")}
+                className="flex-1"
+              >
+                <Sun className="h-4 w-4 mr-1" />
+                {t.profile.light}
+              </Button>
+              <Button
+                variant={mounted && theme === "dark" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setTheme("dark")}
+                className="flex-1"
+              >
+                <Moon className="h-4 w-4 mr-1" />
+                {t.profile.dark}
+              </Button>
+              <Button
+                variant={mounted && theme === "system" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setTheme("system")}
+                className="flex-1"
+              >
+                <Laptop className="h-4 w-4 mr-1" />
+                {t.profile.system}
+              </Button>
+            </div>
+          </Card>
 
           <SignOutButton>
             <Button variant="outline" className="w-full">

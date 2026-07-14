@@ -39,7 +39,7 @@ export function AdminClient({ mode, property }: AdminClientProps) {
     return (
       <main className="min-h-dvh flex flex-col">
         <Navbar showBack backHref="/" title={t.admin.addProperty} />
-        <div className="flex-1 p-4 max-w-xl mx-auto w-full pb-20">
+        <div className="flex-1 p-4 max-w-xl mx-auto w-full pb-[calc(5rem+env(safe-area-inset-bottom))]">
           <p className="text-sm text-muted-foreground mb-4">
             {t.admin.createNewHouse}
           </p>
@@ -56,7 +56,7 @@ export function AdminClient({ mode, property }: AdminClientProps) {
         backHref={`/p/${property?.slug || property?.id}`}
         title={t.admin.editProperty}
       />
-      <div className="flex-1 p-4 max-w-xl mx-auto w-full pb-20">
+      <div className="flex-1 p-4 max-w-xl mx-auto w-full pb-[calc(5rem+env(safe-area-inset-bottom))]">
         <p className="text-sm text-muted-foreground mb-4">
           {t.admin.updateProperty} {property?.name}
         </p>

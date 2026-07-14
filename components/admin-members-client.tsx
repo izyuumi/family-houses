@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n/context";
 import { Navbar } from "@/components/navbar";
 import { Card } from "@/components/ui/card";
@@ -78,15 +79,27 @@ export function AdminMembersClient() {
   const handleApprove = async (clerkId: string) => {
     const key = `approve-${clerkId}`;
     addLoading(key);
-    await approveUser({ clerkId });
-    removeLoading(key);
+    try {
+      await approveUser({ clerkId });
+      toast.success(t.memberManagement.userApproved);
+    } catch {
+      toast.error(t.common.errorGeneric);
+    } finally {
+      removeLoading(key);
+    }
   };
 
   const handleReject = async (clerkId: string) => {
     const key = `reject-${clerkId}`;
     addLoading(key);
-    await rejectUser({ clerkId });
-    removeLoading(key);
+    try {
+      await rejectUser({ clerkId });
+      toast.success(t.memberManagement.userRejected);
+    } catch {
+      toast.error(t.common.errorGeneric);
+    } finally {
+      removeLoading(key);
+    }
   };
 
   const handleAssign = async (
@@ -96,21 +109,35 @@ export function AdminMembersClient() {
   ) => {
     const key = `assign-${userId}-${propertyId}`;
     addLoading(key);
-    await addMember({ propertyId, userId, role });
-    removeLoading(key);
+    try {
+      await addMember({ propertyId, userId, role });
+      toast.success(t.memberManagement.memberAssigned);
+      return true;
+    } catch {
+      toast.error(t.common.errorGeneric);
+      return false;
+    } finally {
+      removeLoading(key);
+    }
   };
 
   const handleRemove = async (userId: string, propertyId: Id<"properties">) => {
     const key = `remove-${userId}-${propertyId}`;
     addLoading(key);
-    await removeMember({ propertyId, userId });
-    removeLoading(key);
+    try {
+      await removeMember({ propertyId, userId });
+      toast.success(t.memberManagement.memberRemoved);
+    } catch {
+      toast.error(t.common.errorGeneric);
+    } finally {
+      removeLoading(key);
+    }
   };
 
   return (
     <main className="h-dvh flex flex-col">
       <Navbar showBack backHref="/profile" title={t.memberManagement.title} />
-      <div className="flex-1 overflow-auto p-4 max-w-2xl mx-auto w-full space-y-6">
+      <div className="flex-1 overflow-auto p-4 max-w-2xl mx-auto w-full space-y-6 pb-[calc(1rem+env(safe-area-inset-bottom))]">
         <Card className="p-4">
           <div className="flex items-center gap-2 mb-4">
             <Home className="h-4 w-4 text-muted-foreground" />
@@ -131,7 +158,12 @@ export function AdminMembersClient() {
                     className="flex items-center justify-between p-2 bg-muted/30 rounded"
                   >
                     <span className="text-sm">{property.name}</span>
-                    <Button asChild size="sm" variant="ghost">
+                    <Button
+                      asChild
+                      size="sm"
+                      variant="ghost"
+                      aria-label={`${t.a11y.editProperty}: ${property.name}`}
+                    >
                       <Link href={`/add/p/${property._id}/edit`}>
                         <Pencil className="h-4 w-4" />
                       </Link>
@@ -185,6 +217,7 @@ export function AdminMembersClient() {
                       size="sm"
                       onClick={() => handleApprove(profile.clerkId)}
                       disabled={loadingActions.has(`approve-${profile.clerkId}`)}
+                      aria-label={t.memberManagement.approve}
                     >
                       {loadingActions.has(`approve-${profile.clerkId}`) ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -197,6 +230,7 @@ export function AdminMembersClient() {
                       variant="destructive"
                       onClick={() => handleReject(profile.clerkId)}
                       disabled={loadingActions.has(`reject-${profile.clerkId}`)}
+                      aria-label={t.memberManagement.reject}
                     >
                       {loadingActions.has(`reject-${profile.clerkId}`) ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -262,7 +296,7 @@ interface UserCardProps {
     userId: string,
     propertyId: Id<"properties">,
     role: MemberRole
-  ) => Promise<void>;
+  ) => Promise<boolean>;
   onRemove: (userId: string, propertyId: Id<"properties">) => Promise<void>;
   loadingActions: Set<string>;
   t: ReturnType<typeof useI18n>["t"];
@@ -293,15 +327,18 @@ function UserCard({
 
   const handleAssign = async () => {
     if (!selectedProperty) return;
-    await onAssign(profile.clerkId, selectedProperty, selectedRole);
-    setSelectedProperty(null);
-    setSelectedRole("member");
+    const ok = await onAssign(profile.clerkId, selectedProperty, selectedRole);
+    if (ok) {
+      setSelectedProperty(null);
+      setSelectedRole("member");
+    }
   };
 
   return (
     <div className="border rounded-lg overflow-hidden">
       <button
         onClick={onToggle}
+        aria-expanded={expanded}
         className="w-full flex items-center justify-between p-3 hover:bg-muted/50 transition-colors"
       >
         <div className="flex items-center gap-2 text-left">
@@ -365,6 +402,7 @@ function UserCard({
                       disabled={loadingActions.has(
                         `remove-${profile.clerkId}-${m.propertyId}`
                       )}
+                      aria-label={`${t.memberManagement.remove}: ${m.property?.name ?? ""}`}
                     >
                       {loadingActions.has(
                         `remove-${profile.clerkId}-${m.propertyId}`

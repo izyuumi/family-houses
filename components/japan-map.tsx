@@ -9,6 +9,7 @@ import React, {
   memo,
 } from "react";
 import { Plus, Minus } from "lucide-react";
+import { useI18n } from "@/lib/i18n/context";
 
 export interface MapLocation {
   x: number;
@@ -55,7 +56,37 @@ interface MarkerSizes {
   fontSize: number;
   tooltipOffset: number;
   touchTargetSize: number;
-  tooltipWidth: number;
+  tooltipMaxWidth: number;
+}
+
+const CJK_CHAR = /[　-ヿ㐀-鿿豈-﫿＀-￯]/;
+
+function estimateTextWidth(text: string, fontSize: number) {
+  let width = 0;
+  for (const ch of text) {
+    width += CJK_CHAR.test(ch) ? fontSize : fontSize * 0.58;
+  }
+  return width;
+}
+
+function fitTooltipLabel(name: string, fontSize: number, maxWidth: number) {
+  const padding = fontSize * 1.4;
+  const maxTextWidth = maxWidth - padding;
+  let label = name;
+  if (estimateTextWidth(label, fontSize) > maxTextWidth) {
+    while (
+      label.length > 1 &&
+      estimateTextWidth(label + "…", fontSize) > maxTextWidth
+    ) {
+      label = label.slice(0, -1);
+    }
+    label += "…";
+  }
+  const width = Math.max(
+    estimateTextWidth(label, fontSize) + padding,
+    fontSize * 3
+  );
+  return { label, width };
 }
 
 interface MapMarkerProps {
@@ -131,35 +162,44 @@ const MapMarker = memo(function MapMarker({
         className="pointer-events-none"
       />
 
-      {(isHovered || isActive) && (
-        <g className="pointer-events-none">
-          <rect
-            x={marker.x - sizes.tooltipWidth / 2}
-            y={marker.y - sizes.tooltipOffset}
-            width={sizes.tooltipWidth}
-            height={sizes.tooltipHeight}
-            rx={sizes.tooltipRadius}
-            fill="hsl(var(--popover))"
-            stroke="hsl(var(--border))"
-            strokeWidth={sizes.strokeWidth / 2.5}
-          />
-          <text
-            x={marker.x}
-            y={marker.y - sizes.tooltipOffset + sizes.tooltipHeight * 0.65}
-            textAnchor="middle"
-            fill="hsl(var(--popover-foreground))"
-            fontWeight="500"
-            fontSize={sizes.fontSize}
-          >
-            {marker.name}
-          </text>
-        </g>
-      )}
+      {(isHovered || isActive) &&
+        (() => {
+          const { label, width } = fitTooltipLabel(
+            marker.name,
+            sizes.fontSize,
+            sizes.tooltipMaxWidth
+          );
+          return (
+            <g className="pointer-events-none">
+              <rect
+                x={marker.x - width / 2}
+                y={marker.y - sizes.tooltipOffset}
+                width={width}
+                height={sizes.tooltipHeight}
+                rx={sizes.tooltipRadius}
+                fill="hsl(var(--popover))"
+                stroke="hsl(var(--border))"
+                strokeWidth={sizes.strokeWidth / 2.5}
+              />
+              <text
+                x={marker.x}
+                y={marker.y - sizes.tooltipOffset + sizes.tooltipHeight * 0.65}
+                textAnchor="middle"
+                fill="hsl(var(--popover-foreground))"
+                fontWeight="500"
+                fontSize={sizes.fontSize}
+              >
+                {label}
+              </text>
+            </g>
+          );
+        })()}
     </g>
   );
 });
 
 export function JapanMap(props: JapanMapProps) {
+  const { t } = useI18n();
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [hoveredMarker, setHoveredMarker] = useState<string | null>(null);
@@ -261,7 +301,7 @@ export function JapanMap(props: JapanMapProps) {
       fontSize: 14 / zoom,
       tooltipOffset: 46 / zoom,
       touchTargetSize: MOBILE_MARKER_TAP_RADIUS / zoom,
-      tooltipWidth: 130 / zoom,
+      tooltipMaxWidth: 220 / zoom,
     }),
     [zoom]
   );
@@ -687,21 +727,21 @@ export function JapanMap(props: JapanMapProps) {
         )}
       </svg>
 
-      <div className="absolute bottom-4 left-4 flex flex-col gap-2 z-10">
+      <div className="absolute bottom-[max(1rem,env(safe-area-inset-bottom))] left-[max(1rem,env(safe-area-inset-left))] flex flex-col gap-2 z-10">
         <div className="flex gap-1">
           <button
             onClick={zoomIn}
             disabled={zoom >= MAX_ZOOM}
-            className="w-10 h-10 flex items-center justify-center bg-background/95 backdrop-blur-sm border border-border rounded-lg hover:bg-muted active:scale-95 transition-all disabled:opacity-40 disabled:pointer-events-none shadow-sm"
-            aria-label="Zoom in"
+            className="touch-target w-10 h-10 flex items-center justify-center bg-background/95 backdrop-blur-sm border border-border rounded-lg hover:bg-muted active:scale-95 transition-all disabled:opacity-40 disabled:pointer-events-none shadow-sm"
+            aria-label={t.a11y.zoomIn}
           >
             <Plus className="h-5 w-5" />
           </button>
           <button
             onClick={zoomOut}
             disabled={zoom <= MIN_ZOOM}
-            className="w-10 h-10 flex items-center justify-center bg-background/95 backdrop-blur-sm border border-border rounded-lg hover:bg-muted active:scale-95 transition-all disabled:opacity-40 disabled:pointer-events-none shadow-sm"
-            aria-label="Zoom out"
+            className="touch-target w-10 h-10 flex items-center justify-center bg-background/95 backdrop-blur-sm border border-border rounded-lg hover:bg-muted active:scale-95 transition-all disabled:opacity-40 disabled:pointer-events-none shadow-sm"
+            aria-label={t.a11y.zoomOut}
           >
             <Minus className="h-5 w-5" />
           </button>
@@ -714,9 +754,10 @@ export function JapanMap(props: JapanMapProps) {
       {zoom > 1.05 && (
         <button
           onClick={resetView}
-          className="absolute bottom-4 right-4 h-10 bg-background/95 backdrop-blur-sm border border-border rounded-lg px-4 text-sm font-medium hover:bg-muted active:scale-95 transition-all z-10 shadow-sm"
+          aria-label={t.a11y.resetView}
+          className="touch-target absolute bottom-[max(1rem,env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))] h-10 bg-background/95 backdrop-blur-sm border border-border rounded-lg px-4 text-sm font-medium hover:bg-muted active:scale-95 transition-all z-10 shadow-sm"
         >
-          Reset
+          {t.common.reset}
         </button>
       )}
     </div>

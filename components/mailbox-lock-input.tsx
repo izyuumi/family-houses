@@ -188,6 +188,7 @@ export function MailboxLockInput({ value, onChange }: MailboxLockInputProps) {
                     onChange={(e) => handleStepValueChange(index, e.target.value)}
                     placeholder="0"
                     className="w-14 h-8 text-center font-mono text-base"
+                    aria-label={`${t.form.mailboxLockCombination} ${index + 1}`}
                   />
 
                   {/* Remove Button */}
@@ -198,6 +199,7 @@ export function MailboxLockInput({ value, onChange }: MailboxLockInputProps) {
                       size="sm"
                       onClick={() => removeStep(index)}
                       className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                      aria-label={`${t.a11y.removeStep} ${index + 1}`}
                     >
                       <X className="h-3.5 w-3.5" />
                     </Button>
@@ -213,6 +215,7 @@ export function MailboxLockInput({ value, onChange }: MailboxLockInputProps) {
               size="sm"
               onClick={addStep}
               className="h-8 gap-1"
+              aria-label={t.a11y.addStep}
             >
               <Plus className="h-4 w-4" />
             </Button>

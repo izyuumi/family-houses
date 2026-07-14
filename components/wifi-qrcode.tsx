@@ -1,9 +1,17 @@
 "use client";
 
 import { useRef, useEffect, useState, useCallback } from "react";
+import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n/context";
 import { Button } from "@/components/ui/button";
-import { QrCode, X } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { QrCode } from "lucide-react";
 import qrcode from "qrcode-generator";
 
 export interface WifiQRCodeProps {
@@ -84,20 +92,24 @@ export function WifiQRCode({
     }
 
     setLoading(true);
-    const res = await fetch("/api/wifi/reveal", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ propertyId, type }),
-    });
-    const json = await res.json();
-    setLoading(false);
-
-    if (json.password) {
+    try {
+      const res = await fetch("/api/wifi/reveal", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ propertyId, type }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      if (!json.password) throw new Error("Missing password");
       setLocalPassword(json.password);
       onPasswordRevealed?.(json.password);
       setShowQR(true);
+    } catch {
+      toast.error(t.common.errorGeneric);
+    } finally {
+      setLoading(false);
     }
-  }, [localPassword, onPasswordRevealed, propertyId, type]);
+  }, [localPassword, onPasswordRevealed, propertyId, type, t]);
 
   useEffect(() => {
     if (!autoOpen || autoOpenedRef.current) return;
@@ -112,44 +124,40 @@ export function WifiQRCode({
     renderQRToCanvas(canvasRef.current, wifiString);
   }, [showQR, ssid, localPassword]);
 
-  if (!showQR) {
-    if (autoOpen) {
-      return (
-        <Button variant="outline" size="sm" disabled>
-          <QrCode className="h-4 w-4" />
-        </Button>
-      );
-    }
-    return (
-      <Button variant="outline" size="sm" onClick={handleOpen} disabled={loading}>
+  return (
+    <>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={handleOpen}
+        disabled={loading || (autoOpen && !showQR)}
+        aria-label={t.a11y.showQrCode}
+      >
         <QrCode className="h-4 w-4" />
       </Button>
-    );
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-background rounded-lg p-6 shadow-lg relative">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="absolute right-2 top-2"
-          onClick={() => {
-            setShowQR(false);
-            onClose?.();
-          }}
-        >
-          <X className="h-4 w-4" />
-        </Button>
-        <div className="text-center mb-4">
-          <h3 className="font-semibold">{t.qrcode.title}</h3>
-          <p className="text-sm text-muted-foreground">{ssid}</p>
-        </div>
-        <canvas ref={canvasRef} className="mx-auto rounded" />
-        <p className="text-xs text-muted-foreground text-center mt-4">
-          {t.qrcode.scanToConnect}
-        </p>
-      </div>
-    </div>
+      <Dialog
+        open={showQR}
+        onOpenChange={(open) => {
+          setShowQR(open);
+          if (!open) onClose?.();
+        }}
+      >
+        <DialogContent className="max-w-xs">
+          <DialogHeader>
+            <DialogTitle>{t.qrcode.title}</DialogTitle>
+            <DialogDescription>{ssid}</DialogDescription>
+          </DialogHeader>
+          <canvas
+            ref={canvasRef}
+            role="img"
+            aria-label={`${t.qrcode.title}: ${ssid}`}
+            className="mx-auto rounded"
+          />
+          <p className="text-xs text-muted-foreground text-center">
+            {t.qrcode.scanToConnect}
+          </p>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

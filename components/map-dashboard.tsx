@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useI18n } from "@/lib/i18n/context";
 import { JapanMap, type PropertyMarker } from "@/components/japan-map";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -58,11 +58,6 @@ export function MapDashboard({ properties }: MapDashboardProps) {
     }
   };
 
-  const navigateToProperty = (property: Property) => {
-    setShowAllProperties(false);
-    router.push(`/p/${property.slug || property.id}`);
-  };
-
   return (
     <div className="relative w-full h-full">
       <JapanMap
@@ -71,7 +66,7 @@ export function MapDashboard({ properties }: MapDashboardProps) {
         onMarkerClick={handleMarkerClick}
       />
 
-      <div className="absolute top-4 left-4 z-10">
+      <div className="absolute top-4 left-[max(1rem,env(safe-area-inset-left))] z-10">
         <Button
           variant="outline"
           size="default"
@@ -88,7 +83,7 @@ export function MapDashboard({ properties }: MapDashboardProps) {
       </div>
 
       {properties.length > 0 && (
-        <div className="absolute bottom-20 right-4 z-10 md:hidden">
+        <div className="absolute bottom-[calc(5rem+env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))] z-10 md:hidden">
           <Button
             onClick={() => setShowAllProperties(true)}
             className="shadow-lg h-12 px-5 text-base touch-manipulation"
@@ -125,10 +120,11 @@ export function MapDashboard({ properties }: MapDashboardProps) {
                   room: property.room,
                 });
                 return (
-                  <Card
+                  <Link
                     key={property.id}
-                    className="p-4 transition-all hover:border-foreground/30 active:scale-[0.98] active:bg-muted/50 cursor-pointer touch-manipulation"
-                    onClick={() => navigateToProperty(property)}
+                    href={`/p/${property.slug || property.id}`}
+                    onClick={() => setShowAllProperties(false)}
+                    className="block rounded-xl border bg-card text-card-foreground shadow p-4 transition-all hover:border-foreground/30 active:scale-[0.98] active:bg-muted/50 touch-manipulation focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 flex-1">
@@ -144,7 +140,7 @@ export function MapDashboard({ properties }: MapDashboardProps) {
                       </div>
                       <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
                     </div>
-                  </Card>
+                  </Link>
                 );
               })
             )}

@@ -39,7 +39,7 @@ interface PropertyNotesProps {
 }
 
 export function PropertyNotes({ propertyId, initialNotes, userId }: PropertyNotesProps) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const [loading, setLoading] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -129,7 +129,9 @@ export function PropertyNotes({ propertyId, initialNotes, userId }: PropertyNote
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return null;
-    return new Date(dateString).toLocaleDateString();
+    return new Date(dateString).toLocaleDateString(
+      language === "ja" ? "ja-JP" : "en-US"
+    );
   };
 
   return (
@@ -153,6 +155,7 @@ export function PropertyNotes({ propertyId, initialNotes, userId }: PropertyNote
                 setIsAdding(true);
                 setNewContent("");
               }}
+              aria-label={t.common.add}
             >
               <Plus className="h-4 w-4" />
             </Button>
@@ -181,6 +184,7 @@ export function PropertyNotes({ propertyId, initialNotes, userId }: PropertyNote
                 setIsAdding(false);
                 setNewContent("");
               }}
+              aria-label={t.common.cancel}
             >
               <X className="h-4 w-4" />
             </Button>
@@ -188,6 +192,7 @@ export function PropertyNotes({ propertyId, initialNotes, userId }: PropertyNote
               size="icon"
               disabled={!newContent.trim() || loading}
               onClick={addNote}
+              aria-label={t.common.add}
             >
               {loading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -230,6 +235,7 @@ export function PropertyNotes({ propertyId, initialNotes, userId }: PropertyNote
                     variant="ghost"
                     size="icon"
                     onClick={cancelEdit}
+                    aria-label={t.common.cancel}
                   >
                     <X className="h-4 w-4" />
                   </Button>
@@ -237,6 +243,7 @@ export function PropertyNotes({ propertyId, initialNotes, userId }: PropertyNote
                     size="icon"
                     disabled={!editContent.trim() || loading}
                     onClick={() => updateNote(note.id)}
+                    aria-label={t.common.save}
                   >
                     {loading ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -247,7 +254,7 @@ export function PropertyNotes({ propertyId, initialNotes, userId }: PropertyNote
                 </div>
               ) : (
                 <>
-                  <p className="text-sm">{note.content}</p>
+                  <p className="text-sm break-words">{note.content}</p>
                   <div className="flex items-center justify-between mt-2 pt-2 border-t">
                     <div className="text-xs text-muted-foreground">
                       {note.creator?.display_name && (
@@ -261,6 +268,7 @@ export function PropertyNotes({ propertyId, initialNotes, userId }: PropertyNote
                         size="icon"
                         className="h-7 w-7"
                         onClick={() => startEdit(note)}
+                        aria-label={t.common.edit}
                       >
                         <Pencil className="h-3 w-3" />
                       </Button>
@@ -270,6 +278,7 @@ export function PropertyNotes({ propertyId, initialNotes, userId }: PropertyNote
                             variant="ghost"
                             size="icon"
                             className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                            aria-label={t.propertyNotes.delete}
                           >
                             <Trash2 className="h-3 w-3" />
                           </Button>

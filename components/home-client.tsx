@@ -1,11 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { SignIn } from "@clerk/nextjs";
 import { useI18n } from "@/lib/i18n/context";
 import { MapDashboardLazy } from "@/components/map-dashboard-lazy";
-import { Button } from "@/components/ui/button";
-import { Home, User as UserIcon } from "lucide-react";
+import { Navbar } from "@/components/navbar";
+import { Home } from "lucide-react";
 import type { Id } from "@/convex/_generated/dataModel";
 
 interface Property {
@@ -70,18 +69,7 @@ export function HomeClient({ userId, properties }: HomeClientProps) {
 
   return (
     <main className="h-dvh flex flex-col">
-      <nav className="w-full flex justify-center border-b border-b-foreground/10 h-14 shrink-0">
-        <div className="w-full max-w-5xl flex justify-between items-center px-4 text-sm">
-          <span className="font-semibold">{t.home.title}</span>
-          <div className="flex items-center gap-2">
-            <Link href="/profile">
-              <Button variant="ghost" size="sm">
-                <UserIcon className="h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <Navbar />
       <div className="flex-1 overflow-hidden">
         <MapDashboardLazy properties={mappedProperties} />
       </div>

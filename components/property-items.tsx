@@ -56,7 +56,7 @@ export function PropertyItems({
   initialItems,
   userId,
 }: PropertyItemsProps) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const [loading, setLoading] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -174,7 +174,9 @@ export function PropertyItems({
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return null;
-    return new Date(dateString).toLocaleDateString();
+    return new Date(dateString).toLocaleDateString(
+      language === "ja" ? "ja-JP" : "en-US"
+    );
   };
 
   return (
@@ -198,6 +200,7 @@ export function PropertyItems({
                 setIsAdding(true);
                 resetForm();
               }}
+              aria-label={t.common.add}
             >
               <Plus className="h-4 w-4" />
             </Button>
@@ -297,37 +300,29 @@ export function PropertyItems({
 
           {items.map((item) => (
             <div key={item.id} className="py-2 px-3 rounded-lg border bg-card">
-              <div className="flex items-center gap-3">
-                <button
-                  className="flex-1 text-left"
-                  onClick={() =>
-                    setExpandedId(expandedId === item.id ? null : item.id)
-                  }
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">{item.title}</span>
-                    {item.category && (
-                      <span className="text-xs bg-secondary text-secondary-foreground rounded px-1.5 py-0.5">
-                        {item.category}
-                      </span>
-                    )}
-                  </div>
-                </button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-muted-foreground"
-                  onClick={() =>
-                    setExpandedId(expandedId === item.id ? null : item.id)
-                  }
-                >
-                  {expandedId === item.id ? (
-                    <ChevronUp className="h-4 w-4" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4" />
+              <button
+                className="w-full flex items-center gap-3 text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded"
+                aria-expanded={expandedId === item.id}
+                onClick={() =>
+                  setExpandedId(expandedId === item.id ? null : item.id)
+                }
+              >
+                <div className="flex-1 flex items-center gap-2 min-w-0">
+                  <span className="text-sm font-medium truncate">
+                    {item.title}
+                  </span>
+                  {item.category && (
+                    <span className="text-xs bg-secondary text-secondary-foreground rounded px-1.5 py-0.5 shrink-0">
+                      {item.category}
+                    </span>
                   )}
-                </Button>
-              </div>
+                </div>
+                {expandedId === item.id ? (
+                  <ChevronUp className="h-4 w-4 text-muted-foreground shrink-0" />
+                ) : (
+                  <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
+                )}
+              </button>
 
               {expandedId === item.id && (
                 <div className="mt-3 pt-3 border-t space-y-2">

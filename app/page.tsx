@@ -24,9 +24,17 @@ async function HomeContent() {
 
 function LoadingState() {
   return (
-    <div className="h-dvh flex items-center justify-center">
-      <div className="animate-pulse text-muted-foreground">...</div>
-    </div>
+    <main className="h-dvh flex flex-col">
+      <nav className="w-full flex justify-center border-b border-b-foreground/10 shrink-0 pt-[env(safe-area-inset-top)]">
+        <div className="w-full max-w-5xl h-14 flex items-center px-4">
+          <div className="h-5 w-32 bg-muted animate-pulse rounded" />
+        </div>
+      </nav>
+      <div className="flex-1 relative overflow-hidden">
+        <div className="absolute top-4 left-4 h-10 w-28 bg-muted animate-pulse rounded-md" />
+        <div className="absolute inset-0 bg-muted/30 animate-pulse" />
+      </div>
+    </main>
   );
 }
 
