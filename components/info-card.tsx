@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useAction, useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import { useI18n } from "@/lib/i18n/context";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -19,6 +21,7 @@ import { buildFullAddress } from "@/components/address-display";
 import { formatMailboxLockForDisplayLocalized } from "@/components/mailbox-lock-input";
 import { formatAutoLockForDisplay, getAutoLockType } from "@/components/auto-lock-input";
 import { cn } from "@/lib/utils";
+import { LockControl, lockStateLabel } from "@/components/lock-control";
 
 interface Property {
   id: string;
@@ -105,6 +108,8 @@ function RetryValue({
 
 export function InfoCard({ property }: InfoCardProps) {
   const { t } = useI18n();
+  const devices = useQuery(api.locks.devicesForProperty, { propertyId: property.id as never }) as Array<{ _id: string; propertyId: string; label: string; lockState?: string; doorState?: string; battery?: number; canControl: boolean }> | undefined;
+  const refreshStatus = useAction(api.switchbot.refreshPropertyStatus);
   const [wifiPassword, setWifiPassword] = useState<string | null>(null);
   const [guestWifiPassword, setGuestWifiPassword] = useState<string | null>(null);
   const [loadingWifi, setLoadingWifi] = useState(false);
@@ -131,6 +136,12 @@ export function InfoCard({ property }: InfoCardProps) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (devices?.length) void refreshStatus({ propertyId: property.id as never });
+  // Refresh exactly once when a bound-device query becomes available.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [devices?.length, property.id]);
 
   const revealMailboxLock = async () => {
     setLoadingMailboxLock(true);
@@ -251,6 +262,7 @@ export function InfoCard({ property }: InfoCardProps) {
     : "";
 
   const hasCredentials =
+    (devices?.length ?? 0) > 0 ||
     property.wifi_ssid ||
     property.guest_wifi_ssid ||
     property.has_mailbox_lock ||
@@ -260,6 +272,11 @@ export function InfoCard({ property }: InfoCardProps) {
     <div className="flex flex-col gap-4">
       {hasCredentials && (
         <div className="divide-y divide-hairline overflow-hidden rounded-2xl border bg-card shadow-card dark:shadow-none">
+          {devices?.map((device) => (
+            <CredRow key={device._id} icon={Lock} label={device.label} value={lockStateLabel(device, t)}>
+              {device.canControl && <LockControl device={device} size="compact" />}
+            </CredRow>
+          ))}
           {property.wifi_ssid && (
             <CredRow icon={Wifi} label={t.info.wifi} value={property.wifi_ssid}>
               <Button
@@ -361,7 +378,7 @@ export function InfoCard({ property }: InfoCardProps) {
             </CredRow>
           )}
 
-          {property.has_auto_lock && (
+          {property.has_auto_lock && !(autoLockIsSwitchbot && devices?.length) && (
             <CredRow
               icon={KeyRound}
               label={t.info.autoLock}

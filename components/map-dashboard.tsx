@@ -15,6 +15,9 @@ import { TabBar } from "@/components/tab-bar";
 import { Input } from "@/components/ui/input";
 import { buildFullAddress } from "@/components/address-display";
 import { cn } from "@/lib/utils";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { LockControl, lockStateLabel } from "@/components/lock-control";
 import {
   Home,
   ChevronRight,
@@ -160,6 +163,10 @@ export function MapDashboard({ properties, userInitial }: MapDashboardProps) {
   }, [properties, query]);
 
   const firstProperty = properties[0];
+  const selectedDevices = useQuery(
+    api.locks.devicesForProperty,
+    firstProperty ? { propertyId: firstProperty.id as never } : "skip"
+  ) as Array<{ _id: string; propertyId: string; label: string; lockState?: string; doorState?: string; battery?: number; canControl: boolean }> | undefined;
 
   const onSheetTouchStart = (e: React.TouchEvent) => {
     touchStartY.current = e.touches[0].clientY;
@@ -293,6 +300,7 @@ export function MapDashboard({ properties, userInitial }: MapDashboardProps) {
           <>
             {firstProperty && (
               <div className="px-4 pb-3">
+                {selectedDevices?.length ? <div className="mb-2 divide-y divide-hairline overflow-hidden rounded-xl border bg-background"><div className="flex items-center gap-2 px-3 py-2"><span className={cn("h-2 w-2 rounded-full", selectedDevices[0].lockState === "unlock" ? "bg-[hsl(var(--dial-left))]" : selectedDevices[0].lockState === "jammed" ? "bg-destructive" : "bg-primary")} /><span className="min-w-0 flex-1 truncate text-xs font-medium">{selectedDevices[0].label} · {lockStateLabel(selectedDevices[0], t)}</span>{selectedDevices[0].canControl && <LockControl device={selectedDevices[0]} size="compact" />}</div></div> : null}
                 <PropertyRow
                   property={firstProperty}
                   secondary={secondaryFor(firstProperty)}

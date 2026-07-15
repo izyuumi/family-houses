@@ -1,6 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n/context";
 import { InfoCard } from "@/components/info-card";
@@ -11,6 +13,7 @@ import { ChevronLeft, Pencil, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { buildFullAddress } from "@/components/address-display";
 import { cn } from "@/lib/utils";
+import { DoorsSection } from "@/components/doors-section";
 
 interface Property {
   id: string;
@@ -78,7 +81,7 @@ interface PropertyClientProps {
   initialPropertyNotes?: PropertyNote[];
 }
 
-type SectionKey = "info" | "todos" | "notes" | "items";
+type SectionKey = "info" | "doors" | "todos" | "notes" | "items";
 
 export function PropertyClient({
   property,
@@ -90,9 +93,11 @@ export function PropertyClient({
 }: PropertyClientProps) {
   const { t } = useI18n();
   const [activeSection, setActiveSection] = useState<SectionKey>("info");
+  const devices = useQuery(api.locks.devicesForProperty, { propertyId: property.id as never });
   const scrollRef = useRef<HTMLDivElement>(null);
   const infoRef = useRef<HTMLDivElement>(null);
   const todosRef = useRef<HTMLDivElement>(null);
+  const doorsRef = useRef<HTMLDivElement>(null);
   const notesRef = useRef<HTMLDivElement>(null);
   const itemsRef = useRef<HTMLDivElement>(null);
 
@@ -114,6 +119,7 @@ export function PropertyClient({
     const container = scrollRef.current;
     const refs = {
       info: infoRef,
+      doors: doorsRef,
       todos: todosRef,
       notes: notesRef,
       items: itemsRef,
@@ -136,6 +142,7 @@ export function PropertyClient({
 
   const chips: { key: SectionKey; label: string; count?: number }[] = [
     { key: "info", label: t.info.chip },
+    ...(devices?.length ? [{ key: "doors" as SectionKey, label: t.locks.title }] : []),
     { key: "todos", label: t.groceries.title, count: todoCount },
     { key: "notes", label: t.propertyNotes.title },
     { key: "items", label: t.propertyItems.title },
@@ -222,6 +229,7 @@ export function PropertyClient({
           <div ref={infoRef} className="scroll-mt-2">
             <InfoCard property={property} />
           </div>
+          {devices?.length ? <div ref={doorsRef} className="scroll-mt-2"><DoorsSection propertyId={property.id} /></div> : null}
           <div ref={todosRef} className="scroll-mt-2">
             <Groceries
               propertyId={property.id}

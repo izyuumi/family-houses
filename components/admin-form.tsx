@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useMutation } from "convex/react";
+import { useAction, useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { useI18n } from "@/lib/i18n/context";
@@ -13,6 +13,9 @@ import { Label } from "@/components/ui/label";
 import { Plus, Loader2, MapPin, Pencil, X, Save } from "lucide-react";
 import { MailboxLockInput } from "@/components/mailbox-lock-input";
 import { AutoLockInput } from "@/components/auto-lock-input";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 
 interface Property {
   id: string;
@@ -51,6 +54,20 @@ export function AdminForm({ property }: AdminFormProps) {
 
   const createMutation = useMutation(api.properties.create);
   const updateMutation = useMutation(api.properties.update);
+  const devices = useQuery(api.locks.devicesForProperty, property ? { propertyId: property.id as Id<"properties"> } : "skip") as Array<{ _id: string; deviceId: string; deviceType: string; label: string; deviceRole: string; keypadDeviceId?: string }> | undefined;
+  const bindDevice = useMutation(api.locks.bindDevice);
+  const unbindDevice = useMutation(api.locks.unbindDevice);
+  const listAccountLocks = useAction(api.switchbot.listAccountLocks);
+  const registerWebhook = useAction(api.switchbot.registerWebhook);
+  const [addDeviceOpen, setAddDeviceOpen] = useState(false);
+  const [accountDevices, setAccountDevices] = useState<{ locks: Array<{deviceId:string;deviceName:string;deviceType:string}>; keypads: Array<{deviceId:string;deviceName:string;deviceType:string;lockDeviceId?:string}> } | null>(null);
+  const [selectedDeviceId, setSelectedDeviceId] = useState("");
+  const [deviceLabel, setDeviceLabel] = useState("");
+  const [deviceRole, setDeviceRole] = useState("entrance");
+  const [keypadDeviceId, setKeypadDeviceId] = useState("");
+  const [binding, setBinding] = useState(false);
+  const [unbindingId, setUnbindingId] = useState<string | null>(null);
+  const [webhookUrl, setWebhookUrl] = useState("");
 
   const isEditMode = !!property;
 
@@ -175,6 +192,28 @@ export function AdminForm({ property }: AdminFormProps) {
   const clearLocation = () => {
     setLocation(null);
   };
+
+  const openAddDevice = async () => {
+    setAddDeviceOpen(true); setAccountDevices(null);
+    try { setAccountDevices(await listAccountLocks({})); }
+    catch (err) { toast.error(err instanceof Error ? err.message : t.common.errorGeneric); setAddDeviceOpen(false); }
+  };
+  const selectLock = (id: string) => {
+    setSelectedDeviceId(id);
+    const lock = accountDevices?.locks.find((item) => item.deviceId === id);
+    if (!lock) return;
+    setDeviceLabel(lock.deviceName);
+    setKeypadDeviceId(accountDevices?.keypads.find((item) => item.lockDeviceId === id)?.deviceId ?? "");
+  };
+  const submitDevice = async () => {
+    if (!property || !selectedDeviceId || !deviceLabel.trim()) return;
+    const lock = accountDevices?.locks.find((item) => item.deviceId === selectedDeviceId); if (!lock) return;
+    setBinding(true);
+    try { await bindDevice({ propertyId: property.id as Id<"properties">, deviceId: lock.deviceId, deviceType: lock.deviceType, label: deviceLabel.trim(), deviceRole: deviceRole as "entrance" | "unit" | "mailbox" | "other", keypadDeviceId: keypadDeviceId || undefined }); toast.success(t.admin.deviceBound); setAddDeviceOpen(false); }
+    catch (err) { toast.error(err instanceof Error ? err.message : t.common.errorGeneric); } finally { setBinding(false); }
+  };
+  const confirmUnbind = async () => { if (!unbindingId) return; try { await unbindDevice({ deviceDbId: unbindingId as never }); toast.success(t.admin.deviceUnbound); } catch (err) { toast.error(err instanceof Error ? err.message : t.common.errorGeneric); } finally { setUnbindingId(null); } };
+  const submitWebhook = async () => { if (!webhookUrl.trim()) return; try { await registerWebhook({ url: webhookUrl.trim() }); toast.success(t.admin.webhookRegistered); } catch (err) { toast.error(err instanceof Error ? err.message : t.common.errorGeneric); } };
 
   const startEditingLocation = () => {
     setIsEditingLocation(true);
@@ -532,6 +571,14 @@ export function AdminForm({ property }: AdminFormProps) {
         />
       </div>
 
+      <div className={sectionClass}>
+        <div className="flex items-center justify-between"><div className="text-sm font-bold">{t.admin.switchbotDevices}</div>{isEditMode && <Button type="button" size="sm" className="rounded-xl" onClick={() => void openAddDevice()}><Plus className="h-4 w-4" />{t.admin.addDevice}</Button>}</div>
+        {!isEditMode ? <p className="text-xs text-muted-foreground">{t.admin.saveFirst}</p> : <>
+          {!devices?.length ? <p className="text-xs text-muted-foreground">{t.admin.noDevices}</p> : <div className="divide-y divide-hairline">{devices.map((device) => <div key={device._id} className="flex items-center gap-3 py-2"><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{device.label}</p><p className="text-xs text-muted-foreground">{device.deviceType} · {device.deviceRole} · {device.keypadDeviceId ? t.admin.keypad : t.admin.noKeypad}</p></div><Button type="button" variant="ghost" size="sm" className="text-destructive" onClick={() => setUnbindingId(device._id)}>{t.admin.unbind}</Button></div>)}</div>}
+          <div className="mt-2 border-t border-hairline pt-3"><Label className={fieldLabelClass}>{t.admin.webhookUrl}</Label><div className="mt-1 flex gap-2"><Input value={webhookUrl} onChange={(event) => setWebhookUrl(event.target.value)} placeholder="https://…/switchbot-webhook?token=" /><Button type="button" variant="outline" className="shrink-0" onClick={() => void submitWebhook()}>{t.admin.registerWebhook}</Button></div><p className="mt-1 text-[11px] text-muted-foreground">{t.admin.webhookHint}</p></div>
+        </>}
+      </div>
+
       {error && (
         <div className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive">
           {error}
@@ -559,6 +606,8 @@ export function AdminForm({ property }: AdminFormProps) {
           </>
         )}
       </Button>
+      <Dialog open={addDeviceOpen} onOpenChange={setAddDeviceOpen}><DialogContent><DialogHeader><DialogTitle>{t.admin.addDevice}</DialogTitle></DialogHeader>{!accountDevices ? <p className="text-sm text-muted-foreground">{t.common.loading}</p> : <div className="space-y-3"><select className="h-11 w-full rounded-lg border bg-card px-3 text-sm" value={selectedDeviceId} onChange={(event) => selectLock(event.target.value)}><option value="">{t.admin.selectDevice}</option>{accountDevices.locks.map((lock) => <option key={lock.deviceId} value={lock.deviceId}>{lock.deviceName} · {lock.deviceType}</option>)}</select>{selectedDeviceId && <><div><Label>{t.admin.deviceLabel}</Label><Input value={deviceLabel} onChange={(event) => setDeviceLabel(event.target.value)} /></div><div><Label>{t.admin.deviceRole}</Label><select className="mt-1 h-11 w-full rounded-lg border bg-card px-3 text-sm" value={deviceRole} onChange={(event) => setDeviceRole(event.target.value)}><option value="entrance">{t.locks.roles.entrance}</option><option value="unit">{t.locks.roles.unit}</option><option value="mailbox">{t.locks.roles.mailbox}</option><option value="other">{t.locks.roles.other}</option></select></div><div><Label>{t.admin.keypad}</Label><select className="mt-1 h-11 w-full rounded-lg border bg-card px-3 text-sm" value={keypadDeviceId} onChange={(event) => setKeypadDeviceId(event.target.value)}><option value="">{t.admin.noKeypad}</option>{accountDevices.keypads.map((keypad) => <option key={keypad.deviceId} value={keypad.deviceId}>{keypad.deviceName}</option>)}</select></div></>}</div>}<DialogFooter><Button type="button" disabled={!selectedDeviceId || !deviceLabel.trim() || binding} onClick={() => void submitDevice()}>{binding ? t.common.loading : t.common.add}</Button></DialogFooter></DialogContent></Dialog>
+      <AlertDialog open={Boolean(unbindingId)} onOpenChange={(open) => !open && setUnbindingId(null)}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>{t.admin.unbindTitle}</AlertDialogTitle><AlertDialogDescription>{t.admin.unbindDescription}</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>{t.common.cancel}</AlertDialogCancel><AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => void confirmUnbind()}>{t.admin.unbind}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
     </form>
   );
 }

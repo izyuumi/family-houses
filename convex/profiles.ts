@@ -3,6 +3,7 @@ import {
   query,
   mutation,
   internalMutation,
+  internalQuery,
   QueryCtx,
 } from "./_generated/server";
 import type { Doc } from "./_generated/dataModel";
@@ -43,6 +44,13 @@ export const current = query({
   handler: async (ctx) => {
     return await getCurrentUser(ctx);
   },
+});
+
+// Actions cannot read the database directly; this preserves the caller's auth
+// context while allowing Node actions to make an authorization decision.
+export const currentForAction = internalQuery({
+  args: {},
+  handler: async (ctx) => await getCurrentUser(ctx),
 });
 
 export const getByClerkId = query({

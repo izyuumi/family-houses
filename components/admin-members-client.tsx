@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import type { Id } from "@/convex/_generated/dataModel";
 import type { MemberRole } from "@/convex/propertyMembers";
+import { SwitchbotSettingsCard } from "@/components/switchbot-settings-card";
 import { cn } from "@/lib/utils";
 
 interface Profile {
@@ -287,6 +288,8 @@ export function AdminMembersClient() {
               </div>
             )}
           </div>
+
+          <SwitchbotSettingsCard />
         </div>
       </div>
     </main>

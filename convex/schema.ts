@@ -73,4 +73,57 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_property_user", ["propertyId", "userId"]),
 
+  switchbotDevices: defineTable({
+    propertyId: v.id("properties"),
+    deviceId: v.string(),
+    deviceType: v.string(),
+    label: v.string(),
+    deviceRole: v.union(
+      v.literal("entrance"),
+      v.literal("unit"),
+      v.literal("mailbox"),
+      v.literal("other")
+    ),
+    keypadDeviceId: v.optional(v.string()),
+    lockState: v.optional(v.string()),
+    doorState: v.optional(v.string()),
+    battery: v.optional(v.number()),
+    stateUpdatedAt: v.optional(v.number()),
+  })
+    .index("by_property", ["propertyId"])
+    .index("by_device_id", ["deviceId"]),
+
+  lockEvents: defineTable({
+    propertyId: v.id("properties"),
+    deviceDbId: v.id("switchbotDevices"),
+    action: v.string(),
+    source: v.string(),
+    actorClerkId: v.optional(v.string()),
+    lockState: v.optional(v.string()),
+    doorState: v.optional(v.string()),
+    at: v.number(),
+  })
+    .index("by_property", ["propertyId"])
+    .index("by_device", ["deviceDbId"]),
+
+  integrationSettings: defineTable({
+    name: v.string(),
+    token: v.optional(v.string()),
+    secret: v.optional(v.string()),
+    webhookToken: v.optional(v.string()),
+  }).index("by_name", ["name"]),
+
+  guestPasscodes: defineTable({
+    propertyId: v.id("properties"),
+    deviceDbId: v.id("switchbotDevices"),
+    name: v.string(),
+    code: v.string(),
+    passcodeType: v.string(),
+    startTime: v.optional(v.number()),
+    endTime: v.optional(v.number()),
+    status: v.string(),
+    switchbotKeyId: v.optional(v.string()),
+    createdBy: v.string(),
+  }).index("by_property", ["propertyId"]),
+
 });

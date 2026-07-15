@@ -10,12 +10,15 @@
 
 import type * as groceryItems from "../groceryItems.js";
 import type * as http from "../http.js";
+import type * as integrationSettings from "../integrationSettings.js";
+import type * as locks from "../locks.js";
 import type * as permissions from "../permissions.js";
 import type * as profiles from "../profiles.js";
 import type * as properties from "../properties.js";
 import type * as propertyItems from "../propertyItems.js";
 import type * as propertyMembers from "../propertyMembers.js";
 import type * as propertyNotes from "../propertyNotes.js";
+import type * as switchbot from "../switchbot.js";
 import type * as utils from "../utils.js";
 
 import type {
@@ -27,12 +30,15 @@ import type {
 declare const fullApi: ApiFromModules<{
   groceryItems: typeof groceryItems;
   http: typeof http;
+  integrationSettings: typeof integrationSettings;
+  locks: typeof locks;
   permissions: typeof permissions;
   profiles: typeof profiles;
   properties: typeof properties;
   propertyItems: typeof propertyItems;
   propertyMembers: typeof propertyMembers;
   propertyNotes: typeof propertyNotes;
+  switchbot: typeof switchbot;
   utils: typeof utils;
 }>;
 

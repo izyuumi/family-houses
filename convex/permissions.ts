@@ -182,6 +182,48 @@ export async function canViewWifi(
   return canViewWifiWithUser(ctx, propertyId, user);
 }
 
+export async function canControlLocksWithUser(
+  ctx: QueryCtx,
+  propertyId: Id<"properties">,
+  user: UserProfile
+): Promise<boolean> {
+  if (!user) return false;
+  if (user.role === "admin") return true;
+
+  const membership = await getMembershipForProperty(ctx, propertyId, user.clerkId);
+  if (!membership) return false;
+
+  return hasMinimumRole(membership.role, "member");
+}
+
+export async function canControlLocks(
+  ctx: QueryCtx,
+  propertyId: Id<"properties">
+): Promise<boolean> {
+  const user = await getCurrentUser(ctx);
+  return canControlLocksWithUser(ctx, propertyId, user);
+}
+
+export async function canManageGuestAccessWithUser(
+  ctx: QueryCtx,
+  propertyId: Id<"properties">,
+  user: UserProfile
+): Promise<boolean> {
+  if (!user) return false;
+  if (user.role === "admin") return true;
+
+  const membership = await getMembershipForProperty(ctx, propertyId, user.clerkId);
+  return membership?.role === "owner";
+}
+
+export async function canManageGuestAccess(
+  ctx: QueryCtx,
+  propertyId: Id<"properties">
+): Promise<boolean> {
+  const user = await getCurrentUser(ctx);
+  return canManageGuestAccessWithUser(ctx, propertyId, user);
+}
+
 export async function canAddItemsWithUser(
   ctx: QueryCtx,
   propertyId: Id<"properties">,
