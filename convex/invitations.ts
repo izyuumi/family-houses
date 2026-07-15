@@ -33,7 +33,8 @@ export const list = query({
 
 export const create = mutation({
   args: {
-    email: v.string(),
+    label: v.string(),
+    email: v.optional(v.string()),
     // Generated client-side with crypto.getRandomValues so the mutation
     // stays deterministic.
     token: v.string(),
@@ -44,8 +45,9 @@ export const create = mutation({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Authentication required");
 
-    const email = args.email.trim().toLowerCase();
-    if (!email) throw new Error("An email address is required");
+    const label = args.label.trim();
+    if (!label) throw new Error("A name for the invitee is required");
+    const email = args.email?.trim().toLowerCase() || undefined;
     if (!/^[0-9a-f]{32,}$/.test(args.token)) {
       throw new Error("Invalid invitation token");
     }
@@ -56,6 +58,7 @@ export const create = mutation({
     if (duplicate) throw new Error("Invalid invitation token");
 
     return await ctx.db.insert("invitations", {
+      label,
       email,
       token: args.token,
       propertyAssignments: args.propertyAssignments,

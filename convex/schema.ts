@@ -115,7 +115,8 @@ export default defineSchema({
   }).index("by_name", ["name"]),
 
   invitations: defineTable({
-    email: v.string(),
+    label: v.optional(v.string()),
+    email: v.optional(v.string()),
     token: v.string(),
     propertyAssignments: v.array(
       v.object({

@@ -43,6 +43,7 @@ export function InvitationsCard() {
   const revokeInvitation = useMutation(api.invitations.revoke);
 
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [label, setLabel] = useState("");
   const [email, setEmail] = useState("");
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [assignProperty, setAssignProperty] = useState<Id<"properties"> | "">("");
@@ -72,6 +73,7 @@ export function InvitationsCard() {
   };
 
   const openDialog = () => {
+    setLabel("");
     setEmail("");
     setAssignments([]);
     setAssignProperty("");
@@ -93,7 +95,8 @@ export function InvitationsCard() {
     try {
       const token = generateToken();
       await createInvitation({
-        email: email.trim(),
+        label: label.trim(),
+        email: email.trim() || undefined,
         token,
         propertyAssignments: assignments,
       });
@@ -161,11 +164,15 @@ export function InvitationsCard() {
               className="flex items-center gap-2.5 border-b border-hairline px-0.5 py-2.5 last:border-b-0"
             >
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium">{invitation.email}</p>
+                <p className="truncate text-sm font-medium">
+                  {invitation.label || invitation.email || "—"}
+                </p>
                 <p className="truncate text-xs text-muted-foreground">
                   {invitation.status === "accepted" && invitation.acceptor
                     ? `${t.invite.acceptedBy} ${invitation.acceptor.displayName || invitation.acceptor.email}`
-                    : `${t.invite.invitedBy} ${invitation.inviter?.displayName || invitation.inviter?.email || "—"}`}
+                    : invitation.label && invitation.email
+                      ? invitation.email
+                      : `${t.invite.invitedBy} ${invitation.inviter?.displayName || invitation.inviter?.email || "—"}`}
                 </p>
               </div>
               {statusChip(invitation.status)}
@@ -222,7 +229,18 @@ export function InvitationsCard() {
             <>
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="invite-email">{t.invite.email}</Label>
+                  <Label htmlFor="invite-label">{t.invite.labelField}</Label>
+                  <Input
+                    id="invite-label"
+                    autoComplete="off"
+                    className="mt-1"
+                    value={label}
+                    onChange={(e) => setLabel(e.target.value)}
+                    placeholder={t.invite.labelPlaceholder}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="invite-email">{t.invite.emailOptional}</Label>
                   <Input
                     id="invite-email"
                     type="email"
@@ -322,7 +340,7 @@ export function InvitationsCard() {
                 <Button
                   type="button"
                   className="rounded-xl"
-                  disabled={!email.trim() || creating}
+                  disabled={!label.trim() || creating}
                   onClick={() => void handleCreate()}
                 >
                   {creating ? (
