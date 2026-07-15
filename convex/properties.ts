@@ -6,7 +6,7 @@ import {
   canAccessPropertyWithUser,
   getMembershipForProperty,
 } from "./permissions";
-import { getProfileMap, extractClerkIds, enrichWithCreator } from "./utils";
+import { getProfileMap, extractClerkIds } from "./utils";
 
 export const list = query({
   args: {},
