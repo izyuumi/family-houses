@@ -31,6 +31,7 @@ import {
 import type { Id } from "@/convex/_generated/dataModel";
 import type { MemberRole } from "@/convex/propertyMembers";
 import { SwitchbotSettingsCard } from "@/components/switchbot-settings-card";
+import { InvitationsCard } from "@/components/invitations-card";
 import { cn } from "@/lib/utils";
 
 interface Profile {
@@ -184,6 +185,8 @@ export function AdminMembersClient() {
               </div>
             )}
           </div>
+
+          <InvitationsCard />
 
           <div className="flex flex-col gap-3 rounded-2xl border bg-card p-4 shadow-card dark:shadow-none">
             <div className="flex items-center gap-2 text-[15px] font-bold">

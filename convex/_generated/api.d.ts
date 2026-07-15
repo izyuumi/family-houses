@@ -11,6 +11,7 @@
 import type * as groceryItems from "../groceryItems.js";
 import type * as http from "../http.js";
 import type * as integrationSettings from "../integrationSettings.js";
+import type * as invitations from "../invitations.js";
 import type * as locks from "../locks.js";
 import type * as permissions from "../permissions.js";
 import type * as profiles from "../profiles.js";
@@ -31,6 +32,7 @@ declare const fullApi: ApiFromModules<{
   groceryItems: typeof groceryItems;
   http: typeof http;
   integrationSettings: typeof integrationSettings;
+  invitations: typeof invitations;
   locks: typeof locks;
   permissions: typeof permissions;
   profiles: typeof profiles;

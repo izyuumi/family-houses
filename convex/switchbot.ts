@@ -52,8 +52,13 @@ function readLockStatus(body: unknown): LockStatus {
 
 type SwitchBotCredentials = { token?: string; secret?: string };
 
-async function getCredentials(ctx: ActionCtx): Promise<SwitchBotCredentials> {
-  return await ctx.runQuery(internal.integrationSettings.getSwitchbotCredentials, {});
+async function getCredentials(
+  ctx: ActionCtx,
+  accountId?: Id<"switchbotAccounts">
+): Promise<SwitchBotCredentials> {
+  return await ctx.runQuery(internal.integrationSettings.getCredentialsForAccount, {
+    accountId,
+  });
 }
 
 async function switchBotFetch(
@@ -101,8 +106,8 @@ async function requireIdentity(ctx: ActionCtx) {
 }
 
 export const listAccountLocks = action({
-  args: {},
-  handler: async (ctx): Promise<{
+  args: { accountId: v.optional(v.id("switchbotAccounts")) },
+  handler: async (ctx, args): Promise<{
     locks: Array<{ deviceId: string; deviceName: string; deviceType: string }>;
     keypads: Array<{ deviceId: string; deviceName: string; deviceType: string; lockDeviceId?: string }>;
   }> => {
@@ -113,7 +118,10 @@ export const listAccountLocks = action({
     ]);
     if (user?.role !== "admin") throw new Error("Admin access required");
 
-    const body = await switchBotFetch(await getCredentials(ctx), "/v1.1/devices");
+    const body = await switchBotFetch(
+      await getCredentials(ctx, args.accountId),
+      "/v1.1/devices"
+    );
     const deviceList = body && typeof body === "object" && Array.isArray((body as { deviceList?: unknown }).deviceList)
       ? (body as { deviceList: Array<Record<string, unknown>> }).deviceList
       : [];
@@ -155,7 +163,7 @@ export const sendLockCommand = action({
     });
     if (!access?.canControl) throw new Error("You do not have permission to control locks");
 
-    const creds = await getCredentials(ctx);
+    const creds = await getCredentials(ctx, access.device.accountId);
     await switchBotFetch(creds, `/v1.1/devices/${access.device.deviceId}/commands`, {
       method: "POST",
       body: { commandType: "command", command: args.command, parameter: "default" },
@@ -195,11 +203,24 @@ export const refreshPropertyStatus = action({
     });
     if (!access?.canView) throw new Error("You do not have access to this property");
 
-    const creds = await getCredentials(ctx);
+    // Devices on one property may belong to different SwitchBot accounts.
+    const credsByAccount = new Map<string, SwitchBotCredentials>();
+    const credsFor = async (accountId?: Id<"switchbotAccounts">) => {
+      const key = accountId ?? "legacy";
+      let creds = credsByAccount.get(key);
+      if (!creds) {
+        creds = await getCredentials(ctx, accountId);
+        credsByAccount.set(key, creds);
+      }
+      return creds;
+    };
     return await Promise.all(
       access.devices.map(async (device) => {
         const status = readLockStatus(
-          await switchBotFetch(creds, `/v1.1/devices/${device.deviceId}/status`)
+          await switchBotFetch(
+            await credsFor(device.accountId),
+            `/v1.1/devices/${device.deviceId}/status`
+          )
         );
         await ctx.runMutation(internal.locks.upsertDeviceState, {
           deviceDbId: device._id,
@@ -262,7 +283,7 @@ export const createGuestPasscode = action({
 
     try {
       const body = await switchBotFetch(
-        await getCredentials(ctx),
+        await getCredentials(ctx, access.device.accountId),
         `/v1.1/devices/${access.device.keypadDeviceId}/commands`,
         { method: "POST", body: { commandType: "command", command: "createKey", parameter } }
       );
@@ -300,7 +321,7 @@ export const deleteGuestPasscode = action({
       throw new Error("You do not have permission to manage guest access");
     }
 
-    const creds = await getCredentials(ctx);
+    const creds = await getCredentials(ctx, access.device.accountId);
     let keyId = access.passcode.switchbotKeyId;
     if (!keyId && access.device.keypadDeviceId) {
       const body = await switchBotFetch(creds, "/v1.1/devices");
@@ -339,16 +360,37 @@ export const deleteGuestPasscode = action({
 });
 
 export const registerWebhook = action({
-  args: { url: v.string() },
+  args: { accountId: v.optional(v.id("switchbotAccounts")) },
   handler: async (ctx, args) => {
     await requireIdentity(ctx);
     const user = await ctx.runQuery(internal.profiles.currentForAction, {});
     if (user?.role !== "admin") throw new Error("Admin access required");
-    if (!args.url.startsWith("https://")) throw new Error("Webhook URL must use HTTPS");
-    await switchBotFetch(await getCredentials(ctx), "/v1.1/webhook/setupWebhook", {
-      method: "POST",
-      body: { action: "setupWebhook", url: args.url, deviceList: "ALL" },
-    });
+
+    // The URL is assembled server-side so the write-only webhook token never
+    // has to round-trip through a client.
+    const { webhookToken } = await ctx.runQuery(
+      internal.integrationSettings.getSwitchbotCredentials,
+      {}
+    );
+    if (!webhookToken) throw new Error("Set a webhook token first");
+    const siteUrl = process.env.CONVEX_SITE_URL;
+    if (!siteUrl) throw new Error("CONVEX_SITE_URL is unavailable");
+
+    const url = `${siteUrl}/switchbot-webhook?token=${encodeURIComponent(webhookToken)}`;
+    try {
+      await switchBotFetch(await getCredentials(ctx, args.accountId), "/v1.1/webhook/setupWebhook", {
+        method: "POST",
+        body: { action: "setupWebhook", url, deviceList: "ALL" },
+      });
+    } catch (error) {
+      // The request body carries the webhook token; don't relay SwitchBot's
+      // error text in case it echoes the rejected URL back.
+      const message =
+        error instanceof Error && error.message === "SwitchBot is not configured"
+          ? error.message
+          : "Failed to register the webhook with SwitchBot";
+      throw new Error(message);
+    }
     return { success: true };
   },
 });

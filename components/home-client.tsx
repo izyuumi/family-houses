@@ -1,10 +1,8 @@
 "use client";
 
-import { SignIn } from "@clerk/nextjs";
-import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
 import { useI18n } from "@/lib/i18n/context";
 import { MapDashboardLazy } from "@/components/map-dashboard-lazy";
+import { SignInButtons } from "@/components/sign-in-buttons";
 import { Home } from "lucide-react";
 import type { Id } from "@/convex/_generated/dataModel";
 
@@ -34,15 +32,8 @@ interface HomeClientProps {
 
 export function HomeClient({ userId, userInitial, properties }: HomeClientProps) {
   const { t } = useI18n();
-  const { resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   if (!userId) {
-    const dark = mounted && resolvedTheme === "dark";
     return (
       <main className="flex min-h-dvh flex-col items-center justify-center gap-8 px-7 py-10">
         <div className="flex flex-col items-center gap-4">
@@ -56,25 +47,7 @@ export function HomeClient({ userId, userInitial, properties }: HomeClientProps)
             {t.home.subtitle}
           </p>
         </div>
-        <SignIn
-          appearance={{
-            variables: {
-              colorPrimary: dark ? "#2fb39b" : "#17806d",
-              colorBackground: dark ? "#141f20" : "#ffffff",
-              colorText: dark ? "#e8f0ef" : "#10282b",
-              colorTextSecondary: dark ? "#93a8a9" : "#5b7276",
-              colorInputBackground: dark ? "#0d1516" : "#f6f8f7",
-              colorInputText: dark ? "#e8f0ef" : "#10282b",
-              borderRadius: "14px",
-              fontFamily:
-                "var(--font-plus-jakarta), var(--font-noto-sans-jp), sans-serif",
-            },
-            elements: {
-              cardBox: "rounded-[20px] shadow-card border border-border",
-              formButtonPrimary: "shadow-primary-btn",
-            },
-          }}
-        />
+        <SignInButtons />
       </main>
     );
   }

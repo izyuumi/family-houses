@@ -8,6 +8,7 @@ import {
 } from "./_generated/server";
 import type { Doc } from "./_generated/dataModel";
 import type { UserJSON } from "@clerk/backend";
+import { applyInvitation, findPendingInvitationByEmail } from "./utils";
 
 export type ProfileRole = "admin" | "user";
 
@@ -117,11 +118,24 @@ export const upsertFromClerk = internalMutation({
 
     const user = await profileByClerkId(ctx, data.id);
     if (user === null) {
-      await ctx.db.insert("profiles", {
+      const profileId = await ctx.db.insert("profiles", {
         ...userAttributes,
         role: "user",
         approved: false,
       });
+      // If this email was invited, approve and assign automatically. Only
+      // trust verified emails — an unverified address must not claim an
+      // invitation. The invite-link flow remains the primary path since
+      // Sign in with Apple relay addresses won't match the invited email.
+      const emailVerified =
+        data.email_addresses[0]?.verification?.status === "verified";
+      const invitation = emailVerified
+        ? await findPendingInvitationByEmail(ctx, userAttributes.email)
+        : null;
+      if (invitation) {
+        const profile = await ctx.db.get(profileId);
+        if (profile) await applyInvitation(ctx, invitation, profile);
+      }
     } else {
       await ctx.db.patch(user._id, userAttributes);
     }

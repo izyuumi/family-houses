@@ -94,6 +94,7 @@ export const passcodesForProperty = query({
 export const bindDevice = mutation({
   args: {
     propertyId: v.id("properties"),
+    accountId: v.optional(v.id("switchbotAccounts")),
     deviceId: v.string(),
     deviceType: v.string(),
     label: v.string(),

@@ -75,6 +75,7 @@ export default defineSchema({
 
   switchbotDevices: defineTable({
     propertyId: v.id("properties"),
+    accountId: v.optional(v.id("switchbotAccounts")),
     deviceId: v.string(),
     deviceType: v.string(),
     label: v.string(),
@@ -112,6 +113,33 @@ export default defineSchema({
     secret: v.optional(v.string()),
     webhookToken: v.optional(v.string()),
   }).index("by_name", ["name"]),
+
+  invitations: defineTable({
+    email: v.string(),
+    token: v.string(),
+    propertyAssignments: v.array(
+      v.object({
+        propertyId: v.id("properties"),
+        role: v.union(
+          v.literal("owner"),
+          v.literal("member"),
+          v.literal("guest")
+        ),
+      })
+    ),
+    status: v.string(),
+    invitedBy: v.string(),
+    acceptedBy: v.optional(v.string()),
+    acceptedAt: v.optional(v.number()),
+  })
+    .index("by_token", ["token"])
+    .index("by_email", ["email"]),
+
+  switchbotAccounts: defineTable({
+    label: v.string(),
+    token: v.string(),
+    secret: v.string(),
+  }),
 
   guestPasscodes: defineTable({
     propertyId: v.id("properties"),
