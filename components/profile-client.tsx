@@ -17,6 +17,7 @@ import {
   Laptop,
   LogOut,
   Users,
+  Car,
   ChevronRight,
 } from "lucide-react";
 
@@ -35,6 +36,11 @@ export function ProfileClient({ email, displayName, isAdmin }: ProfileClientProp
     isAdmin ? {} : "skip"
   );
   const pendingCount = pendingProfiles?.length ?? 0;
+  const pendingCarRequests = useQuery(
+    api.cars.pendingRequests,
+    isAdmin ? {} : "skip"
+  );
+  const pendingCarCount = pendingCarRequests?.length ?? 0;
 
   useEffect(() => {
     setMounted(true);
@@ -91,6 +97,24 @@ export function ProfileClient({ email, displayName, isAdmin }: ProfileClientProp
               <ChevronRight className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
             </Link>
           )}
+
+          <Link
+            href="/cars"
+            className="flex items-center gap-3.5 rounded-2xl border bg-card px-4 py-3.5 shadow-card transition-all active:scale-[0.98] dark:shadow-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          >
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[11px] bg-secondary text-primary">
+              <Car className="h-[18px] w-[18px]" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-sm font-semibold">{t.cars.title}</div>
+              {pendingCarCount > 0 && (
+                <div className="mt-px text-xs text-muted-foreground">
+                  {t.cars.pendingRequests} · {pendingCarCount}
+                </div>
+              )}
+            </div>
+            <ChevronRight className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
+          </Link>
 
           <div className="flex flex-col gap-3 rounded-2xl border bg-card p-4 shadow-card dark:shadow-none">
             <div className="flex items-center gap-2 text-sm font-semibold">

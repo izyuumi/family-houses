@@ -114,6 +114,29 @@ export default defineSchema({
     webhookToken: v.optional(v.string()),
   }).index("by_name", ["name"]),
 
+  cars: defineTable({
+    name: v.string(),
+    model: v.optional(v.string()),
+    plate: v.optional(v.string()),
+    propertyId: v.optional(v.id("properties")),
+    notes: v.optional(v.string()),
+  }),
+
+  carReservations: defineTable({
+    carId: v.id("cars"),
+    requestedBy: v.string(),
+    startTime: v.number(),
+    endTime: v.number(),
+    note: v.optional(v.string()),
+    status: v.string(),
+    decidedBy: v.optional(v.string()),
+    decidedAt: v.optional(v.number()),
+    decisionNote: v.optional(v.string()),
+  })
+    .index("by_car", ["carId"])
+    .index("by_requester", ["requestedBy"])
+    .index("by_status", ["status"]),
+
   invitations: defineTable({
     label: v.optional(v.string()),
     email: v.optional(v.string()),
